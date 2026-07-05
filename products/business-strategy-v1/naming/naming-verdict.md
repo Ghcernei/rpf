@@ -31,14 +31,14 @@
 | # | Checklist point | Evidence | Result |
 | :- | :---- | :---- | :---- |
 | 1 | Live-company search in category | No company, product, or trademark surfaced for "Qroky" in web search; nearest hits are unrelated (ROKKY gaming trademark, Qore Performance) (source: web search 2026-07-05) | pass |
-| 2 | GitHub namespace | **Open.** Org-creation probe + `qroky.png` avatar probe not yet run (not verifiable in this run — needs the org-form check per §3.3 method; 404 alone proves nothing) | open |
-| 3 | Trademark screen EUIPO/USPTO/WIPO + phonetic neighbors | No Qroky registration surfaced via web search; formal register queries **not performed** (not verifiable here — assumption: clean, confidence moderate given the string's rarity). Phonetic neighbors: none of substance found; Atomico irrelevant to Qroky | pass by assumption, register probe open |
-| 4 | Domain field state | Fully available incl. qroky.com (source: parent INPUT §3.3, 2026-07-05) | pass |
+| 2 | GitHub namespace | **CLOSED by acquisition:** org `github.com/qroky` created and owned by the human (source: human confirmation + owner-view screenshot, 2026-07-05; evidence update at this touch, `decisions/INFO-002`) | pass — secured |
+| 3 | Trademark screen EUIPO/USPTO/WIPO + phonetic neighbors | No Qroky registration surfaced via web search; formal register queries **not performed** (not verifiable here — assumption: clean, confidence moderate given the string's rarity). Phonetic near-string field: Qrky.me (QR item tags) and QROK/@QROK_TECH (QR-code tech) — one letter/sound away, different category (source: ATOM-008-VERIFY finding F1, absorbed at this touch); Atomico irrelevant to Qroky | pass by assumption — **the only remaining probe** |
+| 4 | Domain field state | **CLOSED by acquisition:** qroky.com registered by the human 2026-06-27 (whois: created 2026-06-27, registrar Instra, parked pending use; source: whois check + human confirmation, 2026-07-05, `decisions/INFO-002`). The intake evidence "fully available" (§3.3) was already stale at verdict time — the human had secured it before the atom ran | pass — secured |
 | 5 | 5-second comprehension | Zero semantics — communicates nothing by itself; neutral vessel, no wrong meaning in target languages (source: executor judgment, ATOM-008, 2026-07-05) | neutral |
 | 6 | Pronounceability en/ro/ru/fr | Pronounceable in all four ("KRO-kee"); minor en ambiguity Q-without-u, resolved on first hearing (source: executor judgment, ATOM-008, 2026-07-05) | pass |
 | 7 | sed-replaceability | Same repo state as above — one `sed` swap when adopted (source: repo grep, 2026-07-05) | pass |
 
-**Qroky verdict: GO-CONDITIONAL.** Clean everywhere checked today; before any public use, close the two open probes (GitHub org-form + formal EUIPO/USPTO/WIPO queries) — cheap, mechanical, tier-S work.
+**Qroky verdict: GO-CONDITIONAL** (vocabulary note per ATOM-008-VERIFY F2, absorbed at this touch: within the closed set {go, hold, kill} this is a **go** whose public use is conditioned on the remaining probe). Updated 2026-07-05 (`decisions/INFO-002`): GitHub org and qroky.com both secured by the human — **one probe remains open before public use: the formal EUIPO/USPTO/WIPO screen** — cheap, mechanical, tier-S work.
 
 ## Dead candidate — Atomos (record for NOT-DOING)
 Killed at intake: live London company "Atomos AI" + video-hardware trademark holder (source: parent INPUT §3.3, 2026-07-05). Confirms the same lesson as Atomaro: the atom-semantic field is crowded.
@@ -50,7 +50,7 @@ Atomico is a top-tier London VC active in European startup circles our channels 
 | Candidate | Verdict |
 | :---- | :---- |
 | Atomaro | **kill** — checklist point 1 hard fail (Rostelecom collision) |
-| Qroky | **go-conditional** — adopt as front-runner; close probes 2–3 before public use |
+| Qroky | **go-conditional** (= go, public use conditioned) — front-runner; probes 2 and 4 closed by acquisition 2026-07-05; probe 3 (formal registers) remains before public use |
 | Atomos | kill (intake, confirmed) |
 
-**Recommendation (exactly one):** promote **Qroky** to front-runner; cancel the atomaro.com backorder; keep the "RPF" placeholder in all artifacts until the two remaining Qroky probes close; register qroky.com now (cheap, reversible). Lesson fed to NOT-DOING: atom-semantic names — crowded field, two kills; revisit only with a full point-1-first screen.
+**Recommendation (exactly one):** promote **Qroky** to front-runner; cancel the atomaro.com backorder; keep the "RPF" placeholder in all artifacts until the remaining probe closes. *(Updated 2026-07-05, `decisions/INFO-002`: qroky.com and the GitHub org were already secured by the human — the "register now" instruction is moot; only the formal EUIPO/USPTO/WIPO screen stands between Qroky and public use.)* Lesson fed to NOT-DOING: atom-semantic names — crowded field, two kills; revisit only with a full point-1-first screen.
