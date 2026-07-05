@@ -36,7 +36,7 @@ Six measured success criteria convert the strategy's widest assumptions into dat
 
 ## Name
 
-Verdict (`naming/naming-verdict.md`, human-accepted via GATE-009; evidence updated per `decisions/INFO-002`): **Atomaro is dead** — a live commercial product of a major telecom occupies the name in our market's language space; backorder cancelled. **Qroky is the front-runner**: qroky.com and the GitHub org are already secured (human-acquired, 27.06–05.07.2026); one probe remains before any public use — the formal EUIPO/USPTO/WIPO screen. "RPF" remains the repository placeholder until it closes. Method lesson recorded: live-company search in the market's languages first — it killed in one check what domain research missed. Rejected names and all other closed questions live in `NOT-DOING.md` (14 entries, each with a revisit trigger).
+Verdict (`naming/naming-verdict.md`, human-accepted via GATE-009; evidence updated per `decisions/INFO-002` and `decisions/INFO-003`): **Atomaro is dead** — a live commercial product of a major telecom occupies the name in our market's language space; backorder cancelled. **Qroky is cleared for public use**: qroky.com and the GitHub org secured (human-acquired), and the formal register screen (TMview across EUIPO/WIPO/USPTO/AGEPI, 05.07.2026) came back clean — zero exact hits, no live near-string mark in classes 9/42. The "RPF"→Qroky swap is one `sed`, pending only the rebrand-timing decision. Method lesson recorded: live-company search in the market's languages first — it killed in one check what domain research missed. Rejected names and all other closed questions live in `NOT-DOING.md` (14 entries, each with a revisit trigger).
 
 ## Re-validation
 
