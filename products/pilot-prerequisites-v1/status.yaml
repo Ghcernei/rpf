@@ -1,7 +1,7 @@
 # status.yaml — shared status machine of one multi-atom product (SM1-SM4)
 # One file per products/<product-slug>/; one entry per atom; current state only.
 product: pilot-prerequisites-v1
-updated: 2026-07-07T12:47:37Z
+updated: 2026-07-07T12:55:23Z
 atoms:
   - id: ATOM-007
     state: running
@@ -44,18 +44,22 @@ atoms:
     timestamp: 2026-07-07T12:47:37Z
     note: ACCEPT round 1 (returns_used 0); 3 minor (render m_roles hardcode, breakdown absent, singular form); real 101,262 tokens
   - id: ATOM-073
-    state: running
-    timestamp: 2026-07-07T12:47:37Z
-    note: fan lens founder-ux (M sonnet, ~90k); LF2 shared question; SY9 contradiction demanded
+    state: delivered
+    timestamp: 2026-07-07T12:53:27Z
+    note: yes-with-conditions; 3 blocking / 5 significant / 3 minor; SY9: hiding-vs-transparency at consent whitelist; real 151,423
   - id: ATOM-074
-    state: running
-    timestamp: 2026-07-07T12:47:37Z
-    note: fan lens token-economics (S haiku, ~75k)
+    state: delivered
+    timestamp: 2026-07-07T12:50:41Z
+    note: yes-with-conditions; 1 blocking (\$8/M rate ~3.2x inflated) / 3 significant / 1 minor; real 95,001
   - id: ATOM-075
-    state: running
-    timestamp: 2026-07-07T12:47:37Z
-    note: fan lens security-telemetry (M sonnet, ~90k), adversarial
+    state: delivered
+    timestamp: 2026-07-07T12:54:28Z
+    note: yes-with-conditions; 3 blocking / 1 significant / 3 minor; SY9: render.sh reads INPUT.md vs blindness canon; real 155,859
   - id: ATOM-076
+    state: delivered
+    timestamp: 2026-07-07T12:51:18Z
+    note: NO; owner load 50-55 min/day at 2 founders, <10 min SLA margin; 1 blocking / 1 significant / 4 minor; real 91,655
+  - id: ATOM-007-SYNTH
     state: running
-    timestamp: 2026-07-07T12:47:37Z
-    note: fan lens owner-capacity (S haiku, ~75k)
+    timestamp: 2026-07-07T12:55:23Z
+    note: synthesis act of the first real fan (tier L fable, LF4); fact/value split; E8 block expected
