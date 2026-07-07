@@ -1,19 +1,21 @@
 ---
 atom: ATOM-007
 delivered: 2026-07-07
-total_descendants: 18
+accepted: 2026-07-07 (GATE-021 — G2 round 2 GO after GATE-019 pivot round; maturity reviewed)
+total_descendants: 21
 max_depth_reached: 1
-subtree_cost: ~2,123,000 tokens real (children 1,982,936 by EC6 counters + parent orchestration ~140k BC4; pre-closure snapshot — parent verify + gate/closure costs added at final closure line, per 007-VERIFY M2)
+subtree_cost: ~2,760,000 tokens real (children 2,570,400 by EC6 counters + parent orchestration ~190k BC4; final closure numbers; envelope ~2.8M per GATE-021)
 subtree_cost_breakdown:
-  execute: 1117974          # 4 builds (624,036) + 4 lens atoms (493,938)
-  verify: 466204            # 4 blind slim verifies, all accept round 1
+  execute: 1333873          # 4 builds (624,036) + 4 lens atoms (493,938) + ATOM-079 pivot fix-round (215,899)
+  verify: 837769            # 6 blind slim verifies incl. parent-layer + 079, all accept round 1
   role_creation: 267420     # ROLE-004..008
   synthesis: 131338         # ATOM-007-SYNTH
+infrastructure_loss: 114893 # mid-run API server error on 079-VERIFY (resumed from transcript; not a cost of the method, counted inside verify above)
 tier_shares:                # INFO-008 rule 4 — routing health
-  L: ~35%                   # verifies + synthesis + parent orchestration (fable)
-  M: ~44%                   # builds + judgment lenses (sonnet)
-  S: ~21%                   # roles + arithmetic lenses (haiku)
-verify_returns_total: 0     # every blind verify accepted round 1
+  L: ~40%                   # verifies + synthesis + parent orchestration (fable)
+  M: ~42%                   # builds + judgment lenses + pivot fix-round (sonnet)
+  S: ~18%                   # roles + arithmetic lenses (haiku)
+verify_returns_total: 0     # every blind verify accepted round 1 (G2 pivot was a human gate return, not a verify return)
 ---
 
 # RESULT — ATOM-007 (Pilot Prerequisites v1)
@@ -48,7 +50,7 @@ The tree under `products/pilot-prerequisites-v1/` — all five §4 deliverables:
 | S2 goals derived from values | PASS (verify) | 077-VERIFY S1 — the guide passes its own disguised-task-list test |
 | S3 cost line honest | PASS (verify) | checkstop on placeholder rate landed (register №1); contract rate = G2 input |
 | S4 lenses produced named contradictions | PASS (verify) | 2 value conflicts (E8-1/E8-2, answered GATE-018) + per-lens SY9 records |
-| S5 «я бы подписал как фаундер» | **human** | G2 — this gate |
+| S5 «я бы подписал как фаундер» | PASS (round 2) | GATE-019 pivot (consent = deal, closed 4-point fix list) → ATOM-079 accept r1 → GATE-021 GO |
 
 ## Semantic fold-back (FB4 — what each axis returned to the whole)
 
@@ -76,7 +78,7 @@ recorded **`reviewed` → `validated`** by this atom's closure.
 
 ## Первая живая TEAM-сводка (INFO-007 self-application, per team-summary-spec)
 
-**Кто работал (7 ролей, 18 агентов):**
+**Кто работал (7 ролей, 21 агент):**
 - *framework-architect* — создал 5 новых ролей; провёл 4 слепые проверки, все приняты с первого раунда;
 - *pilot-toolsmith* — построил setup-кит (≤15 мин подтверждено таймером), телеметрию с открытым скриптом и витрину; затем сам прошёл по реестру из 22 правок;
 - *venture-strategist* — вёл синтез веера и написал гайд первого разговора (mission-first);
@@ -90,20 +92,30 @@ recorded **`reviewed` → `validated`** by this atom's closure.
 держать двух фаундеров, но с письменным обязательством primary-duty и
 протоколом паузы при двух срывах SLA за пять дней.
 
-**Возвраты проверок:** 0 — все четыре слепые проверки приняли работу с первого раунда.
+**Возвраты проверок:** 0 — все шесть слепых проверок (включая проверку дерева
+целиком и pivot-раунд) приняли работу с первого раунда.
 
-**Итог:** пререквизиты пилота готовы к подписи фаундера — ждут последнего
-человеческого «я бы подписал» (G2).
+**Финальный человеческий раунд:** первый G2 вернул pivot — CEO как живой
+холодный читатель увидел то, что не поймала ни одна линза: согласие
+подписывалось под инструкцией, а не под сделкой. Fix-round ATOM-079
+перестроил пакет (страница «Что такое Qroky», четыре блока сделки,
+приложения после «да»), слепая проверка приняла с первого раунда, второй
+прочит CEO — «Go — подписываю» (GATE-021).
 
-⚙ 18 агентов · 7 ролей · глубина 1 · возвратов verify 0 · ~$17 *(ставка-заглушка $8/M; контрактная ставка — вход G2, до неё цифра не показывается фаундеру — реестр №1)*
+**Итог:** пререквизиты пилота приняты подписью фаундера (S5 закрыт round 2).
+
+⚙ 21 агент · 7 ролей · глубина 1 · возвратов verify 0 · ~$22 *(ставка-заглушка $8/M; контрактная ставка — письменный вход CEO, до неё цифра не показывается фаундеру — реестр №1)*
 
 ## Residual (queued, non-blocking)
 
-- 5 minor findings of 078-VERIFY (M1–M5: swapped A/B labels in RESULT table
-  row №3; №5 variant flagged descriptively; opt-in marker base divergence;
-  dead `pct` var; record numbers in debrief rows) — fix-list attachment at G2.
+- 5 minor findings of 078-VERIFY (M1–M5) + 079-VERIFY F3 observation —
+  cosmetics queue for the next showcase touch (A/B menus themselves removed
+  by ATOM-079).
 - Minor findings of earlier verifies absorbed by the register or queued in
-  their VERDICTs.
+  their VERDICTs; 079-VERIFY F1/F2 fixed at closure (push.sh hard-fail
+  default; telemetry term tied at first consent use).
 - pilot-design.md amendment (E8-2 protocol) — proposal at
-  `078-fix-round/workspace/pilot-design-amendment-proposal.md`, CEO applies at G2.
-- Contract $/M rate — written CEO input at G2 (checkstop active until then).
+  `078-fix-round/workspace/pilot-design-amendment-proposal.md`, applied by
+  CEO's hand or a business-tree atom (GATE-021 item 4).
+- Contract $/M rate — written CEO input, still open (checkstop active).
+- Pilot start inputs: Startup Moldova kickoff (human panel row in TASKS.md).

@@ -95,3 +95,7 @@ atoms:
     state: delivered
     timestamp: 2026-07-07T17:45:00Z
     note: ACCEPT round 1 (returns_used 0); H1-H7 all pass, 3 minor (F1/F2 fixed by parent, F3 observation); real 243,393 incl. 114,893 lost to mid-run API server error + resume (infrastructure, not a verify return)
+  - id: ATOM-007
+    state: closed
+    timestamp: 2026-07-07T18:10:00Z
+    note: GATE-021 G2 r2 GO (S5 signed round 2 after GATE-019 pivot); maturity reviewed; descendants 21, subtree ~2.76M real (infra loss 114,893 flagged), verify returns 0; SYNTHESIS-PROTOCOL -> validated (M3)

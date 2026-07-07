@@ -5,7 +5,7 @@
 | Product | Synthesis & Perspective Protocol v1 |
 | Parent product | Recursive Product Framework v1 |
 | Produced by | ATOM-016 (executor role: Framework Architect) |
-| Maturity | `reviewed` (target) |
+| Maturity | `validated` — first real fan consumed end-to-end by ATOM-007 (M3; GATE-021, 2026-07-07) |
 | Date | 2026-07-06 |
 | Amended | ATOM-018, 2026-07-07 — first constitutional touch (queue T1–T10) |
 
