@@ -1,7 +1,7 @@
 # status.yaml — shared status machine of one multi-atom product (SM1-SM4)
 # One file per products/<product-slug>/; one entry per atom; current state only.
 product: pilot-prerequisites-v1
-updated: 2026-07-07T12:55:23Z
+updated: 2026-07-07T14:09:09Z
 atoms:
   - id: ATOM-007
     state: running
@@ -60,6 +60,14 @@ atoms:
     timestamp: 2026-07-07T12:51:18Z
     note: NO; owner load 50-55 min/day at 2 founders, <10 min SLA margin; 1 blocking / 1 significant / 4 minor; real 91,655
   - id: ATOM-007-SYNTH
+    state: delivered
+    timestamp: 2026-07-07T14:09:09Z
+    note: yes-with-conditions (7 conditions); 6 fact-tensions handled, 2 value conflicts -> GATE-018 (answered); register 22 items; real 131,338
+  - id: ATOM-078
     state: running
-    timestamp: 2026-07-07T12:55:23Z
-    note: synthesis act of the first real fan (tier L fable, LF4); fact/value split; E8 block expected
+    timestamp: 2026-07-07T14:09:09Z
+    note: Wave 4 fix-round per synthesis register + E8 wiring + INFO-009 narrative spec (M sonnet, ~170k); slim re-verify after
+  - id: ATOM-077
+    state: running
+    timestamp: 2026-07-07T14:09:09Z
+    note: Wave 4 intake protocol, mission-first (M sonnet, ~170k); E1 hold released per GATE-018; slim verify after

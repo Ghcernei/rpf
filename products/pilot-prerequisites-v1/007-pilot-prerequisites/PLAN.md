@@ -99,3 +99,13 @@ Role-atom ids ROLE-002/003 in the G1-accepted table collided with existing atoms
 (ROLE-002 = venture-strategist, ROLE-003 = market-analyst, created 2026-07-05).
 Ids renumbered to ROLE-004..008; tree shape, roles, budgets, sequencing —
 unchanged (no OD7 replanning). Logged in run.log.
+
+## Addendum 2 (logged — 2026-07-07, post-GATE-018)
+
+Wave 4 re-planned per the synthesis register and GATE-018 (E4 answer named and
+authorized the fix-round): **ATOM-078** added — fix-round over the register's
+executor-fixable items + E8-1/E8-2 wiring + INFO-009 narrative-spec (showcase
+becomes three artifacts). ATOM-077 hold released (garden reserve closed:
+«двух достаточно»). Both run parallel (disjoint file sets), then slim
+re-verify (078), slim verify (077), parent verify, G2. Envelope ~2.4M
+(GATE-018). Tree shape otherwise unchanged.

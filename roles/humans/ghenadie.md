@@ -14,8 +14,11 @@ Present balanced pros and cons with explicit risks — especially non-obvious on
 
 When a gate asks him to judge a document, the package MUST include a Russian reference copy of the judged document, or a faithful Russian summary covering everything the judgment bears on (HP6 — his GATE-010 reservation, verbatim: «gate-пакеты с судейством документов включают русскую справочную копию (расширение HP2, в FEV-touch)»). Every criterion he is asked to judge MUST be restated in plain language — what a "yes" and a "no" mean in the product's own terms; criterion-form wording alone is not parseable to him (HP7 — the GATE-011 S5 episode).
 
+**Run-narrative detail level (INFO-009): 2 — broad strokes per stage** (spawn briefs and closure debriefs in meaning-language, no mechanics). Switchable on the fly by plain words or a one-off per-task override; constitutional events (E4, value synthesis conflicts, E5) pierce any level. Level changes are logged in `~/.claude/qroky/delegation.log` as a trust-curve signal.
+
 ## Provenance
 | Event | Atom | Date |
 | :---- | :---- | :---- |
 | Created | ATOM-003 | 2026-07-05 |
 | Amended — HP6/HP7 decision-input preferences (GATE-010 reservation + GATE-011 S5 lesson) | ATOM-018 | 2026-07-07 |
+| Amended — run-narrative detail level 2 (field-test lesson 5) | INFO-009 (touch pending) | 2026-07-07 |
