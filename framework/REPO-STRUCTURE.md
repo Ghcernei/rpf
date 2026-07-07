@@ -7,6 +7,7 @@
 | Produced by | ATOM-003 (executor role: Framework Architect) |
 | Maturity | `reviewed` (target) |
 | Date | 2026-07-05 |
+| Amended | ATOM-018, 2026-07-07 — first constitutional touch (queue T1–T10) |
 
 This document fixes the repository as the framework's physical reality: where every file lives, what it is named, what frontmatter it carries, when it reaches remote consumers, and how overall progress is read from one place. ATOM-SPEC defines the atom's contract; FEV-PROTOCOL defines checking and escalating; this document defines the ground both stand on. After this document, no atom invents a path, a filename, or a frontmatter schema.
 
@@ -81,6 +82,7 @@ This document fixes the repository as the framework's physical reality: where ev
 | Atom | `ATOM-NNN` | `NNN` zero-padded, three digits |
 | Role-creation atom | `ROLE-NNN` | Same numbering discipline, own sequence |
 | Verify atom | `<target-atom-id>-VERIFY` | Fixed by VP6 |
+| Synthesis act | `<parent-atom-id>-SYNTH` (later fans of the same parent: `-SYNTH-2`, `-SYNTH-3`, …) | Fixed by SY1; row landed per ATOM-018 |
 | Placed gate / decision record | `GATE-NNN`, `INFO-NNN`, `RISK-NNN` | Fixed by DR1–DR3 |
 
   Numbers are sequential per prefix across the repository and are never reused, including for `failed` or abandoned atoms.
@@ -89,7 +91,7 @@ This document fixes the repository as the framework's physical reality: where ev
 - NC4 — Knowledge files: `knowledge/<type>/<slug>.md`, where `<type>` is one of the KL2 vocabulary and `<slug>` is kebab-case. The path's `<type>` segment MUST equal the file's frontmatter `type`.
 - NC5 — Role files: `roles/<role-slug>.md`, kebab-case (e.g. `framework-architect.md`). Human profiles: `roles/humans/<given-name>.md`, lowercase (e.g. `ghenadie.md`).
 - NC6 — Launch files: `<ATOM-ID>-LAUNCH.md` at the repository root. A launch file is a runtime convenience for starting a session; its normative content is the `INPUT.md` it materializes. On any divergence, `INPUT.md` prevails.
-- NC7 — Everything else defaults to lowercase kebab-case. Reserved filenames keep their fixed casing: `INPUT.md`, `STATUS.md`, `RESULT.md`, `VERDICT.md`, `GATE-BRIEF.md`, `run.log`, `status.yaml`, `.gitignore`.
+- NC7 — Everything else defaults to lowercase kebab-case. Reserved filenames keep their fixed casing: `INPUT.md`, `STATUS.md`, `RESULT.md`, `VERDICT.md`, `GATE-BRIEF.md`, `GATE-BRIEF-<gate-id>.md` (GB1), `SYNTHESIS.md` (SY1), `run.log`, `status.yaml`, `.gitignore`. *(The last two entries landed per ATOM-018, fulfilling GB5 and SY1.)*
 
 ---
 
@@ -149,9 +151,9 @@ each stated so a future atom can act on it without reading anything else.>
 ## 4. Human-Participant Profiles
 
 - HP1 — Every human who answers escalations, gates, or sign-offs MUST have a profile at `roles/humans/<given-name>.md` (NC5) before their first recorded decision. Mandatory frontmatter: `name`, `languages` (ordered list), `preferred_for_decisions` (exactly one language code). Mandatory sections: *Identity*, *Decision-input preferences*.
-- HP2 — **Language canon.** Artifacts addressed to agents and executors are written in English. Products addressed to a human — E1 question sets, E2 risk-acceptance requests, E3 gate briefs, and sign-off requests per VP18 — are written in that human's `preferred_for_decisions` language.
-- HP3 — Decision records keep the *Answer (verbatim)* section in the answerer's original words and language (DR5), followed immediately by a one-paragraph English summary, so agent consumers need no translation step.
-- HP4 — *Forward reference:* the routing rules HP2–HP3 will migrate to FEV-PROTOCOL (their normative home, next touch of that document). Until that migration they bind as written here; this atom does not modify FEV-PROTOCOL.
+- HP2 — *Migrated:* the language canon now lives, under the same rule id, in FEV-PROTOCOL §3.1 (landed per ATOM-018). It binds as stated there.
+- HP3 — *Migrated:* the verbatim-answer-plus-English-summary rule now lives, under the same rule id, in FEV-PROTOCOL §3.1 (landed per ATOM-018). It binds as stated there.
+- HP4 — The routing rules HP2–HP3 migrated to FEV-PROTOCOL §3.1, their normative home, together with their extensions HP6–HP7 (landed per ATOM-018). This section keeps the profile mechanics: HP1 and the HP5 template.
 *(informative)* The founding instance is `roles/humans/ghenadie.md`: the human risk-taker of Framework v1, answerer of GATE-001–GATE-003 and RISK-001. Question sets and briefs addressed to him are routed per HP2 using that profile.
 
 - HP5 — Human profile template:
@@ -245,7 +247,7 @@ atoms:
 ## Appendix A — What This Document Does Not Define *(informative)*
 
 - **Orchestration and runtime bindings** — how atoms are physically instantiated, scheduled, and metered on a platform. That is the orchestration product; its bindings will live under `runtime/<platform>/` (LA1).
-- **The final normative home of language routing** — HP2–HP3 migrate to FEV-PROTOCOL at its next touch (HP4).
+- **The final normative home of language routing** — HP2–HP3 migrated to FEV-PROTOCOL §3.1 (HP4, landed per ATOM-018).
 - **Tooling** — validators for KL profiles, `status.yaml` regeneration, or ignore-rule cleanup. Rules here are phrased so a script can check them; the scripts themselves are products of future atoms.
 
 *End of REPO-STRUCTURE v1. An atom holding the constitution trio — ATOM-SPEC, FEV-PROTOCOL, and this document — can place every file it produces without asking.*

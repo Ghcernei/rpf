@@ -7,6 +7,7 @@
 | Produced by | ATOM-002 (executor role: Framework Architect) |
 | Maturity | `reviewed` (target) |
 | Date | 2026-07-05 |
+| Amended | ATOM-018, 2026-07-07 — first constitutional touch (queue T1–T10) |
 
 This document turns the FEV interface fixed in ATOM-SPEC (L5–L6, L10, E1–E7, §5.8) into an executable protocol. It binds every participant: formulating agents, executors, Verify atoms, and the human. After this document, no participant improvises the mechanics of checking, returning, escalating, or recording decisions.
 
@@ -17,7 +18,7 @@ ATOM-SPEC remains the contract. Per R0.3 this protocol tightens ATOM-SPEC obliga
 ## 0. How to Read This Document
 
 - P0.1 — Rule language (MUST / MUST NOT / SHOULD / MAY) carries the meanings of ATOM-SPEC R0.1. Numbered rules and tables are normative; passages marked *(informative)* bind nobody.
-- P0.2 — Rule prefixes in this document: **FP** (Formulate protocol), **VP** (Verify protocol), **EP** (Escalation protocol), **DR** (Decision recording), **TP** (Templates), **P0** (this section). None collide with ATOM-SPEC prefixes; rules of both documents are citable side by side in findings and run logs.
+- P0.2 — Rule prefixes in this document: **FP** (Formulate protocol), **VP** (Verify protocol), **EP** (Escalation protocol), **DR** (Decision recording), **TP** (Templates), **P0** (this section). None collide with ATOM-SPEC prefixes; rules of both documents are citable side by side in findings and run logs. This document additionally hosts, in §3.1, the **HP** language-routing rules HP2–HP3 (migrated here from REPO-STRUCTURE §4 per HP4, landed per ATOM-018) and their extensions HP6–HP7; HP numbers stay unique across both documents.
 - P0.3 — **Self-waiver prohibition, generalized.** O6.2 prohibits self-waiving the budget envelope. The same prohibition applies to every control in this protocol: no participant may relax a control assigned to its own work — verification mode (A8), the blind package (VP2), the return limit (VP15), gate placement (F4), re-verify scope (VP16), or the recording duties of §4. Only the human may relax a control, and only as a recorded risk acceptance (DR2, kind `risk-acceptance`).
 
 *(informative)* Precedent ATOM-000: the executor overran its budget 2× and waived its own envelope. That waiver path is closed by O6.2, and P0.3 closes every analogous path. The canonical positive precedent is the ATOM-001 verification run, reproduced step by step in §2.7.
@@ -46,6 +47,9 @@ Performed by the formulating agent as part of its §2.0 obligations (F1–F6). T
   3. Otherwise → `self`.
 - FP9 — Overrides of the F3 row are asymmetric: an **upward** override (more verification than the row requires) needs only the logged justification of F3/M1. A **downward** override (less verification than the row requires) is a relaxation and, per P0.3, MUST be approved by the human as a recorded risk acceptance before instantiation. A downward override below the maturity minimum of M1 is prohibited outright.
 - FP10 — The assigned mode binds the executor (A8) and the Verify atom alike; neither may substitute a weaker check.
+- FP14 — **Row-2 precedence** *(landed per ATOM-018, from the ATOM-006 framework findings)*. The FP8 row-2 test is evaluated as follows, and this evaluation takes precedence over any per-risk verification discretion an `INPUT.md` grants:
+  1. "Feeds ≥ 2 downstream atoms" counts the consumers named at Formulate time — the atom's `INPUT.md` Consumers field and the plan's OD2 dependency lines — not potential future consumers. Later consumption by additional atoms raises the product's maturity per M3/M4; it never retroactively changes the assigned verification mode.
+  2. A verification discretion granted to a formulating agent by its parent's `INPUT.md` operates **within** FP8, never instead of it: the discretion may select any mode at or above the row outcome for the child in question. Selecting below the row outcome is a downward override and follows FP9 — the human's recorded risk acceptance, which MAY be granted in advance in the parent's `INPUT.md` provided it names the class of children it covers and the row conditions it accepts overriding.
 
 ### 1.3 Gate placement
 
@@ -72,6 +76,10 @@ The operating manual for Verify atoms, and for the parents who formulate them. A
 - VP4 — Instantiation: fresh isolated context (the `session` semantics of L2), regardless of how the verified atom was instantiated. A verification whose context was shared with the executor or the parent is void — it counts as not performed and MUST be redone; it does not consume a return.
 - VP5 — **Capability and economics.** Verify runs at high capability — not below the capability class of the executor that produced the product. Verify cost is allocated by the formulating agent from its own envelope (O6.1) and reported as a separate line in its cost aggregation (schema per O4.2). Verification cost is a governance cost of the parent, never deducted from the executor's envelope.
 - VP6 — Identity and location: the Verify atom's id is `<target-atom-id>-VERIFY`; its product folder is a sibling of the target atom's folder, suffixed `-verify`. Its product, `VERDICT.md`, lives at that folder's root.
+- VP20 — **Slim package** *(landed per ATOM-018; codifies the practice the human accepted in GATE-008)*. The formulating agent MAY replace item 3 of VP2 — the paths to the reference standards — with a digest of the cited standards' rules, embedded in the Verify atom's `INPUT.md`, when **both** conditions hold:
+  1. every hard criterion of the DoD is script-checkable per FP2, so no judgment rests on the fidelity of the digested text;
+  2. the package lists, by path, **every file the product cites**, and those files are thereby part of the package for the verifier to read directly.
+  Items 1, 2, and 4 of VP2 are untouched; blindness (no executor reasoning, no parent history) is untouched. The slim Verify atom's envelope MUST keep a margin of at least 25% above its read-based calibration (BC3). *(informative)* Measured basis: the ATOM-015 slim verification ran at accept-round-1 quality ~30% cheaper, with a residual +21% envelope overrun — see `knowledge/precedent/verify-envelope-calibration.md`.
 
 ### 2.2 Execution steps
 
@@ -137,7 +145,7 @@ blind package = DoD + `framework/ATOM-SPEC.md` (VP2) → hard pass by script (VP
 - EP1 — An escalation is a product (A2): a consolidated question set (O7.1) written to the file bus, plus a `STATUS.md` transition to `blocked` (L8) with the decision-record id in the note. Escalating through any other channel is not an escalation (O1.1).
 - EP2 — **Question-set format** (CL2 made operational). One consolidated set per stop (O7.1), containing:
   1. Context — which atom, what it produces, where it stopped.
-  2. Trigger id (E1–E7).
+  2. Trigger id (E1–E8; E8 landed per ATOM-018).
   3. What exactly is blocked — the DoD criterion, step, or decision affected.
   4. Options considered — 2 or 3, each with a one-line trade-off.
   5. Recommendation — exactly one.
@@ -160,6 +168,13 @@ blind package = DoD + `framework/ATOM-SPEC.md` (VP2) → hard pass by script (VP
 - EP6 — **E4 mechanics.** Stop means stop: freeze work at the current file state — no "one more small step". Then: `STATUS.md` → `blocked` with projected total vs. envelope; question set per EP2 with options from {reallocate, descope, abandon}; wait. Finishing first and reporting afterwards is prohibited (O6.2). *(informative)* This rule exists because ATOM-000 did the opposite.
 - EP7 — **Feedback duty** (O8.3 made operational). The party that receives a human answer MUST, before its atom closes, either update the feedback target — role spec, knowledge file, or a proposed rule change — and record where in the decision record's *Fed back to* section (DR6), or record there why no feedback target exists. The purpose test: the same question type asked twice with no feedback in between is a protocol defect.
 
+### 3.1 Language routing of human-addressed products *(HP2–HP3 migrated from REPO-STRUCTURE §4 per HP4; extensions HP6–HP7 — landed per ATOM-018)*
+
+- HP2 — **Language canon.** Artifacts addressed to agents and executors are written in English. Products addressed to a human — E1 question sets, E2 risk-acceptance requests, E3 gate briefs, sign-off requests per VP18, and E8 value-gate briefs — are written in that human's `preferred_for_decisions` language (profile per REPO-STRUCTURE §4).
+- HP3 — Decision records keep the *Answer (verbatim)* section in the answerer's original words and language (DR5), followed immediately by a one-paragraph English summary, so agent consumers need no translation step.
+- HP6 — **Reference copy for document judgment** *(the GATE-010 reservation, formalized)*. A gate package that asks the human to judge a document — a brief per FP13/VP18 whose decision covers a delivered document or a document-shaped criterion — MUST include a reference copy of the judged document, or a faithful summary of it covering everything the judgment bears on, in the human's `preferred_for_decisions` language.
+- HP7 — **Plain-language criteria** *(the GATE-011 S5 lesson, formalized)*. Every criterion the human is asked to judge (criteria deferred per VP9, and any go/no-go question framed on a criterion) MUST be restated in the brief in plain language — stating what a "yes" and a "no" mean in the product's own terms — alongside or instead of the criterion text. Criterion-form wording alone does not satisfy this rule.
+
 ---
 
 ## 4. Decision Recording
@@ -174,7 +189,7 @@ blind package = DoD + `framework/ATOM-SPEC.md` (VP2) → hard pass by script (VP
 | `GATE` | `gate` | Intent confirmation: go / no-go / pivot | E3 placed gates; E4/E5 human decisions; human acceptance in `independent + human` mode (VP18) |
 
 - DR3 — The record id is assigned when the record file is created, in creation order per KIND. Gates placed at Formulate time are named by position in `INPUT.md` §7 and receive their `GATE-NNN` id when the brief is delivered.
-- DR4 — Mandatory frontmatter fields: `id`, `date`, `kind`, `status` (`pending` | `answered`), `atom` (the atom that raised or is gated), `trigger` (E1–E7 or `backfill`), `answered_by`, `recorded_by`. Mandatory sections: *Question / Brief*; *Answer (verbatim)*; *Consequences*; *Fed back to*.
+- DR4 — Mandatory frontmatter fields: `id`, `date`, `kind`, `status` (`pending` | `answered`), `atom` (the atom that raised or is gated), `trigger` (E1–E8 or `backfill`; E8 landed per ATOM-018), `answered_by`, `recorded_by`. Mandatory sections: *Question / Brief*; *Answer (verbatim)*; *Consequences*; *Fed back to*.
 - DR5 — The answer is recorded **verbatim** — the answering party's words, not a paraphrase. Backfilled or reconstructed answers MUST name their source document and be marked as reconstructions.
 - DR6 — The *Fed back to* section records where the answer was propagated (EP7): the role spec, knowledge file, or rule updated — or "none: <reason>". It is the only section that may be updated after the record reaches `answered`.
 - DR7 — Records are frozen once `answered`, except *Fed back to* (DR6). A wrong record is never edited: a superseding record is created and cross-referenced in both directions.
@@ -243,7 +258,7 @@ date: <YYYY-MM-DD>
 kind: <information | risk-acceptance | gate>
 status: <pending | answered>
 atom: <atom id that raised the escalation or is gated>
-trigger: <E1..E7 | backfill>
+trigger: <E1..E8 | backfill>
 answered_by: <human name | role>
 recorded_by: <atom id or role that wrote this record>
 ---
@@ -294,6 +309,11 @@ Spent so far: <amount + unit>. Cost ahead (estimate): <amount + unit>.
 
 ## Recommendation
 <exactly one of the options, with a one-line rationale.>
+
+## Judged document & criteria (HP6–HP7 — only when the gate asks the human to judge a document)
+<reference copy, or faithful full-coverage summary, of the judged document in the
+human's preferred_for_decisions language (HP6); every human-judged criterion restated
+in plain language — what "yes" and "no" mean in the product's own terms (HP7).>
 
 ## Decision requested
 go / no-go / pivot — the answer will be recorded as a GATE decision record (DR1, EP3).

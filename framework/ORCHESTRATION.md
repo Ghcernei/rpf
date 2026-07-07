@@ -7,6 +7,7 @@
 | Produced by | ATOM-004 (executor role: Framework Architect) |
 | Maturity | `reviewed` (target) |
 | Date | 2026-07-05 |
+| Amended | ATOM-018, 2026-07-07 — first constitutional touch (queue T1–T10) |
 
 This document defines how atoms compose into running products: decomposition planning, executor-class assignment, budget calibration, gate-brief placement, the launch-file format, spawn mechanics, and status synchronization. ATOM-SPEC is the contract, FEV-PROTOCOL the checking, REPO-STRUCTURE the ground; this is the assembly. After it, a formulating agent takes a product from idea to a tree of running atoms without inventing any mechanics — and a runtime author knows exactly what a binding must implement.
 
@@ -46,7 +47,8 @@ This document defines how atoms compose into running products: decomposition pla
   3. budget envelope (EC1–EC2);
   4. verification mode (FP8) and placed gates (FP11);
   5. instantiation mode (L2);
-  6. dependencies — the input products it consumes, named by producing atom id.
+  6. dependencies — the input products it consumes, named by producing atom id;
+  7. the perspective map of the product being planned (PM1–PM6), embedded as a plan section per PM2 *(item landed per ATOM-018, fulfilling SYNTHESIS-PROTOCOL PM2)*.
 - OD3 — **Plan location.** The plan is a product (A2). Default path: `PLAN.md` in the formulating atom's own folder (the product-file row of LA3). A launch file MAY embed the plan in its preamble instead (LP6); a plan at any other path MUST be named in the formulating atom's `INPUT.md` (LA2).
 - OD4 — **Budget arithmetic.** The plan MUST show that the sum of the children's envelopes plus the parent's own remaining consumption fits the parent's envelope (O6.1). A plan without this arithmetic is incomplete and MUST NOT drive instantiation.
 - OD5 — **Dependencies and sequencing.** An atom MUST NOT be instantiated before every input product it names is delivered; where its `INPUT.md` requires a maturity level, the input product must have achieved it (M4). Atoms with no dependency between them MAY run in parallel; dependent atoms run in dependency order.
@@ -98,6 +100,7 @@ Builds on BC1–BC4 of REPO-STRUCTURE: reads count; read estimate ≈ bytes ÷ 3
 - EC4 — **Checkpoints.** The executor SHOULD log a budget checkpoint (O3.2) at each phase exit of the cycle (ATOM-SPEC §2.1), comparing consumption to date against the envelope. Projected overrun at any checkpoint triggers the E4 hard stop (O6.2) immediately.
 - EC5 — **Counters.** Cost blocks (O4.1) and checkpoints use real counters wherever the runtime exposes them; every number produced without a counter is prefixed `~` (BC4).
 - EC6 — **Closure metering.** Where the executor had no counter over its own consumption, the closing actor MUST record the runtime-measured total in the parent's run log at closure, when the runtime exposes one (RC2 item 5) — so calibration precedents keep accumulating.
+- EC7 — **Writing-heavy executors** *(landed per ATOM-018, from the GATE-011 executor lesson)*. An executor atom whose primary deliverable is normative or long-form prose — constitutional documents, protocols, strategies, and comparable tier-L writing work — MUST be enveloped like a Verify atom: read estimate ×3.5 plus the ~40k constant term (the EC2 basis), not the EC1 floor. The EC1 2× floor is a minimum, never a calibration; enveloping writing-heavy work at the floor is a Formulate defect (BC2, EC3).
 
 *(informative)* The measured basis for EC2: a verification with a ~35k-token read estimate consumed 123.8k real tokens — 3.5× — against an envelope set at 2×. Three envelope precedents to date are recorded in `knowledge/precedent/verify-envelope-calibration.md`.
 
@@ -112,7 +115,7 @@ Builds on BC1–BC4 of REPO-STRUCTURE: reads count; read estimate ≈ bytes ÷ 3
 - GB2 — **Timing.** The brief file is created when the brief is delivered — the moment its `GATE-NNN` id is assigned (DR3). Earlier drafts are workspace material and do not survive closure (O10.1).
 - GB3 — **Reference, not duplication.** The decision record (DR1) references the brief by relative path from the repository root in its *Question / Brief* section; the brief's content is not duplicated into the record.
 - GB4 — **Authorship and language.** The brief is authored by the formulating agent, never by the executor whose work is gated (O8.2, FP13), in the deciding human's `preferred_for_decisions` language (HP2).
-- GB5 — **Naming forward reference.** `GATE-BRIEF-<gate-id>.md` joins the reserved filenames of REPO-STRUCTURE §2 (NC7) at that document's next touch, per the migration discipline HP4 established. Until then, GB1 binds as written here; this document does not modify REPO-STRUCTURE.
+- GB5 — `GATE-BRIEF-<gate-id>.md` joined the reserved filenames of REPO-STRUCTURE §2 (NC7), per the migration discipline HP4 established (landed per ATOM-018).
 
 ---
 
@@ -149,6 +152,12 @@ Builds on BC1–BC4 of REPO-STRUCTURE: reads count; read estimate ≈ bytes ÷ 3
   2. `status.yaml` vs. `STATUS.md` — `STATUS.md` wins and the index is regenerated (SM4).
 - SS5 — **Instantiation mapping.** The choice among `session`, `subagent`, and `auto` follows L2: `session` for heavy, human-inspectable sub-products; `subagent` for light branches; `auto` where the runtime decides. What each mode concretely is on a platform is the binding's duty (RC2 item 4).
 - SS6 — **Verify isolation.** A Verify atom's fresh isolated context (VP4) means: instantiated through the binding's `session` semantics, sharing no context with the executor or the parent. A shared-context verification is void and is redone without consuming a return (VP4).
+- SS7 — **Inline conflation** *(landed per ATOM-018, from the ATOM-006 framework findings)*. A formulating agent MAY itself execute an atom it formulated, inline in its own context (the `subagent` semantics of L2), without per-`INPUT.md` sanctioning, when all four conditions hold:
+  1. the atom's instantiation mode is `subagent` or `auto` (L2) — never `session`;
+  2. the atom's assigned verification mode runs unchanged: for mode ≥ `independent`, the blind Verify atom is still formulated per VP1–VP2 and instantiated with `session` isolation (VP4, SS6) — the conflation never weakens verification (A9, P0.3);
+  3. the atom has no placed gate whose brief the conflated party would author about its own executed work (O8.2); where such a gate exists, either the brief's authorship sits with a distinct formulating agent, or the atom is instantiated separately;
+  4. the SS1 spawn preconditions are logged as for any spawn, plus one line naming the conflation.
+  Outside these conditions, inline execution by the formulator requires explicit `INPUT.md` authorization, as before.
 
 ---
 
@@ -220,6 +229,11 @@ date: <YYYY-MM-DD>
 ---
 
 # DECOMPOSITION PLAN — <product name>
+
+## Perspective map (OD2 item 7; PM1–PM6)
+<the SYNTHESIS-PROTOCOL §6.1 map, embedded here as a plan section per PM2 —
+question under examination, fan triggers and decision, lens table or the
+justified PM4 opt-out line.>
 
 ## Product tree
 | Atom | Product (deliverable path) | Role | Tier | Budget | Verification | Gates | Instantiation | Depends on |

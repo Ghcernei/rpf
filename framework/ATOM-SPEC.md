@@ -7,6 +7,7 @@
 | Produced by | ATOM-001 (executor role: Framework Architect) |
 | Maturity | `reviewed` (target) — to be `validated` by the bootstrap run (ATOM-006) |
 | Date | 2026-07-05 |
+| Amended | ATOM-018, 2026-07-07 — first constitutional touch (queue T1–T10) |
 
 This document defines the **Atom** — the single universal unit of work from which every product of the framework is recursively built. Every executor MUST read this document before starting an atom. It is written for four kinds of executor at once: a language model, a script, a human, and a physical system whose output is checked by sensors. Nothing in the normative text assumes any one of them.
 
@@ -94,7 +95,7 @@ An atom is specified by its `INPUT.md` (template in §6.1). The following fields
 
 - F1 — The formulating agent MUST write the atom's `INPUT.md` with all fields of §1.3, create the atom's product folder with `STATUS.md` in state `formulated`, and log a spawn justification (§5.5).
 - F2 — **Role resolution.** The formulating agent MUST check whether the required role spec exists in `/roles/`. If it does not, a role-creation atom MUST be formulated and executed first (consumer: the pending executor atom; DoD: role spec complete per the ROLE template of §6.3). Roles are created on demand and hardened by use; there is no pre-built persona library.
-- F3 — **Verification-depth assignment.** The formulating agent MUST assign the verification mode from this default risk mapping. Any override MUST be logged with justification in the `INPUT.md`.
+- F3 — **Verification-depth assignment.** The formulating agent MUST assign the verification mode from this default risk mapping. Any override MUST be logged with justification in the `INPUT.md`. Precedence between the "feeds ≥ 2 downstream atoms" condition and any per-risk verification discretion an `INPUT.md` grants is fixed by FEV-PROTOCOL FP14 (landed per ATOM-018).
 
 | Risk profile of the product | Verification mode |
 | :---- | :---- |
@@ -216,6 +217,9 @@ These obligations bind every atom regardless of scale, domain, executor kind, or
 
 - O4.1 — Every atom's `RESULT.md` MUST carry a cost block in its frontmatter with: units consumed in/out (tokens for language-model executors; the nearest meaningful resource unit — hours, currency, energy — otherwise, with the unit named), wall time, executor identity (model / person / system), and number of sub-atoms spawned.
 - O4.2 — Reported cost covers the atom itself plus, as a separate line, the aggregated cost of its sub-atoms.
+- O4.3 — **Transitive subtree accounting** *(landed per ATOM-018, from decision INFO-005)*. Every parent atom — an atom that spawned at least one sub-atom — MUST additionally carry in its `RESULT.md` frontmatter three transitive numbers covering its **whole subtree**, not only direct children: `total_descendants` (all spawned atoms at all levels), `max_depth_reached`, and `subtree_cost` (aggregate units and wall time of the subtree, the atom's own consumption included). `subtree_cost` MUST carry a breakdown by atom type: `execute` / `verify` / `role_creation` / `synthesis`. Each level computes these by summing what its children already reported — O4.2 extended transitively. Atoms that spawned nothing are unaffected and MAY omit the fields.
+
+*(informative)* Why O4.3 exists: cost-of-insight as a metric — comparable products with very different subtree weight signal a crooked formulation; Formulate calibration by precedents of tree classes; and a cost line for the client ("your question cost 6 agents, $2.1"). The four-type breakdown keeps governance overhead (verify, role creation) from being conflated with "thinking", so a bloated subtree is precisely diagnosable.
 
 ### 5.5 Spawn justification
 
@@ -237,6 +241,7 @@ These obligations bind every atom regardless of scale, domain, executor kind, or
 | E5 | Verification failed 3 times (2 returns exhausted) | Escalate to human with both the product and the Verify findings |
 | E6 | Needed decomposition exceeds recursion-depth allowance | Stop; escalate to parent for reformulation |
 | E7 | Input contradiction: an accepted decision in `INPUT.md` is contradictory or unimplementable as stated | Stop; one consolidated question set to the formulating agent / human; MUST NOT reinterpret accepted decisions unilaterally |
+| E8 | Value conflict: a `value`-class contradiction between lenses or sibling children (SYNTHESIS-PROTOCOL SY6) | Route to the human as a gate per SYNTHESIS-PROTOCOL SY8; no participant may resolve it in the human's place, at any magnitude. *(Row landed per ATOM-018, fulfilling SYNTHESIS-PROTOCOL SP5.)* |
 
 - O7.1 — Escalations are consolidated: one precise question set per stop, not a drip of single questions.
 - O7.2 — On the normal path — no trigger fired — the executor MUST NOT ask for permission. Execute.
@@ -322,7 +327,7 @@ recursion_allowance: <0..3>
 <Optional guidance. The executor may deviate.>
 
 ## 7. Escalation
-Stop and escalate (one consolidated question set) on triggers E1–E7 of ATOM-SPEC §5.7.
+Stop and escalate (one consolidated question set) on triggers E1–E8 of ATOM-SPEC §5.7.
 Gates placed for this atom: <list, or "none — trigger gates only">.
 Otherwise: do not ask for permission on the normal path. Execute.
 ```
@@ -343,6 +348,15 @@ cost:
   executor: <model id | person | system id>
   sub_atoms_spawned: <n>
   sub_atoms_cost: <aggregate, same unit>
+  # O4.3 — parent atoms only (>= 1 sub-atom spawned); whole subtree, own consumption included
+  total_descendants: <n>              # all spawned atoms, all levels
+  max_depth_reached: <n>
+  subtree_cost:
+    total: <aggregate units + wall time>
+    execute: <n>
+    verify: <n>
+    role_creation: <n>
+    synthesis: <n>
 ---
 
 # RESULT — <ATOM-ID>
@@ -394,7 +408,7 @@ Written in second person: "You are...">
   quality bars it applies without being asked>
 
 ## Escalation Posture
-- <what this role escalates vs. decides alone, beyond the universal triggers E1–E7>
+- <what this role escalates vs. decides alone, beyond the universal triggers E1–E8>
 - <question style: e.g. "always presents 2–3 options with a recommendation">
 
 ## Provenance
