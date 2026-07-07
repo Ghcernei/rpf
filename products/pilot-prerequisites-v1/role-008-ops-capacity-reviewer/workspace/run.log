@@ -1,0 +1,48 @@
+# ROLE-008 Execution Log
+
+## Key Decisions
+
+### 1. Frontmatter Description Wording
+**Decision:** Explicitly name ATOM-076 as the consumer and specify "owner operational capacity" as the lens.
+**Rationale:** INPUT §1 specifies Consumer(s) = ATOM-076; frontmatter must state which atoms need this role (H1). Direct reference anchors the role to its consumer.
+
+### 2. Identity Voice
+**Decision:** Framed as "operational capacity auditor" rather than "business strategist" to differentiate from venture-strategist template.
+**Rationale:** Role function is specific (hours, breaking points, honest feasibility) not generic business strategy. Audiences are "pilot owner" (must execute) and "planner" (must decide feasibility), not "founder choosing strategy."
+
+### 3. Capabilities: Six-Bullet Itemization
+**Decision:** Each bullet addresses one facet of §2 Job To Be Done (daily load, SLA, overhead, sustainable cadence, spike detection, breaking points).
+**Rationale:** INPUT §2 enumerates specific workload dimensions (daily review load >=2 concurrent, SLA reaction, approval overhead, calendar collision, hours-per-week, breaking points). Template calls for "no generic filler"; each bullet performs one calculation task, not a fuzzy principle.
+
+### 4. Method Defaults: Work Shown
+**Decision:** Emphasized itemization ("intake 2h, triage 3h, ..."), calendar specifics (dates, time blocks, duties), breaking-point explicitness, and assumption marking.
+**Rationale:** Venture-strategist pattern recommends "Steals wording from input." §2 asks for "hours-per-week numbers and breaking points, not reassurance." Method Defaults operationalize this: no vague estimates, no reassurance, all math transparent.
+
+### 5. Escalation Posture: Bounded Triggers + Clear Authority
+**Decision:** Named 5 escalation triggers (missing data, unknown availability, conflicting SLAs, overage >20%, calendar conflicts); role decides time budgets, collision detection, math, spike/baseline split.
+**Rationale:** INPUT §3.3 (Escalation Posture) requires naming E1–E8 triggers and what role decides. Triggers selected from natural boundaries (missing inputs = escalate; known inputs + math = decide alone). Authority matches role function: time arithmetic and blocking-point detection are role-owned; human strategy decisions (accept or reject breaking point) are escalated.
+
+### 6. Provenance: One-Row Table
+**Decision:** Single-event table (Created / ROLE-008 / 2026-07-07) per H4.
+**Rationale:** Venture-strategist shows template; ROLE-008 has one creation event (this run). Pattern scalable if role is later versioned.
+
+## Template Compliance
+- ✅ Frontmatter: name, description
+- ✅ Identity: two sentences + voice choice (auditor, not strategist)
+- ✅ Capabilities: 6 bulleted, specific, work-focused
+- ✅ Method Defaults: 6 lines showing work + assumptions + honesty
+- ✅ Escalation Posture: triggers E1–E8 + authority boundary
+- ✅ Provenance: table with event, atom, date
+
+## Criterion Mapping
+- H1: File + wc (42 lines, 6 sections) + frontmatter consumer (ATOM-076)
+- H2: 6 bullets >=5, all tied to hours/SLA/overhead/cadence/breaking-points per §2
+- H3: Escalation names 5 triggers + decides (budgets, collisions, breaking-point math)
+- H4: Provenance table with Created / ROLE-008 / 2026-07-07
+- S1: Identity + Capabilities + Method Defaults + Escalation form a coherent playbook a stranger can follow
+
+## Time & Token Notes
+- Read INPUT.md + template: ~2.1k tokens
+- Write role file (42 lines): ~0.9k tokens
+- Write RESULT.md + update STATUS.md + write run.log: ~0.8k tokens
+- Total estimated: ~3.6k tokens (under 12k budget)

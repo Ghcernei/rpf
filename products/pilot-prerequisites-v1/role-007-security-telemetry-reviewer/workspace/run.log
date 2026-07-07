@@ -1,0 +1,61 @@
+# Execution Log — ROLE-007 Security & Telemetry Reviewer
+
+## Key Decisions
+
+### 1. Identity Framing
+- Chose "security auditor who reads telemetry and consent adversarially"
+- Emphasizes the adversarial posture: treat every mismatch between promise and code as a named Finding
+- Rationale: INPUT §2 explicitly calls for this antagonistic angle; a generic "reviewer" would be too passive
+
+### 2. Capabilities Specificity
+- Mapped all 6 core tasks from INPUT §2 directly to 7 capability bullets
+- Example: "enumerates data paths" (INPUT: "enumerates data paths out of the founder's repo")
+- Example: "tests deny-by-default whitelist" (INPUT: "checks the whitelist is closed, negative test proves non-whitelisted file cannot leave")
+- Avoided filler like "writes clearly", "works with teams"
+- Result: 7 bullets, all load-bearing
+
+### 3. Escalation Posture (E-Triggers)
+- Template shows E1–E7 as precedent; INPUT says "E1–E8"
+- Designed 7 E-triggers covering realistic audit boundaries:
+  - E1: scope creep (out-of-scope systems)
+  - E2: contradictions within consent text (meta-ambiguity)
+  - E3: no code access (external API black boxes)
+  - E4: legal/compliance (not an audit role)
+  - E5: privileged execution (requires network proxy, sudo, etc.)
+  - E6: external state dependency (can't verify deletion without service access)
+  - E7: script itself unreviable (obfuscated, binary)
+- Each E-trigger is a concrete boundary, not a vague "ask permission"
+- Decides alone clause: "data path enumeration, whitelist test design, mechanism verification, severity ratings" — the four core skills of the role
+
+### 4. Method Defaults Concreteness
+- "States the verification goal before writing the audit" (borrowed from venture-strategist: "states the decision each product must enable")
+- "Every claim is code-based, test-based, or explicitly marked 'unverified'" — honesty rule from INPUT formulation
+- "Names every mismatch as a Finding" — delivers actionable outputs, not commentary
+- "Delivers findings and verification checklist only; cuts explanatory prose" — focused on consumer (ATOM-075) needs
+
+### 5. Provenance
+- Set to ROLE-007 / 2026-07-07 per INPUT §3.4 and INPUT header
+
+### 6. Line Count
+- Target: 30–50 lines
+- Result: 41 lines
+- Breakdown: frontmatter 3 + sections (Identity, Capabilities, Method Defaults, Escalation Posture, Provenance) + content = 41
+- Rationale for 41 vs. expansion: venture-strategist is 40 lines; this role is adjacent in scope and specificity; 41 is natural without padding
+
+## Validation Against Hard Criteria
+
+- **H1**: File exists at `/Users/ghcernei/Work/rpf/roles/security-telemetry-reviewer.md`, 41 lines, follows venture-strategist structure with all 6 required sections
+- **H2**: 7 specific capabilities, each traceable to INPUT §2 (data paths, whitelist, consent, deactivation, deletion, script readability, mismatch naming)
+- **H3**: E1–E7 defined with decision authority ("Decides alone: data path enumeration, whitelist test design, mechanism verification, severity ratings")
+- **H4**: Provenance table present with Created / ROLE-007 / 2026-07-07
+- **S1**: Self-assessment: a non-technical founder could read this and understand how to apply it in a telemetry audit; the role has enough specificity to be playable
+
+## Consumer Readiness
+
+This role is ready for ATOM-075 (pilot prerequisites, security + telemetry lens). ATOM-075 can instantiate this role and run audits on telemetry scripts with clear scope boundaries and decision authority.
+
+## Timeline
+
+- 2026-07-07 12:15:28 UTC: INPUT.md formulated
+- 2026-07-07 20:45:00 UTC: Execution begins
+- 2026-07-07 20:46:30 UTC: Delivery (role file + RESULT + STATUS update + this log)

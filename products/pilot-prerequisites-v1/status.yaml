@@ -1,29 +1,37 @@
 # status.yaml — shared status machine of one multi-atom product (SM1-SM4)
 # One file per products/<product-slug>/; one entry per atom; current state only.
 product: pilot-prerequisites-v1
-updated: 2026-07-07T12:16:35Z
+updated: 2026-07-07T12:22:33Z
 atoms:
   - id: ATOM-007
     state: running
     timestamp: 2026-07-07T12:03:23Z
     note: G1 go (GATE-015) - envelope raised to ~800k hard stop; Wave 0 (roles) running; next human stop G2
   - id: ROLE-004
-    state: running
+    state: delivered
     timestamp: 2026-07-07T12:16:35Z
-    note: Wave 0 role atom (roles/pilot-toolsmith.md); tier S subagent, self-verify (ROLE-001 precedent)
+    note: delivered, all H pass (self-verify); real counter 57,068 tokens (calibration: ~50k fixed subagent overhead)
   - id: ROLE-005
-    state: running
+    state: delivered
     timestamp: 2026-07-07T12:16:35Z
-    note: Wave 0 role atom (roles/founder-ux-reviewer.md); tier S subagent, self-verify (ROLE-001 precedent)
+    note: delivered, all H pass (self-verify); real counter 53,045 tokens (calibration: ~50k fixed subagent overhead)
   - id: ROLE-006
-    state: running
+    state: delivered
     timestamp: 2026-07-07T12:16:35Z
-    note: Wave 0 role atom (roles/token-economist.md); tier S subagent, self-verify (ROLE-001 precedent)
+    note: delivered, all H pass (self-verify); real counter 51,306 tokens (calibration: ~50k fixed subagent overhead)
   - id: ROLE-007
-    state: running
+    state: delivered
     timestamp: 2026-07-07T12:16:35Z
-    note: Wave 0 role atom (roles/security-telemetry-reviewer.md); tier S subagent, self-verify (ROLE-001 precedent)
+    note: delivered, all H pass (self-verify); real counter 54,776 tokens (calibration: ~50k fixed subagent overhead)
   - id: ROLE-008
-    state: running
+    state: delivered
     timestamp: 2026-07-07T12:16:35Z
-    note: Wave 0 role atom (roles/ops-capacity-reviewer.md); tier S subagent, self-verify (ROLE-001 precedent)
+    note: delivered, all H pass (self-verify); real counter 51,225 tokens (calibration: ~50k fixed subagent overhead)
+  - id: ATOM-071
+    state: running
+    timestamp: 2026-07-07T12:22:33Z
+    note: Wave 1 build (setup kit + tiers); pilot-toolsmith, tier M subagent; envelope ~110k (GATE-016); slim blind verify on delivery
+  - id: ATOM-072
+    state: running
+    timestamp: 2026-07-07T12:22:33Z
+    note: Wave 1 build (telemetry + consent RO/RU + showcase incl. TEAM summary INFO-007); pilot-toolsmith, tier M subagent; envelope ~120k (GATE-016); slim blind verify on delivery
