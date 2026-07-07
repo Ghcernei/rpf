@@ -1,35 +1,3 @@
-# LAUNCH — ATOM-007 (Pilot Prerequisites: Flow Support v0 onboarding)
-
-> Runtime instruction for this session. Execute **one orchestrating atom** per the
-> five framework documents (`framework/ATOM-SPEC.md`, `framework/FEV-PROTOCOL.md`,
-> `framework/REPO-STRUCTURE.md`, `framework/ORCHESTRATION.md`,
-> `framework/SYNTHESIS-PROTOCOL.md` — read them first) and the binding
-> (`runtime/claude/README.md`).
-> ATOM-007 is a PARENT atom — it authors the decomposition plan WITH a perspective
-> map (PM1–PM6; the lens list in §3.2 below is its input, not its invention),
-> formulates, launches, verifies, synthesizes and closes its own sub-atoms per
-> F1–F6, the ORCHESTRATION rules, and the SYNTHESIS-PROTOCOL fan rules. All three
-> PM6 fan triggers hold for this product (OD1 plan; maturity `reviewed`; crosses
-> the perimeter) — the fan is mandatory: this is the framework's **first real lens
-> fan**, the validation path of SYNTHESIS-PROTOCOL (`reviewed` → `validated` per M3
-> on successful consumption; record it in RESULT).
-> Step 0 — materialize the INPUT below into
-> `products/pilot-prerequisites-v1/007-pilot-prerequisites/` per LP3 (`INPUT.md`
-> verbatim; `STATUS.md` at `formulated`; `products/pilot-prerequisites-v1/status.yaml`
-> per SM3).
-> **Gate G1 comes before any execution:** author the decomposition plan + perspective
-> map, then deliver the G1 brief to the human (Russian, plain language — see the
-> GATE-011 S5 lesson: restate criteria in human terms) and WAIT for go. After go:
-> execute per plan; blind Verify per FEV-PROTOCOL for every mode ≥ independent;
-> synthesis act per SYNTHESIS-PROTOCOL §3; G2 before anything founder-facing is
-> final; close per L7/RB6 with semantic fold-back evidence (FB4). Update status.yaml
-> at every transition. Atoms of this tree SHOULD carry the INFO-005/D7 transitive
-> subtree fields in RESULT frontmatter voluntarily (T1 extension; the MUST arrives
-> with the constitutional touch) — the showcase cost line (§3.3) depends on them.
-> Spawn justification (formulator): pilot cannot start without these prerequisites
-> (TASKS 1.1 critical path); multi-deliverable product with mandatory fan (LP6).
-
----
 ---
 atom: ATOM-007
 product: Pilot Prerequisites v1 (products/pilot-prerequisites-v1/ tree)
@@ -100,6 +68,16 @@ breakdown). The cost line is a **selling artifact** — Startup Moldova must see
 from day one. Deliverable: the line's spec + its generation wired into the
 telemetry script and the founder-reply convention.
 
+**Expanded by INFO-007 (field-test lesson 2, 2026-07-07 — change logged in
+run.log):** the showcase is two artifacts, not one. (a) The cost line — as
+ordered above. (b) A **TEAM summary** rendered at the closure of every parent
+atom, from existing records (status.yaml, verdicts, subtree accounting): one
+line per role with its contribution, the lens map, synthesis conflicts with
+outcomes («линза X хотела A, линза Y забраковала из-за B, синтез выбрал C»),
+verify returns. Plain language, founder-readable. Rationale (verbatim gist):
+the invisible team blurs the value — the CEO lived a project without seeing
+which roles worked, in which perspectives, where they argued.
+
 ### 3.4 Intake atom last + field-test reservation (INFO-006 P4)
 The intake-protocol atom is **last in dependency order**. Its `INPUT.md` reserves
 a section **«Уроки полевого теста»**: a live garden-test of the copilot pattern
@@ -109,6 +87,13 @@ accepted: **as-is inventory is mandatory for transformational tasks** — an
 inventory of the existing plus an explicit preserve/change/remove list BEFORE
 designing the to-be. If the verdict has not arrived when the intake atom is
 reached: that atom waits on E1; the rest of the tree does not block.
+
+**Lesson 2 already landed (INFO-007, verbatim in the record):** team
+invisibility blurs the value — the showcase expands per §3.3(b). Rule candidate
+(c) — «RESULT родителя обязан включать TEAM-сводку — инвариант, не фича
+интерфейса» — is queued for the next constitutional touch, NOT for this tree to
+legislate; this tree implements the render and self-applies it at its own
+closure (first live render).
 
 ### 3.5 Setup minimum (INFO-006 P5)
 From «фаундер сказал да» to the first running atom: **≤15 minutes, zero technical
@@ -148,8 +133,10 @@ plan's job (G1), but the product set is fixed:
 4. **Intake protocol** — the mission-first onboarding conversation product
    (§3.1): conversation guide, `mission.md` template, derivation of goals/branches,
    machinery-hiding rules; reserved field-test section (§3.4).
-5. **Cost-line showcase** — spec + generation wired into telemetry and
-   founder-reply convention (§3.3).
+5. **Work showcase** — (a) cost-line spec + generation wired into telemetry and
+   founder-reply convention (§3.3); (b) TEAM-summary render at parent-atom
+   closure — roles + one-line contributions, lens map, synthesis conflicts with
+   outcomes, verify returns — plain language, founder-readable (INFO-007).
 
 ## 5. Definition of Done
 
@@ -168,8 +155,11 @@ plan's job (G1), but the product set is fixed:
   substance points (the 4 red lines, deletion clause, open-script clause present
   in both).
 - H5. The cost-line spec derives every element (N, M, D, R, $X) from named
-  RESULT/status fields (INFO-005 scheme); a worked example is generated from this
-  repository's real data. Check: spec + example output.
+  RESULT/status fields (INFO-005 scheme); the TEAM-summary spec derives every
+  section (roles + contributions, lens map, conflicts with outcomes, verify
+  returns) from named record fields (status.yaml / verdicts / subtree
+  accounting — INFO-007); a worked example of EACH is generated from this
+  repository's real data. Check: specs + example outputs.
 - H6. `SYNTHESIS.md` of the fan exists per SYNTHESIS-PROTOCOL §6.2 with SY9
   per-lens coverage and every X-contradiction classified; the parent's RESULT
   carries FB4 fold-back evidence and the D7 subtree fields. Check: file presence +
@@ -212,12 +202,3 @@ Stop and escalate (one consolidated question set) on triggers E1–E7 of ATOM-SP
 execution), G2 (before founder-facing final). Known waits: field-test verdict for
 the intake atom (§3.4 — E1 hold on that atom only). Otherwise: do not ask for
 permission on the normal path. Execute.
-
----
-*End of launch file. Formulated 2026-07-07 from ATOM-006 §3.4, pilot-design.md,
-INFO-001, INFO-005 and the CEO decisions recorded verbatim in INFO-006.*
-*Post-materialization note (2026-07-07): the INPUT was materialized per LP3 and
-then amended pre-execution by INFO-007 (field-test lesson 2 — TEAM-summary
-showcase). The canonical INPUT is
-`products/pilot-prerequisites-v1/007-pilot-prerequisites/INPUT.md` (LA2);
-amendment logged in that atom's run.log.*

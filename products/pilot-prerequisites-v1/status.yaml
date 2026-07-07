@@ -1,0 +1,29 @@
+# status.yaml — shared status machine of one multi-atom product (SM1-SM4)
+# One file per products/<product-slug>/; one entry per atom; current state only.
+product: pilot-prerequisites-v1
+updated: 2026-07-07T12:16:35Z
+atoms:
+  - id: ATOM-007
+    state: running
+    timestamp: 2026-07-07T12:03:23Z
+    note: G1 go (GATE-015) - envelope raised to ~800k hard stop; Wave 0 (roles) running; next human stop G2
+  - id: ROLE-004
+    state: running
+    timestamp: 2026-07-07T12:16:35Z
+    note: Wave 0 role atom (roles/pilot-toolsmith.md); tier S subagent, self-verify (ROLE-001 precedent)
+  - id: ROLE-005
+    state: running
+    timestamp: 2026-07-07T12:16:35Z
+    note: Wave 0 role atom (roles/founder-ux-reviewer.md); tier S subagent, self-verify (ROLE-001 precedent)
+  - id: ROLE-006
+    state: running
+    timestamp: 2026-07-07T12:16:35Z
+    note: Wave 0 role atom (roles/token-economist.md); tier S subagent, self-verify (ROLE-001 precedent)
+  - id: ROLE-007
+    state: running
+    timestamp: 2026-07-07T12:16:35Z
+    note: Wave 0 role atom (roles/security-telemetry-reviewer.md); tier S subagent, self-verify (ROLE-001 precedent)
+  - id: ROLE-008
+    state: running
+    timestamp: 2026-07-07T12:16:35Z
+    note: Wave 0 role atom (roles/ops-capacity-reviewer.md); tier S subagent, self-verify (ROLE-001 precedent)
