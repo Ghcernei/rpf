@@ -10,11 +10,11 @@
 
 ### RU
 
-[имя], привет!
+[имя], здравствуйте!
 
-Смотри, мы же говорили про пилот Qroky — я задаю вопросы, вы строите
-продукт быстрее, без своего технаря на старте. Бесплатно, 12 недель, я
-сам каждый день на связи.
+Мы говорили про пилот Qroky — фаундеры строят продукт быстрее, без
+своего технаря на старте. Бесплатно, 12 недель, я сам каждый день на
+связи.
 
 Готов показать вживую за 30–40 минут: как это работает, что мы просим
 взамен, и договоримся, кто из фаундеров стартует первым.
@@ -23,10 +23,10 @@
 
 ### RO
 
-[nume], salut!
+[nume], bună ziua!
 
-Am vorbit despre pilotul Qroky — un asistent care te ajută să construiești
-produsul mai repede, fără cofondator tehnic pe termen scurt. Gratuit, 12
+Am vorbit despre pilotul Qroky — un asistent care îi ajută pe fondatori să
+construiască produsul mai repede, fără cofondator tehnic pe termen scurt. Gratuit, 12
 săptămâni, cu sprijin zilnic din partea mea.
 
 Hai să facem un kickoff de 30–40 minute — arăt live cum funcționează, ce
@@ -42,10 +42,10 @@ Când vă e comod — [ferestre de date]? Scrieți-mi aici sau pe [canal].
 
 Тема: Qroky — назначим кикофф пилота
 
-[имя], привет!
+[имя], здравствуйте!
 
-Возвращаюсь к разговору про пилот Qroky для ваших фаундеров. Смотри, как
-это устроено: 12 недель, бесплатно, инструмент работает прямо на
+Возвращаюсь к разговору про пилот Qroky для ваших фаундеров. Как это
+устроено: 12 недель, бесплатно, инструмент работает прямо на
 компьютере фаундера, а я с небольшой командой каждый день смотрю, что
 происходит, и помогаю, если что-то встало — реагируем в течение рабочего
 дня.
@@ -62,7 +62,7 @@ Când vă e comod — [ferestre de date]? Scrieți-mi aici sau pe [canal].
 
 Subiect: Qroky — stabilim data de kickoff
 
-[nume], salut!
+[nume], bună ziua!
 
 Revin la discuția despre pilotul Qroky pentru fondatorii voștri. Cum
 funcționează: 12 săptămâni, gratuit, instrumentul rulează chiar pe
