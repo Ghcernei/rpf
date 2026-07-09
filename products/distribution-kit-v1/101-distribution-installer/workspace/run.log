@@ -264,3 +264,94 @@ judge Verify/CEO per parent DoD. No escalation triggered (Rowan recon
 resolved every design gap encountered from the closed read list; the one
 genuine open question -- whether Scenario 8 needed to exist -- resolved by
 re-reading the parent's own H10 check clause, not by asking).
+
+=== ROUND 2 — fix round after blind verify RETURN (2026-07-10) ===
+Verdict read: ../101-distribution-installer-verify/VERDICT.md (RETURN, 2
+blocking + 6 minor). All 8 findings accepted as valid — notably F1 and F5
+were exactly the class of defect the verifier exists to catch: the
+underlying machinery was sound (verifier's own probes confirmed), but MY
+committed evidence for it was vacuous, and my RESULT.md claims went beyond
+what my own transcripts showed. Round-2 budget ~80k.
+
+FIXES APPLIED (per finding):
+F1 (blocking, H6a) — scenario 2's RUN A now opts INTO Telegram
+  (y + GOODTOKEN456) so the QROKY_TEST_DELAY_STEP=telegram window (which
+  sits after token storage, before the step's state commit) is guaranteed
+  reached; delay raised to 15s, kill at t+4s. The scenario now FAILS
+  unless: the kill verifiably landed on a live process AND the post-kill
+  state file shows step_workdir done + step_telegram NOT done (true
+  mid-flight proof) AND the rerun completes all-done without re-asking the
+  language question. New transcript shows: "(process ... SIGKILLed
+  mid-step, as intended)", state at kill has step_telegram: "pending",
+  no warning line.
+F2 (blocking, H11) — digest changelog extraction switched from
+  `git tag -n99 | sed | head -3` (which spent the 3-line budget on the
+  subject + blank separator) to `git tag -l --format='%(contents:body)'
+  | sed '/^\s*$/d' | head -3`. Scenario 7 now asserts ALL THREE body lines
+  verbatim in the digest output. The decisions-record and
+  --show-update-details extractions were switched to %(contents) formats
+  for the same reason.
+F3 (minor) — PROVENANCE.md (the installer's own untracked file) is now
+  written into the framework checkout's .git/info/exclude at vendor time,
+  plus a belt-and-braces grep -v filter on the porcelain output in
+  cmd_apply_update (covers workspaces vendored by the round-1 build).
+  Scenario 7 asserts zero "PROVENANCE" lines in both conflict displays.
+F4 (minor, V3) — chose the "actually log it" branch of the verifier's
+  either/or: install.sh now writes "telegram TOKEN-STORED masked=****<last4>
+  file_mode=600" to install.log at token-store time; scenario 6's masked-
+  line check flipped from informational to REQUIRED. RESULT.md H4 row
+  rewritten to match reality. H4's raw-token negative grep stays empty
+  (masked form contains only the last 4 characters).
+F5 (minor, V3) — scenario 7 reordered: the "нет" cancel now runs while the
+  v1.0.0->v1.1.0 update is genuinely PENDING, before the "да" apply, and
+  asserts: confirm prompt reached + "cancelled" message shown +
+  framework_tag still v1.0.0 after the cancel. RESULT.md H11 row updated
+  to describe the real order.
+F6 (minor, H2) — the consent screen now inlines the VERBATIM 5-item
+  whitelist (STATUS.md structural fields / RESULT.md cost figures only /
+  run.log timestamps+step names / status.yaml minus notes / VERDICT.md
+  verdict line only) in all three languages, states plainly that free text
+  is stripped before copying, and states that no sending mechanism is
+  installed today (so nothing can leave even after "yes"; the sending
+  script will be shown line-by-line before it is ever added). All three
+  READMEs' "what leaves" sections rewritten the same way; the dangling
+  products/pilot-prerequisites-v1/... pointer (a path a kit user does not
+  have) removed.
+F7 (minor, S1/H9) — framework vendoring no longer prints under the
+  "Step 3 — check the Claude Code assistant" header: step order swapped
+  (claude check first, then vendoring under its own plain-language line
+  "downloading the rulebook the assistant follows..."), new locale
+  functions L_FRAMEWORK_VENDORING / L_FRAMEWORK_ALREADY in all three
+  languages. All git stderr (fatal:...) inside _framework_vendor_attempt
+  now goes to install.log, never the founder's screen; the failure message
+  names the rulebook download, points at the log for technical details.
+  Scenario 4 now asserts: claude check visibly succeeded on its own line,
+  the SETUP STOPPED block never mentions Claude Code, zero ^fatal:/^error:
+  lines on screen, and the git details ARE preserved in install.log.
+F8 (minor, H9) — launchctl bootstrap is now wrapped: _heartbeat_enable_attempt
+  runs through run_with_ladder (2 auto-retries for transient gui-session
+  errors), and a final failure degrades gracefully — new locale message
+  L_HEARTBEAT_SCHEDULE_FAILED ("installed but off; try later with
+  bash install.sh --enable-heartbeat") instead of a raw set -e abort;
+  step still commits done, install still finishes. Same treatment in
+  cmd_enable_heartbeat (message + exit 1). launchctl stderr -> install.log.
+
+HARNESS ITERATION (round 2): first rerun after the fixes: 8/9 — scenario 4
+FAILED on my own new mis-attribution heuristic (grep -A2 after the Claude
+header caught the LEGITIMATE "downloading the rulebook" line that now
+follows it by design). Heuristic corrected to test what F7 actually
+requires: (a) "Claude Code — found" printed on its own line before the
+failure, (b) the SETUP STOPPED block contains no "Claude Code" mention.
+Second rerun: 9/9 PASS. Zero stray files under distribution/, zero test
+launchd agents registered (verified).
+
+Scenario 3 note: healthy-rerun health-line pattern extended with "already
+in place" (the new framework wording) — count stays 7/7.
+
+BUDGET (round 2): verdict read ~8k; edits to install.sh/dry-run.sh/3 lang
+files/3 READMEs ~25k written; 2 full harness runs + transcript checks; log
++ RESULT round-2 section ~8k. Round-2 estimate ~45-55k of the ~80k
+allowance — inside budget. Cumulative atom total: ~290k-310k.
+
+CYCLE-END round 2: all 8 findings fixed, 9/9 harness PASS with the
+strengthened (non-vacuous) assertions, RESULT.md Round 2 section filed.

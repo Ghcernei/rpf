@@ -50,14 +50,28 @@ răspuns deja nu se întreabă a doua oară.
 
 ## Ce pleacă de pe acest calculator
 
-Dacă activezi partajarea sprijinului zilnic la întrebarea 6, doar
-informații scurte, structurale, despre progres și cost pleacă vreodată de
-pe acest calculator — niciodată codul, specificațiile sau conținutul
-produsului tău. Lista exactă permisă și scriptul care o aplică (interzis
-implicit: orice nu e pe listă este omis, niciodată citit) se află în acest
-depozit la `products/pilot-prerequisites-v1/072-telemetry-showcase/
-telemetry/push.sh` — este bash simplu, lizibil, nu o cutie neagră. Nimic nu
-se trimite vreodată cât timp rămâne oprită, și rămâne oprită până spui da.
+Dacă activezi partajarea sprijinului zilnic la întrebarea 6, doar acestea —
+și nimic altceva — ar pleca vreodată de pe acest calculator (lista
+completă; orice nu e pe ea este omis, niciodată citit):
+
+1. **Fișierele de progres ale sarcinilor (`STATUS.md`)** — doar cuvântul de
+   stare, data și identificatorul sarcinii; notele libere sunt eliminate.
+2. **Rezumatele de cost (`RESULT.md`)** — DOAR cifrele de cost
+   (timp/unități); secțiunile de rezumat și conținut, unde ar fi descris
+   produsul tău, nu sunt copiate niciodată.
+3. **Jurnalele de pași (`run.log`)** — doar marcaje de timp și nume de pași.
+4. **Tabloul de stare (`status.yaml`)** — o linie per sarcină; notele
+   libere sunt eliminate.
+5. **Rezultatele verificărilor independente (`VERDICT.md`)** — doar linia
+   de verdict, niciodată textul constatărilor.
+
+Niciodată codul, specificațiile sau conținutul produsului tău — acestea nu
+sunt pe listă și nu sunt citite niciodată. De reținut: acest instalator
+doar **îți înregistrează alegerea** — nu instalează niciun mecanism de
+trimitere, deci nimic nu poate pleca nici după un „da". Înainte ca vreun
+script de trimitere să fie adăugat vreodată în spațiul tău de lucru, îți va
+fi arătat chiar acel script — bash simplu, lizibil, pe care îl poți
+verifica linie cu linie față de lista de mai sus.
 
 ## Nu-mi atinge instanța
 

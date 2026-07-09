@@ -1,10 +1,14 @@
 Scenario 2 — kill the install mid-way, rerun completes to the end
-Generated: 2026-07-09T22:25:19Z
-Mechanism: QROKY_TEST_DELAY_STEP=telegram / QROKY_TEST_DELAY_SECONDS=5
-(sandbox-only test hook, see install.sh header) opens a deterministic
-window right before the telegram step's state commit; this run is
-SIGKILLed inside that window, after workdir+framework+claude_code+
-subscription have already committed 'done' for real.
+Generated: 2026-07-09T22:53:29Z
+Mechanism (round-2 fix, verify F1): RUN A opts INTO Telegram (y +
+GOODTOKEN456) so the QROKY_TEST_DELAY_STEP=telegram hook — which sits
+AFTER the token is stored but BEFORE the telegram step's state commit
+— is guaranteed to be reached; the process is SIGKILLed inside that
+5-second window, after workdir+claude_code+framework+subscription have
+already committed 'done' for real. The round-1 feed opted OUT of
+Telegram, whose branch returns before the hook, so nothing was ever
+killed — this scenario now FAILS unless the kill verifiably landed
+mid-flight (kill confirmed + post-kill state shows telegram NOT done).
 
 --- RUN A (will be killed mid-step) ---
 == Qroky setup ==
@@ -19,14 +23,75 @@ Type 1, 2, 3, or the code (en/ro/ru):   language set: en
 Step 2 of 7 — choose your working folder
 Where should your private Qroky folder live?
 Press Enter to use the suggested folder, or type a different path.
-Suggested: /private/tmp/qroky-install-dry-run.xJFApJ/w2
->   working folder: /private/tmp/qroky-install-dry-run.xJFApJ/w2
+Suggested: /private/tmp/qroky-install-dry-run.RJVUw9/w2
+>   working folder: /private/tmp/qroky-install-dry-run.RJVUw9/w2
 
 Step 3 of 7 — check the Claude Code assistant
   Claude Code — found (claude-code 0.0.0-dry-run-stub)
+  downloading the rulebook the assistant follows (pinned to one fixed version, so it never changes without asking you)...
 
 Step 4 of 7 — check your subscription
   subscription/login — looks active
+
+Step 5 of 7 — connect Telegram (optional)
+Would you like a morning digest and updates through Telegram?
+This step is optional — you can skip it and add it later.
+Yes/no (y/n), default n:   Let's create your own Telegram bot — this takes about 2 minutes:
+    1. Open the Telegram app.
+    2. In the search bar, type: BotFather (it has a blue checkmark).
+    3. Open the chat with BotFather and send: /newbot
+    4. It will ask for a name — type anything you like (e.g. "My Qroky").
+    5. It will ask for a username — must end in "bot" (e.g. "my_qroky_bot").
+    6. BotFather replies with a message containing a long code — this is
+       your bot's TOKEN. It looks like: 123456789:ABCdefGhIJKlmNoPQRsTUVwxyZ
+    7. Copy that whole code.
+Paste the token here (or type "skip" to skip this step):   checking the token with Telegram...
+  token works — connected to bot: qroky_test_bot
+  token saved on this computer only (never sent anywhere else): ****N456
+(process 45234 SIGKILLed mid-step, as intended)
+
+--- state file immediately after the kill ---
+{
+  "version": 1,
+  "generated_at": "2026-07-09T22:53:29Z",
+  "answer_language": "en",
+  "answer_workdir": "/private/tmp/qroky-install-dry-run.RJVUw9/w2",
+  "answer_telegram_optin": "",
+  "answer_telegram_token_stored": "no",
+  "answer_telemetry_optin": "",
+  "answer_heartbeat_optin": "",
+  "step_language": "done",
+  "step_workdir": "done",
+  "step_framework": "done",
+  "step_claude_code": "done",
+  "step_subscription": "done",
+  "step_telegram": "pending",
+  "step_telemetry": "pending",
+  "step_heartbeat": "pending",
+  "framework_source": "/private/tmp/qroky-install-dry-run.RJVUw9/fake-framework-origin",
+  "framework_ref": "4fc8412b60f9982639efacb28aad0ffed359e512",
+  "framework_tag": "v1.0.0"
+}
+
+mid-flight proof: kill landed on a live process: yes;
+  step_workdir committed done before the kill: yes;
+  step_telegram NOT yet done at the kill: yes
+
+--- RUN B (rerun; language/workdir must NOT be re-asked — telegram, cut down mid-flight, is asked again) ---
+== Qroky setup ==
+
+Step 1 of 7 — choose your language
+  language set: en
+
+Step 2 of 7 — choose your working folder
+  this folder is already your Qroky workspace — reusing it
+
+Step 3 of 7 — check the Claude Code assistant
+  Claude Code — found (claude-code 0.0.0-dry-run-stub)
+  the rulebook is already in place — nothing to do (health check)
+
+Step 4 of 7 — check your subscription
+  already set up — nothing to do (health check)
 
 Step 5 of 7 — connect Telegram (optional)
 Would you like a morning digest and updates through Telegram?
@@ -35,10 +100,23 @@ Yes/no (y/n), default n:   Telegram — skipped, you can add it later by running
 
 Step 6 of 7 — daily support sharing (optional)
 Daily support sharing — before asking, here is EXACTLY what would leave this
-computer, in plain words: short progress logs and cost summaries about HOW
-the work went (never WHAT you are building — no code, no specs, no product
-content). You can read the exact list and the script that sends it any time
-at: distribution/README.<lang>.md, section "What leaves this computer".
+computer if you say yes. The complete list — nothing else is ever read:
+  1. task progress files (STATUS.md)  — status word, date, task id only
+  2. cost summaries (RESULT.md)       — token/time cost figures ONLY; the
+                                        summary and content sections, where
+                                        your product would be described,
+                                        are never copied
+  3. step logs (run.log)              — timestamps and step names only
+  4. the status board (status.yaml)   — one line per task, free-text notes
+                                        stripped
+  5. independent check results (VERDICT.md) — the verdict line only, never
+                                        the findings text
+Free-text sentences are stripped from every one of these before copying.
+Your code, specs, and product content are not on this list and are never
+read. Note: saying yes today only records your choice — no sending
+mechanism is installed by this installer, so nothing can leave yet; you
+will be shown the sending script itself, line by line, before it is ever
+added.
 Turn daily support sharing on? Yes/no (y/n), default n:   daily support sharing — OFF (nothing is ever sent while this stays off)
 
 Step 7 of 7 — morning digest (optional)
@@ -53,69 +131,7 @@ Turn the morning digest on? Yes/no (y/n), default y:   morning digest — instal
 == Setup finished. Nothing failed. ==
 
 Your assistant is ready. To start:
-  1. Open a terminal in: /private/tmp/qroky-install-dry-run.xJFApJ/w2
-  2. Type: claude
-  3. Say: qroky start
-
-That single phrase — "qroky start" — is all you need; it works in any
-language you type it in.
-
-(total elapsed: 0s)
-(WARNING: process already exited before the kill — timing too tight for this machine)
-
---- state file immediately after the kill ---
-{
-  "version": 1,
-  "generated_at": "2026-07-09T22:25:19Z",
-  "answer_language": "en",
-  "answer_workdir": "/private/tmp/qroky-install-dry-run.xJFApJ/w2",
-  "answer_telegram_optin": "no",
-  "answer_telegram_token_stored": "no",
-  "answer_telemetry_optin": "no",
-  "answer_heartbeat_optin": "yes",
-  "step_language": "done",
-  "step_workdir": "done",
-  "step_framework": "done",
-  "step_claude_code": "done",
-  "step_subscription": "done",
-  "step_telegram": "done",
-  "step_telemetry": "done",
-  "step_heartbeat": "done",
-  "framework_source": "/private/tmp/qroky-install-dry-run.xJFApJ/fake-framework-origin",
-  "framework_ref": "3552327ce8abe73ee6edcb6b3b5929168d9e5486",
-  "framework_tag": "v1.0.0"
-}
-
---- RUN B (rerun, same command, no answers needed for already-done steps) ---
-== Qroky setup ==
-
-Step 1 of 7 — choose your language
-  language set: en
-
-Step 2 of 7 — choose your working folder
-  this folder is already your Qroky workspace — reusing it
-
-Step 3 of 7 — check the Claude Code assistant
-  already set up — nothing to do (health check)
-  Claude Code — found (claude-code 0.0.0-dry-run-stub)
-
-Step 4 of 7 — check your subscription
-  already set up — nothing to do (health check)
-
-Step 5 of 7 — connect Telegram (optional)
-  already set up — nothing to do (health check)
-
-Step 6 of 7 — daily support sharing (optional)
-  already set up — nothing to do (health check)
-
-Step 7 of 7 — morning digest (optional)
-  already set up — nothing to do (health check)
-
-
-== Setup finished. Nothing failed. ==
-
-Your assistant is ready. To start:
-  1. Open a terminal in: /private/tmp/qroky-install-dry-run.xJFApJ/w2
+  1. Open a terminal in: /private/tmp/qroky-install-dry-run.RJVUw9/w2
   2. Type: claude
   3. Say: qroky start
 
@@ -129,9 +145,9 @@ language you type it in.
 --- final state file ---
 {
   "version": 1,
-  "generated_at": "2026-07-09T22:25:19Z",
+  "generated_at": "2026-07-09T22:53:33Z",
   "answer_language": "en",
-  "answer_workdir": "/private/tmp/qroky-install-dry-run.xJFApJ/w2",
+  "answer_workdir": "/private/tmp/qroky-install-dry-run.RJVUw9/w2",
   "answer_telegram_optin": "no",
   "answer_telegram_token_stored": "no",
   "answer_telemetry_optin": "no",
@@ -144,7 +160,9 @@ language you type it in.
   "step_telegram": "done",
   "step_telemetry": "done",
   "step_heartbeat": "done",
-  "framework_source": "/private/tmp/qroky-install-dry-run.xJFApJ/fake-framework-origin",
-  "framework_ref": "3552327ce8abe73ee6edcb6b3b5929168d9e5486",
+  "framework_source": "/private/tmp/qroky-install-dry-run.RJVUw9/fake-framework-origin",
+  "framework_ref": "4fc8412b60f9982639efacb28aad0ffed359e512",
   "framework_tag": "v1.0.0"
 }
+
+language question re-asked in RUN B (must be no): no

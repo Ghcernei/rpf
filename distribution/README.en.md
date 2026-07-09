@@ -47,14 +47,27 @@ nothing you already answered is asked twice.
 
 ## What leaves this computer
 
-If you turn on daily support sharing at question 6, only short, structural
-progress and cost information ever leaves this machine — never your
-product's code, specs, or content. The exact whitelist and the script that
-enforces it (deny-by-default: anything not on the list is skipped, never
-read) live in this repository's `products/pilot-prerequisites-v1/
-072-telemetry-showcase/telemetry/push.sh` — it is plain, readable bash, not
-a black box. Nothing is ever sent while this stays off, and it stays off
-until you say yes.
+If you turn on daily support sharing at question 6, this — and only this —
+would ever leave this machine (the complete list; anything not on it is
+skipped, never read):
+
+1. **Task progress files (`STATUS.md`)** — status word, date, and task id
+   only; free-text notes stripped.
+2. **Cost summaries (`RESULT.md`)** — the token/time cost figures ONLY;
+   the summary and content sections, where your product would be
+   described, are never copied.
+3. **Step logs (`run.log`)** — timestamps and step names only.
+4. **The status board (`status.yaml`)** — one line per task; free-text
+   notes stripped.
+5. **Independent check results (`VERDICT.md`)** — the verdict line only,
+   never the findings text.
+
+Never your product's code, specs, or content — those are not on the list
+and are never read. Note that this installer only **records your choice**:
+no sending mechanism is installed today, so nothing can leave even after a
+yes. Before any sending script is ever added to your workspace, you will
+be shown that script itself — plain, readable bash you can check line by
+line against the list above.
 
 ## Don't touch my instance
 

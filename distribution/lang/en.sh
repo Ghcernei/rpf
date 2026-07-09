@@ -39,6 +39,9 @@ L_ASK_WORKDIR() {
 L_WORKDIR_SET() { printf '  working folder: %s\n' "$1"; }
 L_WORKDIR_ALREADY() { printf '  this folder is already your Qroky workspace — reusing it\n'; }
 
+L_FRAMEWORK_VENDORING() { printf '  downloading the rulebook the assistant follows (pinned to one fixed version, so it never changes without asking you)...\n'; }
+L_FRAMEWORK_ALREADY() { printf '  the rulebook is already in place — nothing to do (health check)\n'; }
+
 L_CLAUDE_FOUND() { printf '  Claude Code — found (%s)\n' "$1"; }
 L_CLAUDE_MISSING() {
   printf 'The Claude Code assistant is not installed on this machine.\n'
@@ -87,10 +90,23 @@ L_TELEGRAM_STORED() { printf '  token saved on this computer only (never sent an
 L_TELEMETRY_ASK_OPTIN() {
   cat <<'EOF'
 Daily support sharing — before asking, here is EXACTLY what would leave this
-computer, in plain words: short progress logs and cost summaries about HOW
-the work went (never WHAT you are building — no code, no specs, no product
-content). You can read the exact list and the script that sends it any time
-at: distribution/README.<lang>.md, section "What leaves this computer".
+computer if you say yes. The complete list — nothing else is ever read:
+  1. task progress files (STATUS.md)  — status word, date, task id only
+  2. cost summaries (RESULT.md)       — token/time cost figures ONLY; the
+                                        summary and content sections, where
+                                        your product would be described,
+                                        are never copied
+  3. step logs (run.log)              — timestamps and step names only
+  4. the status board (status.yaml)   — one line per task, free-text notes
+                                        stripped
+  5. independent check results (VERDICT.md) — the verdict line only, never
+                                        the findings text
+Free-text sentences are stripped from every one of these before copying.
+Your code, specs, and product content are not on this list and are never
+read. Note: saying yes today only records your choice — no sending
+mechanism is installed by this installer, so nothing can leave yet; you
+will be shown the sending script itself, line by line, before it is ever
+added.
 EOF
   printf 'Turn daily support sharing on? Yes/no (y/n), default n: '
 }
@@ -113,6 +129,11 @@ L_HEARTBEAT_NO_LAUNCHD() {
   printf 'NOTICE: this machine has no "launchctl" (common outside macOS), so the\n'
   printf 'morning digest cannot be scheduled automatically. Nothing else failed —\n'
   printf 'run it by hand any day with: bash %s/.qroky/heartbeat.sh\n' "$1"
+}
+L_HEARTBEAT_SCHEDULE_FAILED() {
+  printf 'NOTICE: the morning digest could not be scheduled automatically right now.\n'
+  printf 'Everything else finished fine — the digest is installed but off.\n'
+  printf 'Try again later with:\n      bash install.sh --enable-heartbeat\n'
 }
 
 L_FINALE() {

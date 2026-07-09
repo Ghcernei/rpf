@@ -270,13 +270,16 @@ step_workdir() {
 # framework_tag/framework_ref back out of state to compare later.
 # ---------------------------------------------------------------------------
 _framework_vendor_attempt() {
+  # Raw git noise (fatal:, Cloning into..., etc.) goes to install.log, not
+  # the founder's screen — the founder sees the human-language messages of
+  # step_framework only (round-2 fix, verify F7).
   if [[ ! -d "$WORKSPACE_DIR/.git" ]]; then
-    git init -q "$WORKSPACE_DIR" || return 1
+    git init -q "$WORKSPACE_DIR" 2>>"${LOG_FILE:-/dev/null}" || return 1
   fi
   if [[ -e "$FRAMEWORK_DIR/.git" ]]; then
-    git -C "$FRAMEWORK_DIR" fetch --quiet --tags origin || return 1
+    git -C "$FRAMEWORK_DIR" fetch --quiet --tags origin 2>>"${LOG_FILE:-/dev/null}" || return 1
   else
-    ( cd "$WORKSPACE_DIR" && git submodule add --quiet "$FRAMEWORK_SOURCE" framework ) || return 1
+    ( cd "$WORKSPACE_DIR" && git submodule add --quiet "$FRAMEWORK_SOURCE" framework ) 2>>"${LOG_FILE:-/dev/null}" || return 1
   fi
   local ref="$FRAMEWORK_REF" tag=""
   tag="$(git -C "$FRAMEWORK_DIR" tag -l 'v*' --sort=-v:refname 2>/dev/null | head -1)"
@@ -285,7 +288,7 @@ _framework_vendor_attempt() {
   elif [[ -z "$ref" ]]; then
     ref="$(git -C "$FRAMEWORK_DIR" rev-parse HEAD)"
   fi
-  git -C "$FRAMEWORK_DIR" checkout --quiet "$ref" || return 1
+  git -C "$FRAMEWORK_DIR" checkout --quiet "$ref" 2>>"${LOG_FILE:-/dev/null}" || return 1
   FRAMEWORK_REF="$(git -C "$FRAMEWORK_DIR" rev-parse HEAD)"
   FRAMEWORK_TAG="$tag"
   cat > "$FRAMEWORK_DIR/PROVENANCE.md" <<EOF
@@ -299,15 +302,28 @@ _framework_vendor_attempt() {
 This copy is read-only by convention — your own work lives outside this
 folder (see mission/ and atoms/ at the top of your workspace).
 EOF
+  # PROVENANCE.md is the installer's own file, written untracked into the
+  # framework checkout — exclude it from git status so it never shows up
+  # as a phantom "your own copy has local changes" conflict on updates
+  # (round-2 fix, verify F3).
+  local gitdir
+  gitdir="$(git -C "$FRAMEWORK_DIR" rev-parse --absolute-git-dir 2>/dev/null)" || return 1
+  mkdir -p "$gitdir/info"
+  grep -qx 'PROVENANCE.md' "$gitdir/info/exclude" 2>/dev/null \
+    || echo 'PROVENANCE.md' >> "$gitdir/info/exclude"
   return 0
 }
 
+# Not one of the 7 interview points and not the Claude Code check — this is
+# the rulebook download, announced under its own plain-language line
+# (round-2 fix, verify F7: a framework-source failure used to appear under
+# the "check the Claude Code assistant" header).
 step_framework() {
-  L_STEP_HEADER 3 "$(L_STEP_CLAUDE_NAME)"
   if [[ "${STEP_FRAMEWORK:-}" == "done" && -e "$FRAMEWORK_DIR/.git" ]]; then
-    L_STEP_ALREADY_DONE
+    L_FRAMEWORK_ALREADY
     return 0
   fi
+  L_FRAMEWORK_VENDORING
   FRAMEWORK_SOURCE="${QROKY_FRAMEWORK_SOURCE:-${FRAMEWORK_SOURCE:-https://github.com/qroky/framework.git}}"
   FRAMEWORK_REF="${QROKY_FRAMEWORK_REF:-${FRAMEWORK_REF:-}}"
   if run_with_ladder framework _framework_vendor_attempt; then
@@ -318,11 +334,12 @@ step_framework() {
     STEP_FRAMEWORK="failed"
     state_commit
     fail_to_human framework \
-      "Could not reach $FRAMEWORK_SOURCE to download the assistant's rulebook.
-  Check the internet connection, then run this installer again — it will
-  continue from exactly this step.
+      "Could not download the assistant's rulebook (the address it tried: $FRAMEWORK_SOURCE).
+  This is almost always the internet connection. Check it, then run this
+  installer again — it will continue from exactly this step.
   If this keeps failing, whoever gave you this kit can send a local copy to
-  point QROKY_FRAMEWORK_SOURCE at instead."
+  point QROKY_FRAMEWORK_SOURCE at instead.
+  (The technical details were saved to: ${LOG_FILE:-the install log})"
   fi
 }
 
@@ -334,6 +351,7 @@ step_framework() {
 # (documented design choice, harness-checklist point 3 note).
 # ---------------------------------------------------------------------------
 step_claude_code() {
+  L_STEP_HEADER 3 "$(L_STEP_CLAUDE_NAME)"
   if [[ "${STEP_CLAUDE_CODE:-}" == "done" ]] && command -v claude >/dev/null 2>&1; then
     L_CLAUDE_FOUND "$(claude --version 2>&1 | head -n1)"
     return 0
@@ -426,6 +444,10 @@ step_telegram() {
     ( umask 077; printf '%s' "$token" > "$TOKEN_FILE" )
     chmod 600 "$TOKEN_FILE"
     L_TELEGRAM_STORED "$(mask_secret "$token")"
+    # Round-2 fix (verify F4): the MASKED confirmation goes into the log
+    # too, so the redaction is auditable from install.log alone — never
+    # the raw token (H4's negative grep must stay empty).
+    log "telegram TOKEN-STORED masked=$(mask_secret "$token") file_mode=600"
     ANSWER_TELEGRAM_OPTIN="yes"
     ANSWER_TELEGRAM_TOKEN_STORED="yes"
   fi
@@ -527,13 +549,21 @@ EOF
   printf '%s' "$label"
 }
 
-heartbeat_enable() {
-  local label="$1"
-  local dst="$HOME/Library/LaunchAgents/$label.plist"
-  mkdir -p "$HOME/Library/LaunchAgents"
-  cp "$WORKSPACE_DIR/.qroky/launchd/$label.plist" "$dst"
+# Round-2 fix (verify F8): a launchctl bootstrap failure used to abort the
+# whole script (set -e) with raw launchd output and no human next step.
+# The enable attempt now runs through the same failure ladder as every
+# other step with a real automatic remedy (a transient gui-session error
+# can cure on retry); a final failure degrades gracefully — the digest
+# stays installed-but-off with the exact one-command enable instruction —
+# instead of killing an otherwise-finished install.
+HB_LABEL=""
+_heartbeat_enable_attempt() {
+  local dst="$HOME/Library/LaunchAgents/$HB_LABEL.plist"
+  mkdir -p "$HOME/Library/LaunchAgents" || return 1
+  cp "$WORKSPACE_DIR/.qroky/launchd/$HB_LABEL.plist" "$dst" || return 1
   launchctl bootout "gui/$(id -u)" "$dst" 2>/dev/null || true
-  launchctl bootstrap "gui/$(id -u)" "$dst"
+  launchctl bootstrap "gui/$(id -u)" "$dst" 2>>"${LOG_FILE:-/dev/null}" || return 1
+  return 0
 }
 
 step_heartbeat() {
@@ -541,14 +571,19 @@ step_heartbeat() {
   if [[ "${STEP_HEARTBEAT:-}" == "done" ]]; then L_STEP_ALREADY_DONE; return 0; fi
   L_HEARTBEAT_ASK_OPTIN
   local ans; ans="$(read_answer "y")"   # IV-POINT:7:heartbeat_optin, default yes
-  local label; label="$(_write_heartbeat_files)"
+  HB_LABEL="$(_write_heartbeat_files)"
   if ! command -v launchctl >/dev/null 2>&1; then
     L_HEARTBEAT_NO_LAUNCHD "$WORKSPACE_DIR"
     ANSWER_HEARTBEAT_OPTIN="no"
   elif is_affirmative "$ans" || [[ -z "$ans" ]]; then
-    heartbeat_enable "$label"
-    L_HEARTBEAT_ON
-    ANSWER_HEARTBEAT_OPTIN="yes"
+    if run_with_ladder heartbeat _heartbeat_enable_attempt; then
+      L_HEARTBEAT_ON
+      ANSWER_HEARTBEAT_OPTIN="yes"
+    else
+      L_HEARTBEAT_SCHEDULE_FAILED
+      ANSWER_HEARTBEAT_OPTIN="no"
+      log "heartbeat ENABLE-FAILED-TO-HUMAN (installed disabled; enable instruction shown)"
+    fi
   else
     L_HEARTBEAT_OFF
     ANSWER_HEARTBEAT_OPTIN="no"
@@ -584,12 +619,16 @@ resolve_and_load_state() {
 
 cmd_enable_heartbeat() {
   resolve_and_load_state
-  local label; label="$(_write_heartbeat_files)"
+  HB_LABEL="$(_write_heartbeat_files)"
   if ! command -v launchctl >/dev/null 2>&1; then
     L_HEARTBEAT_NO_LAUNCHD "$WORKSPACE_DIR"
     exit 1
   fi
-  heartbeat_enable "$label"
+  if ! run_with_ladder heartbeat _heartbeat_enable_attempt; then
+    L_HEARTBEAT_SCHEDULE_FAILED
+    log "heartbeat ENABLE-FAILED-TO-HUMAN (--enable-heartbeat)"
+    exit 1
+  fi
   L_HEARTBEAT_ON
   ANSWER_HEARTBEAT_OPTIN="yes"
   state_commit
@@ -620,7 +659,11 @@ cmd_check_update() {
     L_UPDATE_NONE
     return 0
   fi
-  local changelog; changelog="$(git -C "$FRAMEWORK_DIR" tag -n99 "$latest" 2>/dev/null | sed '1s/^[^ ]*  *//' | head -3)"
+  # Round-2 fix (verify F2): take the tag message BODY only — the subject
+  # line and the blank separator used to eat 2 of the 3 changelog lines.
+  local changelog
+  changelog="$(git -C "$FRAMEWORK_DIR" tag -l --format='%(contents:body)' "$latest" 2>/dev/null \
+    | sed '/^[[:space:]]*$/d' | head -3)"
   [[ -z "$changelog" ]] && changelog="(see the release for details)"
   L_UPDATE_AVAILABLE "${FRAMEWORK_TAG:-"(unversioned)"}" "$latest" "$changelog"
   printf '%s' "$latest" > "$WORKSPACE_DIR/.qroky/update-available"
@@ -630,7 +673,7 @@ cmd_show_update_details() {
   resolve_and_load_state
   local latest; latest="$(_latest_tag)"
   [[ -z "$latest" ]] && { say "(no release tags published yet)"; return 0; }
-  git -C "$FRAMEWORK_DIR" tag -n99 "$latest"
+  git -C "$FRAMEWORK_DIR" tag -l --format='%(refname:short)%0a%0a%(contents)' "$latest"
 }
 
 cmd_apply_update() {
@@ -642,7 +685,11 @@ cmd_apply_update() {
     return 0
   fi
   local conflict_text=""
-  conflict_text="$(git -C "$FRAMEWORK_DIR" status --porcelain 2>/dev/null || true)"
+  # PROVENANCE.md is the installer's own untracked file, never a founder
+  # edit — filtered here too (belt and braces with the info/exclude entry
+  # written at vendor time) so no false "local changes" alarm ever fires
+  # on an untouched install (round-2 fix, verify F3).
+  conflict_text="$(git -C "$FRAMEWORK_DIR" status --porcelain 2>/dev/null | grep -v ' PROVENANCE\.md$' || true)"
   if [[ -n "$conflict_text" ]]; then
     L_UPDATE_CONFLICT
     printf '%s\n' "$conflict_text"
@@ -681,7 +728,7 @@ cmd_apply_update() {
 - Confirmed by: you (explicit yes), $(date -u +%Y-%m-%dT%H:%M:%SZ)
 - Local edits: $pop_note
 
-$(git -C "$FRAMEWORK_DIR" tag -n99 "$latest" 2>/dev/null | sed '1s/^[^ ]*  *//')
+$(git -C "$FRAMEWORK_DIR" tag -l --format='%(contents)' "$latest" 2>/dev/null)
 EOF
   L_UPDATE_APPLIED "$old_tag" "$latest" "$record"
   log "self-update APPLIED $old_tag -> $latest"
@@ -731,8 +778,8 @@ main_interview() {
 
   step_language;   say ""
   step_workdir;    say ""
-  step_framework
-  step_claude_code; say ""
+  step_claude_code
+  step_framework;  say ""
   step_subscription; say ""
   step_telegram;   say ""
   step_telemetry;  say ""

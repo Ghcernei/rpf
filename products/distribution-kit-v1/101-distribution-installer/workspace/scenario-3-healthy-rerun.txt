@@ -1,5 +1,5 @@
 Scenario 3 — rerun on the already-healthy Scenario-1 workspace
-Generated: 2026-07-09T22:25:21Z
+Generated: 2026-07-09T22:53:33Z
 No answers should be needed — every step is already 'done'.
 
 == Qroky setup ==
@@ -11,8 +11,8 @@ Step 2 of 7 — choose your working folder
   this folder is already your Qroky workspace — reusing it
 
 Step 3 of 7 — check the Claude Code assistant
-  already set up — nothing to do (health check)
   Claude Code — found (claude-code 0.0.0-dry-run-stub)
+  the rulebook is already in place — nothing to do (health check)
 
 Step 4 of 7 — check your subscription
   already set up — nothing to do (health check)
@@ -30,14 +30,14 @@ Step 7 of 7 — morning digest (optional)
 == Setup finished. Nothing failed. ==
 
 Your assistant is ready. To start:
-  1. Open a terminal in: /private/tmp/qroky-install-dry-run.xJFApJ/w1
+  1. Open a terminal in: /private/tmp/qroky-install-dry-run.RJVUw9/w1
   2. Type: claude
   3. Say: qroky start
 
 That single phrase — "qroky start" — is all you need; it works in any
 language you type it in.
 
-(total elapsed: 1s)
+(total elapsed: 0s)
 
 --- exit code: 0 ---
 

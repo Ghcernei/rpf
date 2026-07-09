@@ -215,38 +215,52 @@ W2="$SANDBOX/w2"
 {
   echo "Scenario 2 — kill the install mid-way, rerun completes to the end"
   echo "Generated: $(date -u +%Y-%m-%dT%H:%M:%SZ)"
-  echo "Mechanism: QROKY_TEST_DELAY_STEP=telegram / QROKY_TEST_DELAY_SECONDS=5"
-  echo "(sandbox-only test hook, see install.sh header) opens a deterministic"
-  echo "window right before the telegram step's state commit; this run is"
-  echo "SIGKILLed inside that window, after workdir+framework+claude_code+"
-  echo "subscription have already committed 'done' for real."
+  echo "Mechanism (round-2 fix, verify F1): RUN A opts INTO Telegram (y +"
+  echo "GOODTOKEN456) so the QROKY_TEST_DELAY_STEP=telegram hook — which sits"
+  echo "AFTER the token is stored but BEFORE the telegram step's state commit"
+  echo "— is guaranteed to be reached; the process is SIGKILLed inside that"
+  echo "5-second window, after workdir+claude_code+framework+subscription have"
+  echo "already committed 'done' for real. The round-1 feed opted OUT of"
+  echo "Telegram, whose branch returns before the hook, so nothing was ever"
+  echo "killed — this scenario now FAILS unless the kill verifiably landed"
+  echo "mid-flight (kill confirmed + post-kill state shows telegram NOT done)."
   echo ""
   echo "--- RUN A (will be killed mid-step) ---"
 } > "$T2"
 (
   export QROKY_WORKSPACE_DIR="$W2"
   export QROKY_TEST_DELAY_STEP="telegram"
-  export QROKY_TEST_DELAY_SECONDS="5"
-  printf 'en\n\nn\nn\ny\n' | "$INSTALL" >> "$T2" 2>&1 &
+  export QROKY_TEST_DELAY_SECONDS="15"
+  printf 'en\n\ny\nGOODTOKEN456\nn\ny\n' | "$INSTALL" >> "$T2" 2>&1 &
   echo $! > "$SANDBOX/killpid"
 )
-sleep 2
+sleep 4
+KILL_LANDED=0
 KILLPID="$(cat "$SANDBOX/killpid" 2>/dev/null || true)"
 if [[ -n "$KILLPID" ]] && kill -0 "$KILLPID" 2>/dev/null; then
   kill -9 "$KILLPID" 2>/dev/null || true
-  echo "(process $KILLPID killed mid-step, as intended)" >> "$T2"
+  KILL_LANDED=1
+  echo "(process $KILLPID SIGKILLed mid-step, as intended)" >> "$T2"
 else
-  echo "(WARNING: process already exited before the kill — timing too tight for this machine)" >> "$T2"
+  echo "(FAIL: process already exited before the kill — the kill never landed; this scenario's evidence is void)" >> "$T2"
 fi
 wait 2>/dev/null
 STATE_AFTER_KILL=""
 [[ -f "$W2/install-state.json" ]] && STATE_AFTER_KILL="$(cat "$W2/install-state.json")"
+# The kill is only meaningful if the state file PROVES a mid-flight stop:
+# earlier steps committed done, telegram (the step hosting the delay) NOT.
+TELEGRAM_DONE_AT_KILL=$(printf '%s' "$STATE_AFTER_KILL" | grep -c '"step_telegram": "done"' || true)
+WORKDIR_DONE_AT_KILL=$(printf '%s' "$STATE_AFTER_KILL" | grep -c '"step_workdir": "done"' || true)
 {
   echo ""
   echo "--- state file immediately after the kill ---"
   echo "${STATE_AFTER_KILL:-<no state file — kill happened before the first commit>}"
   echo ""
-  echo "--- RUN B (rerun, same command, no answers needed for already-done steps) ---"
+  echo "mid-flight proof: kill landed on a live process: $([[ $KILL_LANDED -eq 1 ]] && echo yes || echo no);"
+  echo "  step_workdir committed done before the kill: $([[ "$WORKDIR_DONE_AT_KILL" -gt 0 ]] && echo yes || echo no);"
+  echo "  step_telegram NOT yet done at the kill: $([[ "$TELEGRAM_DONE_AT_KILL" -eq 0 ]] && echo yes || echo no)"
+  echo ""
+  echo "--- RUN B (rerun; language/workdir must NOT be re-asked — telegram, cut down mid-flight, is asked again) ---"
 } >> "$T2"
 OUT2B="$(run_install "$W2" $'n\nn\ny\n')"
 STATUS2B=$?
@@ -257,15 +271,19 @@ STATUS2B=$?
 } >> "$T2"
 FINAL_STATE2="$(cat "$W2/install-state.json" 2>/dev/null || echo "MISSING")"
 ALL_DONE2=$(printf '%s' "$FINAL_STATE2" | grep -c '"pending"\|"failed"' || true)
+REASKED_LANG2=$(printf '%s' "$OUT2B" | grep -c "Which language do you want to use?" || true)
 {
   echo ""
   echo "--- final state file ---"
   echo "$FINAL_STATE2"
+  echo ""
+  echo "language question re-asked in RUN B (must be no): $([[ "$REASKED_LANG2" -eq 0 ]] && echo no || echo YES-DEFECT)"
 } >> "$T2"
-if [[ $STATUS2B -eq 0 && "$ALL_DONE2" -eq 0 ]]; then
-  record "2-kill-mid-install" PASS "rerun after SIGKILL completed, exit 0, all steps done"
+if [[ $KILL_LANDED -eq 1 && "$TELEGRAM_DONE_AT_KILL" -eq 0 && "$WORKDIR_DONE_AT_KILL" -gt 0 \
+      && $STATUS2B -eq 0 && "$ALL_DONE2" -eq 0 && "$REASKED_LANG2" -eq 0 ]]; then
+  record "2-kill-mid-install" PASS "SIGKILL landed mid-telegram (state: prior steps done, telegram not), rerun resumed without re-asking and completed all-done"
 else
-  record "2-kill-mid-install" FAIL "rerun exit $STATUS2B, pending/failed steps remain: $ALL_DONE2"
+  record "2-kill-mid-install" FAIL "kill_landed=$KILL_LANDED telegram_done_at_kill=$TELEGRAM_DONE_AT_KILL workdir_done=$WORKDIR_DONE_AT_KILL rerun_exit=$STATUS2B remaining=$ALL_DONE2 lang_reasked=$REASKED_LANG2"
 fi
 
 # ---------------------------------------------------------------------------
@@ -289,7 +307,7 @@ STATUS3=$?
 } >> "$T3"
 AFTER_TREE="$(find "$W1" -type f ! -name 'install.log' -exec sh -c 'echo "$1  $(md5 -q "$1" 2>/dev/null || md5sum "$1" | cut -d" " -f1)"' _ {} \; | sort)"
 AFTER_STATE_NO_TS="$(grep -v generated_at "$W1/install-state.json")"
-HEALTH_LINES=$(printf '%s' "$OUT3" | grep -c "already set up\|already your Qroky workspace\|found (" || true)
+HEALTH_LINES=$(printf '%s' "$OUT3" | grep -c "already set up\|already your Qroky workspace\|already in place\|found (" || true)
 {
   echo ""
   echo "--- file tree diff (content hashes, excluding install.log which is append-only by design) ---"
@@ -329,7 +347,21 @@ STATUS4=$?
   echo "--- exit code: $STATUS4 (non-zero expected — setup stopped) ---"
 } >> "$T4"
 RETRY_COUNT4=$(printf '%s' "$OUT4" | grep -c "trying again automatically" || true)
-HAS_HUMAN_MSG4=$(printf '%s' "$OUT4" | grep -c "Check the internet connection, then run this installer again" || true)
+HAS_HUMAN_MSG4=$(printf '%s' "$OUT4" | grep -c "Could not download the assistant's rulebook" || true)
+# Round-2 checks (verify F7): the failure must NOT be attributed to the
+# Claude Code check, and no raw git noise (fatal:, error:) may reach the
+# founder's screen — it belongs in install.log. Attribution is correct
+# when (a) the Claude check visibly SUCCEEDED on its own line before the
+# failure ("Claude Code — found"), and (b) the failure block itself names
+# the rulebook download, not the assistant.
+UNDER_CLAUDE_HEADER4=1
+CLAUDE_OK_LINE4=$(printf '%s' "$OUT4" | grep -c "Claude Code — found" || true)
+FAIL_NAMES_CLAUDE4=$(printf '%s' "$OUT4" | sed -n '/SETUP STOPPED/,$p' | grep -c "Claude Code" || true)
+if [[ "$CLAUDE_OK_LINE4" -gt 0 && "$FAIL_NAMES_CLAUDE4" -eq 0 ]]; then
+  UNDER_CLAUDE_HEADER4=0
+fi
+RAW_GIT_SPEW4=$(printf '%s' "$OUT4" | grep -c "^fatal:\|^error:" || true)
+GIT_NOISE_IN_LOG4=$(grep -c "fatal:" "$W4/install.log" 2>/dev/null || true)
 STATE4="$(cat "$W4/install-state.json" 2>/dev/null || echo "MISSING")"
 {
   echo ""
@@ -337,12 +369,18 @@ STATE4="$(cat "$W4/install-state.json" 2>/dev/null || echo "MISSING")"
   echo "$STATE4"
   echo ""
   echo "auto-retry lines seen: $RETRY_COUNT4 (ladder cap is 2, harness-checklist point 3)"
-  echo "concrete human instruction present: $([[ $HAS_HUMAN_MSG4 -gt 0 ]] && echo yes || echo no)"
+  echo "concrete human instruction present (rulebook download named, not the Claude check): $([[ $HAS_HUMAN_MSG4 -gt 0 ]] && echo yes || echo no)"
+  echo "failure mis-attributed under the Claude Code header (must be no): $([[ $UNDER_CLAUDE_HEADER4 -eq 0 ]] && echo no || echo YES-DEFECT)"
+  echo "raw git fatal:/error: lines on the founder's screen (must be 0): $RAW_GIT_SPEW4"
+  echo "git technical details preserved in install.log (for support): $([[ "$GIT_NOISE_IN_LOG4" -gt 0 ]] && echo yes || echo no)"
 } >> "$T4"
-if [[ $STATUS4 -ne 0 && "$RETRY_COUNT4" -eq 2 && "$HAS_HUMAN_MSG4" -gt 0 ]] && printf '%s' "$STATE4" | grep -q '"step_workdir": "done"' && printf '%s' "$STATE4" | grep -q '"step_framework": "failed"'; then
-  record "4-broken-dependency" PASS "2 auto-retries then a concrete human instruction, exit $STATUS4, prior steps' state preserved"
+if [[ $STATUS4 -ne 0 && "$RETRY_COUNT4" -eq 2 && "$HAS_HUMAN_MSG4" -gt 0 \
+      && "$UNDER_CLAUDE_HEADER4" -eq 0 && "$RAW_GIT_SPEW4" -eq 0 ]] \
+   && printf '%s' "$STATE4" | grep -q '"step_workdir": "done"' \
+   && printf '%s' "$STATE4" | grep -q '"step_framework": "failed"'; then
+  record "4-broken-dependency" PASS "2 auto-retries then a concrete human instruction under the correct step, no raw git spew on screen, exit $STATUS4, prior steps' state preserved"
 else
-  record "4-broken-dependency" FAIL "retries=$RETRY_COUNT4 human_msg=$HAS_HUMAN_MSG4 exit=$STATUS4"
+  record "4-broken-dependency" FAIL "retries=$RETRY_COUNT4 human_msg=$HAS_HUMAN_MSG4 misattributed=$UNDER_CLAUDE_HEADER4 raw_git=$RAW_GIT_SPEW4 exit=$STATUS4"
 fi
 
 # ---------------------------------------------------------------------------
@@ -411,22 +449,27 @@ LEAK_TELEMETRY=$(grep -rc "$TOKEN_PLAINTEXT" "$W1/telemetry" 2>/dev/null | awk -
 LEAK_GIT=$( (cd "$W1" && git grep -c "$TOKEN_PLAINTEXT" $(git rev-list --all 2>/dev/null) 2>/dev/null; cd "$W1/framework" && git grep -c "$TOKEN_PLAINTEXT" $(git rev-list --all 2>/dev/null) 2>/dev/null) | awk -F: '{s+=$NF} END{print s+0}')
 TOKEN_FILE_PERMS="$(stat -f '%Lp' "$W1/.qroky/telegram.token" 2>/dev/null || stat -c '%a' "$W1/.qroky/telegram.token" 2>/dev/null)"
 TOKEN_FILE_CONTENT="$(cat "$W1/.qroky/telegram.token" 2>/dev/null)"
-MASKED_IN_LOG=$(grep -c "\*\*\*\*" "$W1/install.log" 2>/dev/null || true)
+# Round-2 fix (verify F4): the masked confirmation is now WRITTEN to
+# install.log by install.sh ("telegram TOKEN-STORED masked=****..."), so
+# this is a hard requirement, not an informational line — redaction must
+# be auditable from the log alone while the raw-token grep stays empty.
+MASKED_IN_LOG=$(grep -c "TOKEN-STORED masked=\*\*\*\*" "$W1/install.log" 2>/dev/null || true)
 {
   echo "grep hits in install-state.json: ${LEAK_STATE:-0}"
   echo "grep hits in install.log: ${LEAK_LOG:-0}"
   echo "grep hits in telemetry/: ${LEAK_TELEMETRY:-0}"
   echo "grep hits across all git history (workspace + framework): ${LEAK_GIT:-0}"
   echo ""
-  echo "masked-token confirmation line present in install.log: $([[ "$MASKED_IN_LOG" -gt 0 ]] && echo yes || echo no)"
+  echo "masked-token confirmation line present in install.log (REQUIRED): $([[ "$MASKED_IN_LOG" -gt 0 ]] && echo yes || echo no)"
   echo "token file mode: ${TOKEN_FILE_PERMS:-MISSING} (must be 600)"
   echo "token file contains the real token (expected — this is the ONE sanctioned place): $([[ "$TOKEN_FILE_CONTENT" == "$TOKEN_PLAINTEXT" ]] && echo yes || echo no)"
 } >> "$T6"
 if [[ "${LEAK_STATE:-0}" -eq 0 && "${LEAK_LOG:-0}" -eq 0 && "${LEAK_TELEMETRY:-0}" -eq 0 && "${LEAK_GIT:-0}" -eq 0 \
+      && "$MASKED_IN_LOG" -gt 0 \
       && "$TOKEN_FILE_PERMS" == "600" && "$TOKEN_FILE_CONTENT" == "$TOKEN_PLAINTEXT" ]]; then
-  record "6-secrets-negative-grep" PASS "zero leaks across state/log/telemetry/git; token file mode 600"
+  record "6-secrets-negative-grep" PASS "zero raw-token leaks across state/log/telemetry/git; masked line present in log; token file mode 600"
 else
-  record "6-secrets-negative-grep" FAIL "state=$LEAK_STATE log=$LEAK_LOG telemetry=$LEAK_TELEMETRY git=$LEAK_GIT perms=$TOKEN_FILE_PERMS"
+  record "6-secrets-negative-grep" FAIL "state=$LEAK_STATE log=$LEAK_LOG telemetry=$LEAK_TELEMETRY git=$LEAK_GIT masked_in_log=$MASKED_IN_LOG perms=$TOKEN_FILE_PERMS"
 fi
 
 # ---------------------------------------------------------------------------
@@ -462,7 +505,33 @@ OUT7A="$(run_install "$W1" '' --check-update)"
 {
   echo "$OUT7A"
 } >> "$T7"
-HAS_DIGEST=$(printf '%s' "$OUT7A" | grep -c "v1.0.0 -> v1.1.0\|apply-update" || true)
+HAS_DIGEST=$(printf '%s' "$OUT7A" | grep -c "v1.0.0 -> v1.1.0" || true)
+# Round-2 fix (verify F2): the digest must carry ALL THREE changelog body
+# lines — the round-1 extraction wasted the head -3 budget on the tag
+# subject + blank separator, silently dropping two of them.
+CHANGELOG_LINES_OK=0
+if printf '%s' "$OUT7A" | grep -q "fixes the stub thing" \
+   && printf '%s' "$OUT7A" | grep -q "improves the other stub thing" \
+   && printf '%s' "$OUT7A" | grep -q "adds a third stub improvement"; then
+  CHANGELOG_LINES_OK=1
+fi
+
+# Round-2 check (verify F5): the "нет" cancel MUST be exercised while the
+# update is genuinely pending — BEFORE the "да" apply, not after it.
+{
+  echo ""
+  echo "--- apply-update with the update PENDING, answering 'нет' (must cancel, tag must stay v1.0.0) ---"
+} >> "$T7"
+OUT7N="$(run_install "$W1" $'нет\n' --apply-update)"
+echo "$OUT7N" >> "$T7"
+STATE7N="$(cat "$W1/install-state.json")"
+TAG_STILL_OLD=$(printf '%s' "$STATE7N" | grep -c '"framework_tag": "v1.0.0"' || true)
+CANCELLED_SHOWN=$(printf '%s' "$OUT7N" | grep -ci "cancelled\|anulat\|отменено" || true)
+REACHED_PROMPT_N=$(printf '%s' "$OUT7N" | grep -c "Apply this update now\|Aplici această actualizare\|Применить это обновление" || true)
+{
+  echo ""
+  echo "cancel check: confirm prompt reached: $([[ "$REACHED_PROMPT_N" -gt 0 ]] && echo yes || echo no); cancelled message shown: $([[ "$CANCELLED_SHOWN" -gt 0 ]] && echo yes || echo no); framework_tag still v1.0.0: $([[ "$TAG_STILL_OLD" -gt 0 ]] && echo yes || echo no)"
+} >> "$T7"
 
 {
   echo ""
@@ -472,7 +541,11 @@ OUT7B="$(run_install "$W1" $'да\n' --apply-update)"
 {
   echo "$OUT7B"
 } >> "$T7"
-HAS_CONFLICT_SHOWN=$(printf '%s' "$OUT7B" | grep -c "founder's own note\|README.md" || true)
+HAS_CONFLICT_SHOWN=$(printf '%s' "$OUT7B" | grep -c "README.md" || true)
+# Round-2 check (verify F3): the conflict display must show ONLY the real
+# founder edit (M README.md), never the installer's own PROVENANCE.md —
+# an untouched install must not cry "local changes".
+PROVENANCE_FALSE_ALARM=$( (printf '%s\n%s' "$OUT7N" "$OUT7B") | grep -c "PROVENANCE" || true)
 STATE7="$(cat "$W1/install-state.json")"
 DECISION_FILE="$(ls "$W1"/decisions/UPDATE-*.md 2>/dev/null | head -1)"
 {
@@ -482,21 +555,19 @@ DECISION_FILE="$(ls "$W1"/decisions/UPDATE-*.md 2>/dev/null | head -1)"
   echo ""
   echo "--- decisions record ---"
   [[ -n "$DECISION_FILE" ]] && cat "$DECISION_FILE" || echo "MISSING"
+  echo ""
+  echo "all 3 changelog lines reached the digest: $([[ "$CHANGELOG_LINES_OK" -eq 1 ]] && echo yes || echo no)"
+  echo "PROVENANCE.md false-alarm lines in conflict displays (must be 0): $PROVENANCE_FALSE_ALARM"
 } >> "$T7"
 TAG_UPDATED=$(printf '%s' "$STATE7" | grep -c '"framework_tag": "v1.1.0"' || true)
-if [[ "$HAS_DIGEST" -gt 0 && "$HAS_CONFLICT_SHOWN" -gt 0 && "$TAG_UPDATED" -gt 0 && -n "$DECISION_FILE" ]]; then
-  record "7-self-update" PASS "digest shown, conflict shown before apply, tag advanced to v1.1.0, decisions record written"
+if [[ "$HAS_DIGEST" -gt 0 && "$CHANGELOG_LINES_OK" -eq 1 \
+      && "$REACHED_PROMPT_N" -gt 0 && "$CANCELLED_SHOWN" -gt 0 && "$TAG_STILL_OLD" -gt 0 \
+      && "$HAS_CONFLICT_SHOWN" -gt 0 && "$PROVENANCE_FALSE_ALARM" -eq 0 \
+      && "$TAG_UPDATED" -gt 0 && -n "$DECISION_FILE" ]]; then
+  record "7-self-update" PASS "3-line changelog in digest; нет cancelled a genuinely pending update (tag stayed v1.0.0); conflict shown (README.md only, no PROVENANCE false alarm); да applied to v1.1.0; decisions record written"
 else
-  record "7-self-update" FAIL "digest=$HAS_DIGEST conflict_shown=$HAS_CONFLICT_SHOWN tag_updated=$TAG_UPDATED decision_file=${DECISION_FILE:-none}"
+  record "7-self-update" FAIL "digest=$HAS_DIGEST changelog3=$CHANGELOG_LINES_OK cancel_prompt=$REACHED_PROMPT_N cancelled=$CANCELLED_SHOWN tag_stayed=$TAG_STILL_OLD conflict_shown=$HAS_CONFLICT_SHOWN provenance_alarm=$PROVENANCE_FALSE_ALARM tag_updated=$TAG_UPDATED decision_file=${DECISION_FILE:-none}"
 fi
-
-# --- also prove "apply cancels on anything but yes" (never silently applies) ---
-{
-  echo ""
-  echo "--- negative check: apply-update again, answering 'нет' (no new tag pending, but proves the cancel path is real) ---"
-} >> "$T7"
-OUT7C="$(run_install "$W1" $'нет\n' --apply-update)"
-echo "$OUT7C" >> "$T7"
 
 # ---------------------------------------------------------------------------
 # SCENARIO 8 — heartbeat consent, BOTH branches (H10 explicitly requires

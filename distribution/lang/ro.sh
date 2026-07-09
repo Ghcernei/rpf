@@ -34,6 +34,9 @@ L_ASK_WORKDIR() {
 L_WORKDIR_SET() { printf '  folder de lucru: %s\n' "$1"; }
 L_WORKDIR_ALREADY() { printf '  acest folder este deja spațiul tău Qroky — îl refolosim\n'; }
 
+L_FRAMEWORK_VENDORING() { printf '  descarc regulamentul pe care îl urmează asistentul (fixat la o versiune anume, ca să nu se schimbe niciodată fără să te întrebe)...\n'; }
+L_FRAMEWORK_ALREADY() { printf '  regulamentul este deja la locul lui — nimic de făcut (verificare de sănătate)\n'; }
+
 L_CLAUDE_FOUND() { printf '  Claude Code — găsit (%s)\n' "$1"; }
 L_CLAUDE_MISSING() {
   printf 'Asistentul Claude Code nu este instalat pe acest calculator.\n'
@@ -82,11 +85,24 @@ L_TELEGRAM_STORED() { printf '  token salvat doar pe acest calculator (nu e trim
 L_TELEMETRY_ASK_OPTIN() {
   cat <<'EOF'
 Partajarea sprijinului zilnic — înainte de a întreba, iată EXACT ce ar pleca
-de pe acest calculator, în cuvinte simple: jurnale scurte de progres și
-rezumate de cost despre CUM a mers munca (niciodată CE construiești — fără
-cod, fără specificații, fără conținutul produsului). Poți citi lista exactă
-și scriptul care le trimite oricând la: distribution/README.<lang>.md,
-secțiunea "Ce pleacă de pe acest calculator".
+de pe acest calculator dacă spui da. Lista completă — nimic altceva nu este
+citit vreodată:
+  1. fișierele de progres ale sarcinilor (STATUS.md) — doar cuvântul de
+     stare, data și identificatorul sarcinii
+  2. rezumatele de cost (RESULT.md)   — DOAR cifrele de cost (timp/unități);
+     secțiunile de rezumat și conținut, unde ar fi descris produsul tău, nu
+     sunt copiate niciodată
+  3. jurnalele de pași (run.log)      — doar marcaje de timp și nume de pași
+  4. tabloul de stare (status.yaml)   — o linie per sarcină, notele libere
+     sunt eliminate
+  5. rezultatele verificărilor independente (VERDICT.md) — doar linia de
+     verdict, niciodată textul constatărilor
+Propozițiile libere sunt eliminate din fiecare dintre acestea înainte de
+copiere. Codul, specificațiile și conținutul produsului tău nu sunt pe
+această listă și nu sunt citite niciodată. Notă: un „da" astăzi doar îți
+înregistrează alegerea — acest instalator nu instalează niciun mecanism de
+trimitere, deci nimic nu poate pleca încă; scriptul de trimitere îți va fi
+arătat, linie cu linie, înainte de a fi adăugat vreodată.
 EOF
   printf 'Activezi partajarea sprijinului zilnic? Da/nu (y/n), implicit n: '
 }
@@ -109,6 +125,11 @@ L_HEARTBEAT_NO_LAUNCHD() {
   printf 'NOTĂ: acest calculator nu are "launchctl" (frecvent în afara macOS), deci\n'
   printf 'rezumatul de dimineață nu poate fi programat automat. Nimic altceva nu a\n'
   printf 'eșuat — rulează-l manual oricând cu: bash %s/.qroky/heartbeat.sh\n' "$1"
+}
+L_HEARTBEAT_SCHEDULE_FAILED() {
+  printf 'NOTĂ: rezumatul de dimineață nu a putut fi programat automat acum.\n'
+  printf 'Tot restul s-a terminat cu bine — rezumatul este instalat, dar oprit.\n'
+  printf 'Încearcă din nou mai târziu cu:\n      bash install.sh --enable-heartbeat\n'
 }
 
 L_FINALE() {
