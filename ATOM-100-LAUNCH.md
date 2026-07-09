@@ -31,7 +31,7 @@ role: orchestrator (launch session); executor role: pilot-toolsmith (reuse)
 formulated_by: launch session from CEO mandate INFO-017 (verbatim), 2026-07-09
 verification: blind (ATOM-101-VERIFY, L) + human dry run (G2, release criterion)
 maturity_target: reviewed (validated — after first stranger-install in the field)
-budget: ~600k tokens subtree envelope (executor ~250k incl. 071-kit reads; verify ~150k per ×3.5+40k; parent orchestration + narrative ≤5%; ~50k fixed per subagent). Default-envelope practice per GATE-022 interpretation: E4 only on breach.
+budget: ~650k tokens subtree envelope (executor ~280k incl. 071-kit reads + INFO-022 state machine and three-scenario harness; verify ~150k per ×3.5+40k; parent orchestration + narrative ≤5%; ~50k fixed per subagent). Default-envelope practice per GATE-022/INFO-019: E4 only on breach. Raised from ~600k by the CEO-authored INFO-022 amendment (pre-launch).
 recursion_allowance: 2
 ---
 
@@ -86,19 +86,41 @@ without E1; removing one is E7.
   telemetry opt-in — shows verbatim WHAT leaves before asking (072 pattern,
   filtered-only). Zero questions outside the interview. Check: scripted transcript
   of a full run; question inventory equals the closed list.
-- H3. Idempotent: a second run on an already-configured machine detects existing
-  state, offers repair/update, never duplicates and never destroys user data.
-  Check: scripted double-run in sandbox; diff of state after runs 2 vs 1.
+- H3. Self-managing idempotency (INFO-022): every step is an idempotent
+  «check→do» pair. A rerun replays the checks from the top and resumes EXACTLY at
+  the stop point (answered interview points are never re-asked — answers live in
+  the state file, H8); a rerun on a healthy install is a free health-check that
+  reports «всё стоит, ничего не делал» and changes nothing. Never duplicates,
+  never destroys user data. Check: scripted double-run diff + resume-from-kill
+  scenario (H6).
 - H4. Secrets perimeter: the bot token is stored ONLY locally (file mode 600 inside
-  the user's Qroky folder), never printed to telemetry, never committed. Check:
-  negative test greps telemetry payload and git status for the token.
+  the user's Qroky folder), never printed to telemetry, never committed. Secret
+  redaction holds in BOTH traces — install-state.json and the human-readable log.
+  Check: negative grep for the token over telemetry payload, git status, state
+  file, and log is EMPTY.
 - H5. Finale prints, in the chosen language: how to open a Claude Code session and
   the exact words «скажи qroky start» (or `qroky start`). The handoff target is the
   machine-wide gesture contract of the qroky skill.
 - H6. Sandbox dry-run harness (expanding 071 dry-run.sh) proves the clean-machine
-  path end-to-end ≤15 min with zero out-of-interview questions. Check: harness exit
-  code + timed transcript committed to the atom's workspace.
+  path end-to-end ≤15 min with zero out-of-interview questions, PLUS three
+  mandatory scenarios (INFO-022, verbatim list): (a) kill the install mid-way →
+  rerun completes to the end; (b) run on an already-installed system → clean
+  health-check; (c) a broken dependency → a clear human instruction. Check:
+  harness exit codes + timed transcripts committed to the atom's workspace.
 - H7. Blind verify: accept.
+- H8. `install-state.json` — machine-readable checkpoint next to the
+  human-readable log: every step `done/failed/pending` + the interview answers.
+  The trace is the installer's control organ, not a report (same principle as the
+  framework's file bus). Tree B (ATOM-110) will read this file as the instance's
+  ground state. Check: state file present and consistent after every scenario of
+  H6.
+- H9. Failure ladder (INFO-022): on a step failure — self-diagnosis (cause named
+  from the step's own check) → ONE auto-attempt from known remedies (network
+  retry, lock wait, permissions hint) → if not cured, a CONCRETE human action:
+  «сделайте Y, запустите снова — продолжу отсюда» — never «пришлите файл» (the
+  file is the last line for hopeless cases only). Max 2 auto-attempts per step;
+  the third failure of a step ALWAYS goes to the human. Check: fault-injection in
+  the H6(c) scenario exercises the ladder end-to-end.
 
 **Soft criteria (judgment — judge named per criterion):**
 - S1. Every user-facing line passes the non-technical-founder bar: no method jargon
