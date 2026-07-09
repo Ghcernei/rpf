@@ -1,0 +1,481 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Qroky — ассистент, который строит ваш продукт как настоящая команда</title>
+<style>
+  :root {
+    --paper: #faf7f2;
+    --paper-deep: #f1ece3;
+    --ink: #1c1a17;
+    --ink-soft: #55504a;
+    --accent: #b64a20;
+    --accent-soft: #f3ddd2;
+    --line: #ddd5c9;
+    --mono-bg: #24211d;
+    --mono-ink: #e8e2d8;
+    --text-base: clamp(1.02rem, 0.95rem + 0.35vw, 1.15rem);
+    --text-hero: clamp(2.2rem, 1.2rem + 4.5vw, 4.2rem);
+    --text-h2: clamp(1.5rem, 1.2rem + 1.5vw, 2.2rem);
+    --space-section: clamp(3.5rem, 2.5rem + 4vw, 7rem);
+    --serif: "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, serif;
+    --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    --mono: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body {
+    background: var(--paper);
+    color: var(--ink);
+    font-family: var(--sans);
+    font-size: var(--text-base);
+    line-height: 1.65;
+    -webkit-font-smoothing: antialiased;
+  }
+  /* ── language switching ───────────────────────────── */
+  html[data-lang="ru"] [lang="ro"] { display: none !important; }
+  html[data-lang="ro"] [lang="ru"] { display: none !important; }
+
+  .wrap { max-width: 62rem; margin: 0 auto; padding: 0 clamp(1.1rem, 4vw, 2.5rem); }
+
+  /* ── header ───────────────────────────────────────── */
+  header {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 1.2rem clamp(1.1rem, 4vw, 2.5rem);
+    max-width: 62rem; margin: 0 auto;
+  }
+  .wordmark {
+    font-family: var(--serif); font-weight: 700; font-size: 1.45rem;
+    letter-spacing: -0.02em;
+  }
+  .wordmark span { color: var(--accent); }
+  .lang-toggle { display: flex; gap: 0.25rem; border: 1px solid var(--line); border-radius: 99px; padding: 0.2rem; background: #fff; }
+  .lang-toggle button {
+    border: none; background: transparent; font: inherit; font-size: 0.85rem;
+    padding: 0.25rem 0.8rem; border-radius: 99px; cursor: pointer; color: var(--ink-soft);
+  }
+  .lang-toggle button.active { background: var(--ink); color: var(--paper); }
+
+  /* ── hero ─────────────────────────────────────────── */
+  .hero { padding: var(--space-section) 0 calc(var(--space-section) * 0.7); }
+  .hero h1 {
+    font-family: var(--serif); font-size: var(--text-hero);
+    line-height: 1.08; letter-spacing: -0.02em; font-weight: 700;
+    max-width: 18ch;
+  }
+  .hero h1 em { font-style: normal; color: var(--accent); }
+  .hero p.lead {
+    margin-top: 1.6rem; font-size: clamp(1.1rem, 1rem + 0.6vw, 1.35rem);
+    color: var(--ink-soft); max-width: 44ch; line-height: 1.55;
+  }
+  .hero .chip {
+    display: inline-block; margin-top: 2.2rem;
+    font-family: var(--mono); font-size: 0.82rem;
+    background: var(--mono-bg); color: var(--mono-ink);
+    padding: 0.65rem 1.1rem; border-radius: 8px;
+    box-shadow: 0 10px 30px -12px rgba(28,26,23,0.45);
+    max-width: 100%; overflow-x: auto; white-space: nowrap;
+  }
+  .chip b { color: #f0b490; font-weight: 600; }
+
+  /* ── sections ─────────────────────────────────────── */
+  section { padding: calc(var(--space-section) * 0.75) 0; }
+  .kicker {
+    font-size: 0.78rem; text-transform: uppercase; letter-spacing: 0.14em;
+    color: var(--accent); font-weight: 700; margin-bottom: 0.9rem;
+  }
+  h2 {
+    font-family: var(--serif); font-size: var(--text-h2);
+    line-height: 1.2; letter-spacing: -0.015em; max-width: 26ch;
+  }
+  .section-intro { margin-top: 1rem; color: var(--ink-soft); max-width: 58ch; }
+
+  /* ── cards ────────────────────────────────────────── */
+  .cards { display: grid; gap: 1.1rem; margin-top: 2.2rem; grid-template-columns: repeat(auto-fit, minmax(15.5rem, 1fr)); }
+  .card {
+    background: #fff; border: 1px solid var(--line); border-radius: 14px;
+    padding: 1.6rem 1.5rem;
+    transition: transform 0.25s cubic-bezier(0.16,1,0.3,1), box-shadow 0.25s;
+  }
+  .card:hover { transform: translateY(-3px); box-shadow: 0 16px 34px -18px rgba(28,26,23,0.3); }
+  .card .num {
+    font-family: var(--serif); font-size: 1.05rem; font-weight: 700;
+    color: var(--accent); margin-bottom: 0.6rem;
+  }
+  .card h3 { font-size: 1.06rem; margin-bottom: 0.55rem; line-height: 1.35; }
+  .card p { font-size: 0.94rem; color: var(--ink-soft); line-height: 1.55; }
+  .card .meta { margin-top: 0.8rem; font-size: 0.82rem; color: var(--accent); font-weight: 600; }
+
+  /* ── deal (band) ──────────────────────────────────── */
+  .band { background: var(--ink); color: var(--paper); border-radius: 20px; padding: clamp(1.8rem, 4vw, 3.2rem); margin-top: 2.2rem; }
+  .band .kicker { color: #f0b490; }
+  .band h2 { color: #fff; }
+  .band .section-intro { color: #c9c2b7; }
+  .deal-grid { display: grid; gap: 1rem; margin-top: 2rem; grid-template-columns: repeat(auto-fit, minmax(15rem, 1fr)); }
+  .deal { background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.12); border-radius: 12px; padding: 1.3rem 1.25rem; }
+  .deal h3 { font-size: 0.95rem; color: #f0b490; margin-bottom: 0.5rem; text-transform: uppercase; letter-spacing: 0.06em; }
+  .deal ul { list-style: none; }
+  .deal li { font-size: 0.92rem; color: #ddd6cb; padding: 0.28rem 0 0.28rem 1.15rem; position: relative; line-height: 1.45; }
+  .deal li::before { content: "—"; position: absolute; left: 0; color: #8a8378; }
+
+  /* ── transparency / mono demo ─────────────────────── */
+  .demo {
+    background: var(--mono-bg); color: var(--mono-ink); border-radius: 14px;
+    padding: 1.4rem 1.5rem; margin-top: 2rem;
+    font-family: var(--mono); font-size: 0.84rem; line-height: 1.8;
+    overflow-x: auto;
+  }
+  .demo .c { color: #948c7f; }
+  .demo .a { color: #f0b490; }
+
+  /* ── stats ────────────────────────────────────────── */
+  .stats { display: grid; gap: 1rem; margin-top: 2.2rem; grid-template-columns: repeat(auto-fit, minmax(10.5rem, 1fr)); }
+  .stat { border-top: 3px solid var(--accent); background: var(--paper-deep); border-radius: 0 0 12px 12px; padding: 1.2rem 1.1rem; }
+  .stat .n { font-family: var(--serif); font-size: clamp(1.8rem, 1.4rem + 1.6vw, 2.6rem); font-weight: 700; line-height: 1.1; }
+  .stat .l { font-size: 0.85rem; color: var(--ink-soft); margin-top: 0.35rem; line-height: 1.4; }
+
+  /* ── footer / CTA ─────────────────────────────────── */
+  .cta { text-align: center; padding: var(--space-section) 0; }
+  .cta h2 { margin: 0 auto; }
+  .cta p { margin: 1.2rem auto 0; color: var(--ink-soft); max-width: 46ch; }
+  .cta a.btn {
+    display: inline-block; margin-top: 2rem; background: var(--accent); color: #fff;
+    text-decoration: none; font-weight: 600; padding: 0.9rem 2.2rem; border-radius: 99px;
+    transition: transform 0.2s cubic-bezier(0.16,1,0.3,1), box-shadow 0.2s;
+  }
+  .cta a.btn:hover { transform: translateY(-2px); box-shadow: 0 14px 28px -12px rgba(182,74,32,0.55); }
+  footer { border-top: 1px solid var(--line); padding: 1.6rem 0 2.4rem; font-size: 0.85rem; color: var(--ink-soft); }
+  footer .wrap { display: flex; justify-content: space-between; flex-wrap: wrap; gap: 0.6rem; }
+
+  @media (max-width: 480px) {
+    .hero .chip { font-size: 0.72rem; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="wordmark">Qroky<span>.</span></div>
+  <nav class="lang-toggle" aria-label="Language">
+    <button type="button" data-set-lang="ru">RU</button>
+    <button type="button" data-set-lang="ro">RO</button>
+  </nav>
+</header>
+
+<main>
+
+  <!-- ═══════════ HERO ═══════════ -->
+  <div class="wrap hero">
+    <div lang="ru">
+      <h1>Ассистент, который строит ваш продукт <em>как настоящая команда</em>.</h1>
+      <p class="lead">Qroky работает рядом с вами, на вашем собственном компьютере: распределяет работу по ролям, проверяет каждый результат независимой «второй парой глаз» — и оставляет ключевые решения за вами.</p>
+    </div>
+    <div lang="ro">
+      <h1>Un asistent care construiește produsul tău <em>ca o echipă adevărată</em>.</h1>
+      <p class="lead">Qroky lucrează alături de tine, pe propriul tău calculator: împarte munca pe roluri, verifică fiecare rezultat cu o „a doua pereche de ochi" independentă — și lasă deciziile-cheie în mâinile tale.</p>
+    </div>
+    <div class="chip" aria-hidden="true">⚙ <b>21</b> агентов · <b>7</b> ролей · <b>0</b> возвратов на доработку · стоимость — видна после каждой работы</div>
+  </div>
+
+  <!-- ═══════════ WHAT IT IS ═══════════ -->
+  <section class="wrap">
+    <div lang="ru">
+      <p class="kicker">Что это</p>
+      <h2>Не сотрудник, не консалтинг и не замена вашей команде</h2>
+      <p class="section-intro">Это инструмент — плюс небольшая команда людей («Flow Support»), которая ежедневно поддерживает вас, пока вы им пользуетесь. Он помогает строить быстрее и с меньшим числом дорогих ошибок.</p>
+      <div class="cards">
+        <div class="card">
+          <div class="num">01</div>
+          <h3>Команда ролей, а не один чат-бот</h3>
+          <p>Для каждой задачи собирается набор специалистов: кто-то строит, кто-то считает деньги, кто-то смотрит глазами вашего клиента. Они спорят между собой — и это видно.</p>
+        </div>
+        <div class="card">
+          <div class="num">02</div>
+          <h3>Независимая проверка каждой работы</h3>
+          <p>Важный результат никогда не принимается «сам собой»: его проверяет отдельная, независимая проверка, которая не видела, как работа делалась — только что́ получилось.</p>
+        </div>
+        <div class="card">
+          <div class="num">03</div>
+          <h3>Ключевые решения — только ваши</h3>
+          <p>Всё, что трудно отменить, стоит денег или касается ценностей вашего бизнеса, останавливается и ждёт вашего слова. Простыми словами, без технического жаргона.</p>
+        </div>
+      </div>
+    </div>
+    <div lang="ro">
+      <p class="kicker">Ce este</p>
+      <h2>Nu e un angajat, nu e consultanță și nu îți ia locul echipei</h2>
+      <p class="section-intro">Este un instrument — plus o echipă mică de oameni („Flow Support") care te sprijină zilnic cât timp îl folosești. Te ajută să construiești mai repede și cu mai puține greșeli costisitoare.</p>
+      <div class="cards">
+        <div class="card">
+          <div class="num">01</div>
+          <h3>O echipă de roluri, nu un singur chatbot</h3>
+          <p>Pentru fiecare sarcină se adună un set de specialiști: unul construiește, altul socotește banii, altul privește prin ochii clientului tău. Ei se contrazic între ei — și asta se vede.</p>
+        </div>
+        <div class="card">
+          <div class="num">02</div>
+          <h3>Verificare independentă a fiecărei lucrări</h3>
+          <p>Un rezultat important nu este acceptat niciodată „de la sine": îl verifică o a doua pereche de ochi, independentă, care nu a văzut cum s-a făcut munca — doar ce a ieșit.</p>
+        </div>
+        <div class="card">
+          <div class="num">03</div>
+          <h3>Deciziile-cheie sunt doar ale tale</h3>
+          <p>Tot ce e greu de anulat, costă bani sau ține de valorile afacerii tale se oprește și așteaptă cuvântul tău. În limbaj simplu, fără jargon tehnic.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════════ HOW IT WORKS ═══════════ -->
+  <section class="wrap">
+    <div lang="ru">
+      <p class="kicker">Как это работает</p>
+      <h2>Три скорости — ассистент сам выбирает нужную</h2>
+      <p class="section-intro">Сколько внимания вложить — зависит от того, насколько велика и рискованна просьба. Выбирать вам не нужно, но вот чего ожидать.</p>
+      <div class="cards">
+        <div class="card">
+          <h3>Быстрый ответ</h3>
+          <p>Маленькие, легко отменяемые вопросы: «что значит X», «покажи Y». Ответ — прямо в разговоре, обычно меньше чем за минуту.</p>
+          <p class="meta">&lt; 1 минуты</p>
+        </div>
+        <div class="card">
+          <h3>Короткая проработка</h3>
+          <p>Задача среднего размера, которую стоит записать и сделать отдельно. Короткая пауза — и письменный результат, который можно использовать.</p>
+          <p class="meta">несколько минут</p>
+        </div>
+        <div class="card">
+          <h3>Полная проработка с проверкой</h3>
+          <p>Всё, что попадёт к партнёру, в банк или потратит реальные деньги. Помимо самой работы — независимая проверка, прежде чем результат считается готовым.</p>
+          <p class="meta">15–60 минут</p>
+        </div>
+      </div>
+    </div>
+    <div lang="ro">
+      <p class="kicker">Cum funcționează</p>
+      <h2>Trei viteze — asistentul o alege singur pe cea potrivită</h2>
+      <p class="section-intro">Câtă atenție investește depinde de cât de mare și de riscantă e cererea. Nu trebuie să alegi tu, dar iată la ce să te aștepți.</p>
+      <div class="cards">
+        <div class="card">
+          <h3>Răspuns rapid</h3>
+          <p>Întrebări mici, ușor de anulat: „ce înseamnă X", „arată-mi Y". Răspunsul vine direct în conversație, de obicei în mai puțin de un minut.</p>
+          <p class="meta">&lt; 1 minut</p>
+        </div>
+        <div class="card">
+          <h3>Elaborare scurtă</h3>
+          <p>O sarcină de mărime medie, care merită scrisă și făcută separat. O pauză scurtă — și un rezultat scris, gata de folosit.</p>
+          <p class="meta">câteva minute</p>
+        </div>
+        <div class="card">
+          <h3>Elaborare completă, cu verificare</h3>
+          <p>Tot ce ajunge la un partener, la o bancă sau cheltuie bani reali. Pe lângă munca în sine — o verificare independentă înainte ca rezultatul să fie considerat gata.</p>
+          <p class="meta">15–60 de minute</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════════ TRANSPARENCY ═══════════ -->
+  <section class="wrap">
+    <div lang="ru">
+      <p class="kicker">Прозрачность</p>
+      <h2>Вы видите, кто работал, где спорили и сколько это стоило</h2>
+      <p class="section-intro">Каждая завершённая работа приходит с двумя вещами: строкой себестоимости и человеческой сводкой команды. Никакой магии «где-то в облаке» — всё считается из настоящих записей на вашем компьютере.</p>
+      <div class="demo">
+        <span class="c"># после каждой завершённой работы:</span><br>
+        ⚙ 21 агентов · 7 ролей · 0 возвратов на доработку · <span class="a">$ …</span><br><br>
+        <span class="c"># сводка команды — простыми словами:</span><br>
+        «Специалист по опыту клиента требовал спрятать детали;<br>
+        специалист по безопасности — показать каждую. Решение<br>
+        не сгладили, а вынесли вам — вы выбрали середину.»
+      </div>
+    </div>
+    <div lang="ro">
+      <p class="kicker">Transparență</p>
+      <h2>Vezi cine a lucrat, unde s-au contrazis și cât a costat</h2>
+      <p class="section-intro">Fiecare lucrare finalizată vine cu două lucruri: o linie de cost și un rezumat al echipei, pe înțelesul omului. Nicio magie „undeva în nor" — totul se calculează din înregistrări reale de pe calculatorul tău.</p>
+      <div class="demo">
+        <span class="c"># după fiecare lucrare finalizată:</span><br>
+        ⚙ 21 agenți · 7 roluri · 0 reveniri pentru corecturi · <span class="a">$ …</span><br><br>
+        <span class="c"># rezumatul echipei — în cuvinte simple:</span><br>
+        „Specialistul în experiența clientului cerea să ascundem detaliile;<br>
+        specialistul în securitate — să le arătăm pe toate. Decizia nu a fost<br>
+        netezită, ci adusă la tine — tu ai ales calea de mijloc."
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════════ PROOF ═══════════ -->
+  <section class="wrap">
+    <div lang="ru">
+      <p class="kicker">Проверено на себе</p>
+      <h2>Эта система построила сама себя — и вот её собственные числа</h2>
+      <p class="section-intro">Последний крупный результат Qroky — подготовка собственного пилота: документы, код, проверки. Числа ниже — из настоящих записей той работы, не из презентации.</p>
+    </div>
+    <div lang="ro">
+      <p class="kicker">Testat pe sine</p>
+      <h2>Acest sistem s-a construit pe sine — iată propriile lui cifre</h2>
+      <p class="section-intro">Cel mai recent rezultat major al Qroky este pregătirea propriului pilot: documente, cod, verificări. Cifrele de mai jos vin din înregistrările reale ale acelei lucrări, nu dintr-o prezentare.</p>
+    </div>
+    <div class="stats">
+      <div class="stat">
+        <div class="n">21</div>
+        <div class="l" lang="ru">агент работал над одной задачей — в 7 разных ролях</div>
+        <div class="l" lang="ro">agenți au lucrat la o singură sarcină — în 7 roluri diferite</div>
+      </div>
+      <div class="stat">
+        <div class="n">6 / 6</div>
+        <div class="l" lang="ru">независимых проверок приняли работу с первого раза</div>
+        <div class="l" lang="ro">verificări independente au acceptat munca din prima</div>
+      </div>
+      <div class="stat">
+        <div class="n">≤ 15 <span style="font-size:0.55em">мин</span></div>
+        <div class="l" lang="ru">установка на вашем компьютере — по таймеру, без технических вопросов</div>
+        <div class="l" lang="ro">instalarea pe calculatorul tău — cronometrată, fără întrebări tehnice</div>
+      </div>
+      <div class="stat">
+        <div class="n">2</div>
+        <div class="l" lang="ru">решения машина отказалась принимать сама — их принял человек</div>
+        <div class="l" lang="ro">decizii pe care mașina a refuzat să le ia singură — le-a luat omul</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════════ PILOT DEAL ═══════════ -->
+  <section class="wrap">
+    <div class="band">
+      <div lang="ru">
+        <p class="kicker">Пилот · Flow Support v0</p>
+        <h2>12 недель, бесплатно — как честная договорённость, а не регламент</h2>
+        <p class="section-intro">Простая сделка между двумя людьми, с четырьмя частями. Полный текст — одна страница, читается за 10 минут.</p>
+        <div class="deal-grid">
+          <div class="deal">
+            <h3>Вы получаете</h3>
+            <ul>
+              <li>Систему Qroky на вашем собственном компьютере</li>
+              <li>Ежедневную поддержку живой команды 12 недель</li>
+              <li>Ответ на любую блокировку — не позднее 1 рабочего дня</li>
+            </ul>
+          </div>
+          <div class="deal">
+            <h3>Вы даёте</h3>
+            <ul>
+              <li>Видимость того, <em>как шла работа</em> — не того, что вы строите</li>
+              <li>Историю успеха и честный отзыв — если останетесь довольны</li>
+            </ul>
+          </div>
+          <div class="deal">
+            <h3>Красные линии</h3>
+            <ul>
+              <li>Мы не видим ваш код, спецификации и бизнес-содержимое</li>
+              <li>Не обещаем готовый продакшн-код и инвестиции</li>
+              <li>Не просим эксклюзивности, не заменяем команду</li>
+            </ul>
+          </div>
+          <div class="deal">
+            <h3>Выход</h3>
+            <ul>
+              <li>Уйти можно в любой момент, без объяснения причин</li>
+              <li>Все присланные нам данные удаляются — по вашему запросу</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+      <div lang="ro">
+        <p class="kicker">Pilot · Flow Support v0</p>
+        <h2>12 săptămâni, gratuit — ca o înțelegere cinstită, nu un regulament</h2>
+        <p class="section-intro">O înțelegere simplă între doi oameni, cu patru părți. Textul complet încape pe o pagină și se citește în 10 minute.</p>
+        <div class="deal-grid">
+          <div class="deal">
+            <h3>Primești</h3>
+            <ul>
+              <li>Sistemul Qroky, pe propriul tău calculator</li>
+              <li>Sprijin zilnic din partea unei echipe reale, 12 săptămâni</li>
+              <li>Reacție la orice blocaj — în cel mult 1 zi lucrătoare</li>
+            </ul>
+          </div>
+          <div class="deal">
+            <h3>Dai</h3>
+            <ul>
+              <li>Vizibilitate asupra felului <em>cum a mers munca</em> — nu asupra a ce construiești</li>
+              <li>O poveste de succes și o părere sinceră — dacă rămâi mulțumit</li>
+            </ul>
+          </div>
+          <div class="deal">
+            <h3>Linii roșii</h3>
+            <ul>
+              <li>Nu vedem codul, specificațiile sau conținutul afacerii tale</li>
+              <li>Nu promitem cod de producție la cheie și nici investiții</li>
+              <li>Nu cerem exclusivitate, nu înlocuim echipa</li>
+            </ul>
+          </div>
+          <div class="deal">
+            <h3>Ieșire</h3>
+            <ul>
+              <li>Poți pleca oricând, fără să explici de ce</li>
+              <li>Toate datele trimise nouă se șterg — la cererea ta</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════════ CTA ═══════════ -->
+  <div class="wrap cta">
+    <div lang="ru">
+      <h2>Хотите увидеть это на своём проекте?</h2>
+      <p>Напишите — покажем систему живьём, на настоящей задаче, и оставим вам полный текст договорённости, чтобы вы прочитали его спокойно.</p>
+      <a class="btn" href="mailto:ghcernei@finergy.md?subject=Qroky%20pilot">Написать Ghenadie</a>
+    </div>
+    <div lang="ro">
+      <h2>Vrei să vezi asta pe proiectul tău?</h2>
+      <p>Scrie-ne — îți arătăm sistemul pe viu, pe o sarcină reală, și îți lăsăm textul complet al înțelegerii, ca să-l citești în liniște.</p>
+      <a class="btn" href="mailto:ghcernei@finergy.md?subject=Qroky%20pilot">Scrie-i lui Ghenadie</a>
+    </div>
+  </div>
+
+</main>
+
+<footer>
+  <div class="wrap">
+    <div>Qroky · Finergy Group · Moldova</div>
+    <div lang="ru">Ghenadie Cernei, Founder — ghcernei@finergy.md</div>
+    <div lang="ro">Ghenadie Cernei, Founder — ghcernei@finergy.md</div>
+  </div>
+</footer>
+
+<script>
+  (function () {
+    var saved = null;
+    try { saved = localStorage.getItem('qroky-lang'); } catch (e) {}
+    var browser = (navigator.language || '').toLowerCase().indexOf('ro') === 0 ? 'ro' : 'ru';
+    setLang(saved === 'ru' || saved === 'ro' ? saved : browser);
+
+    document.querySelectorAll('[data-set-lang]').forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        setLang(btn.getAttribute('data-set-lang'));
+        try { localStorage.setItem('qroky-lang', btn.getAttribute('data-set-lang')); } catch (e) {}
+      });
+    });
+
+    function setLang(lang) {
+      document.documentElement.setAttribute('data-lang', lang);
+      document.documentElement.setAttribute('lang', lang);
+      document.querySelectorAll('[data-set-lang]').forEach(function (b) {
+        b.classList.toggle('active', b.getAttribute('data-set-lang') === lang);
+      });
+      var chip = document.querySelector('.chip');
+      if (chip) {
+        chip.innerHTML = lang === 'ro'
+          ? '⚙ <b>21</b> agenți · <b>7</b> roluri · <b>0</b> reveniri pentru corecturi · costul — vizibil după fiecare lucrare'
+          : '⚙ <b>21</b> агентов · <b>7</b> ролей · <b>0</b> возвратов на доработку · стоимость — видна после каждой работы';
+      }
+      document.title = lang === 'ro'
+        ? 'Qroky — un asistent care construiește produsul tău ca o echipă adevărată'
+        : 'Qroky — ассистент, который строит ваш продукт как настоящая команда';
+    }
+  })();
+</script>
+
+</body>
+</html>
