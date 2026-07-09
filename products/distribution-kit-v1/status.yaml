@@ -8,13 +8,13 @@ atoms:
     gate: GATE-025 (G1 go)
   ATOM-101:
     folder: 101-distribution-installer
-    status: delivered
+    status: fix-round-1 (verify RETURN: 2 blocking, 6 minor)
     maturity: —
     opened: 2026-07-10
     parent: ATOM-100
   ATOM-101-VERIFY:
     folder: 101-distribution-installer-verify
-    status: running
+    status: returned-r1 (VERDICT.md on bus)
     maturity: —
     opened: 2026-07-10
     parent: ATOM-100
