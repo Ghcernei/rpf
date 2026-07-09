@@ -38,6 +38,11 @@ Plus §7 operational pitfalls and §8 known limitations (RC5).
 - The chosen answer is recorded **verbatim** into the decision record under `decisions/` (DR5), followed by a one-paragraph English summary (HP3). The session — not the human — writes the record; the human only answers.
 - Practice: GATE-002 through GATE-005 were all captured this way.
 
+**Narrative channel (INFO-015, 2026-07-09 — operational here; constitutional line queued for the next touch):**
+
+- Every parent atom maintains `NARRATIVE.md` next to `STATUS.md` — an append-only, meaning-language feed of the run (decomposition and role choices with reasons, task issuance with envelopes and tiers, returns and lens disputes with their resolution, closure), written at the reader's profile detail level (INFO-009), synchronous with run.log events. A meaning-beat without a NARRATIVE line is a defect of the same nature as silence in STATUS (L8).
+- **At launch the session immediately gives the operator a clickable path to `NARRATIVE.md`** so the run can be followed without entering the session. Mechanics (bash, tool calls) stay in the session and run.log; TEAM debriefs and any external feeds (e.g. Telegram) are fold-downs of this file.
+
 ## 3. Tier mapping (dated 2026-07-05 — review at every touch of this file)
 
 | Tier (MT2) | Concrete model | Used for |
