@@ -15,9 +15,10 @@
 > is metric №1 (INFO-021 §1.1); why_not_lower: public-face texts are a
 > perimeter-crossing product with a CEO gate — not an inline edit, not one E1.
 > Budget (proportionality + precedents, INFO-019 flagged practice per GATE-022):
-> subtree ~700k — README+FAQ executor ~200k (M), landing+posts+checklist executor
-> ~200k (M), blind verify ~150k (L, ×3.5+40k over the text package), parent
-> orchestration + narrative ≤5%, ~50k fixed per subagent. E4 only on breach.
+> subtree ~750k — README+FAQ+UPDATES+CHANGELOG executor ~230k (M),
+> landing+posts+checklist executor ~200k (M), blind verify ~160k (L, ×3.5+40k
+> over the text package), parent orchestration + narrative ≤5%, ~50k fixed per
+> subagent. E4 only on breach.
 > G-gates: G1 (CEO go on this plan at start); G2 (CEO reads ALL outward texts —
 > perimeter; LinkedIn draft goes to CEO for edit, his voice is the hard bar).
 
@@ -30,7 +31,7 @@ role: orchestrator (launch session); executor roles: reuse sales-operator (voice
 formulated_by: launch session from CEO order INFO-021 (verbatim file + English-only amendment), 2026-07-09
 verification: independent blind (L) + CEO gate on every outward text (perimeter)
 maturity_target: reviewed (validated — after ≥1 stranger completes clone→install from these texts)
-budget: ~700k subtree (see header; INFO-019 flagged practice, referenced explicitly)
+budget: ~750k subtree (see header; INFO-019 flagged practice, referenced explicitly; raised from ~700k by INFO-024 — UPDATES page + changelog pipeline)
 recursion_allowance: 2
 ---
 
@@ -90,7 +91,10 @@ clone. The package sells nothing; it leads to `git clone`. Activation
   matching the REAL kit → «what you do / what the system does» (the three human
   products as honesty) → skeptic FAQ (whose keys and data; what leaves the
   machine — nothing without opt-in; real monthly cost from cost blocks; vs bare
-  Claude; known v1 limits) including the verbatim language line of §3.3.
+  Claude; known v1 limits) including the verbatim language line of §3.3. The
+  features list carries ONE self-update line, verbatim (INFO-024): «checks for
+  releases, asks before applying — you're in control» — no self-update section
+  in README (depth lives in docs/UPDATES.md, H8).
 - H2. Old navigator preserved at `docs/REPO-GUIDE.md` (content-identical move).
 - H3. Hero contains none of: audit / journal / verify (grep) — they live in the
   second echelon.
@@ -102,9 +106,22 @@ clone. The package sells nothing; it leads to `git clone`. Activation
   `marketing/later/` marked «week 2, after warm-traffic polish».
 - H6. Launch checklist exists: publication order (README merge → landing live →
   LinkedIn → warm network), readiness criterion (release kit closed + ≥1
-  external user completed install), day-of-week recommendation with reasoning.
+  external user completed install), day-of-week recommendation with reasoning,
+  AND the hard rule (INFO-024, verbatim): «релиз без changelog не публикуется».
 - H7. Blind verify: accept. Publication itself — HUMAN-TASK CEO (DNS, merges,
   posting): nothing goes outward by agent hands (S4/S5 perimeter).
+- H8. `docs/UPDATES.md` — the user's page on updates (INFO-024): the mechanics
+  (heartbeat → fetch → release tags only → explicit «да» → mini-atom recorded in
+  the user's decisions); the fate of local edits (reconciliation, conflicts are
+  SHOWN); manual update without heartbeat (exact commands); rollback to any tag
+  (command); fully disabling the check (command). The right «не трогайте мой
+  инстанс» is stated EXPLICITLY, not implied. Commands must match the real kit
+  (dependency on ATOM-100's delivered mechanics, H11 there).
+- H9. `CHANGELOG.md` — one entry per release tag, written in user-benefit
+  language («что улучшится у тебя»), rendered at tier S from the release's
+  freeze summary of changes (the INFO-016 anti-rationalization discipline:
+  render the recorded, don't compose). This file is also the source of the
+  heartbeat digest's 3-line changelog (INFO-023).
 
 **Soft (judge — CEO at G2):**
 - S1. 30-second stranger test on README: hero + first screen answer «what is it
