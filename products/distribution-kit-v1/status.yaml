@@ -2,7 +2,7 @@
 atoms:
   ATOM-100:
     folder: 100-distribution-kit
-    status: delivered (awaiting G2 CEO dry run)
+    status: G2 returned (GATE-027, CEO live verdict: journey unclear; fix = ATOM-104 proposal)
     maturity: —
     opened: 2026-07-10
     gate: GATE-025 (G1 go)
