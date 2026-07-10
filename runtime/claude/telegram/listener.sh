@@ -109,10 +109,19 @@ handle_callback() { # button press → parity event or risk re-ask
     return 0
   fi
   tg_api listener answerCallbackQuery --data-urlencode "callback_query_id=$CB_ID" >/dev/null || true
-  label="$(sed -n "s/^button$idx: //p" "$pfile" 2>/dev/null | head -1)"
+  # R2-1 fix: this lookup must NEVER kill the pass — a double-tap, a press on
+  # an already-answered gate (registry renamed to .answered while the buttons
+  # stay on the old message), or malformed/old-format callback data are
+  # owner-normal events. The index is validated BEFORE it touches the sed
+  # expression, and the pipeline is failure-tolerant — so the polite decline
+  # below is genuinely reachable, the offset advances, and the pass exits 0.
+  label=""
+  if [[ "$idx" =~ ^[0-9]+$ && -f "$pfile" ]]; then
+    label="$(sed -n "s/^button$idx: //p" "$pfile" 2>/dev/null | head -1 || true)"
+  fi
   if [[ -z "$label" ]]; then
     ack "$CHAT_ID" "Не нашёл этот вопрос — возможно, он уже закрыт. Если он всё ещё ждёт решения, напиши ответ текстом."
-    log listener "callback for unknown gate/button id=$id idx=$idx — no record made"
+    log listener "callback declined: unknown/closed gate or bad index (id=$id idx=$idx) — no record made"
     return 0
   fi
   inbox_write gate-answer "$id" >/dev/null <<EOF

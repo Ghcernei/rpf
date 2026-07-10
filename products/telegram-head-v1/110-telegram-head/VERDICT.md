@@ -1,6 +1,10 @@
 # VERDICT — ATOM-110 (Telegram head v1), independent blind verify (L)
 
-- **Verdict: ACCEPT** (0 blocking, 6 minor findings)
+> **FIX ROUND r2 (commit 418970c): RETURN — one NEW BLOCKING regression
+> (R2-1, double-press poison pill in the M1 fix), M2–M6 fixed, M1 core
+> fixed. One-line-class fix. See «Fix round re-check (r2)» at the end.**
+
+- **Round 1 verdict: ACCEPT** (0 blocking, 6 minor findings)
 - **Verifier:** blind L-tier session, 2026-07-10; no prior contact with the build
 - **Method:** contract (INPUT.md + INFO-032/033) and artifacts read FIRST; own full
   harness run; adversarial probes (7) in an independent sandbox; executor's
@@ -121,7 +125,94 @@ risk word, token hygiene) held under adversarial probing. Six minors, none
 touching a hard criterion under realistic v1 usage; M1 is the one to fix
 before long-label gates meet the real Bot API.
 
-**ACCEPT.** Next: G2 — live phone round-trip (S1–S3 are the CEO's judgment).
+**ACCEPT (r1).** Next: G2 — live phone round-trip (S1–S3 are the CEO's judgment).
 
-*Verifier spend estimate: ~90k tokens of the ~180k envelope (contract+code
+*Verifier spend estimate r1: ~90k tokens of the ~180k envelope (contract+code
 ~45k, own harness run + 7 probes ~30k, cross-check + verdict ~15k).*
+
+---
+
+## Fix round re-check (r2) — commit 418970c
+
+- **Fix-round verdict: RETURN** — M2, M3, M4, M5, M6 **fixed**; M1 core
+  **fixed**, but the M1 fix introduced **one NEW BLOCKING regression (R2-1)**.
+- **Method:** diff of 418970c read; my own full harness re-run — **14/14
+  PASS, exit 0**, PASS lines identical to the committed SUMMARY.txt
+  (executor transcripts backed up before my run and restored byte-identical);
+  targeted falsification probes per finding in an independent sandbox
+  (delta probes M1-a/b/c/d, M2-a/b/c, M3, M4, M5 + one focused repro with
+  `bash -x` trace).
+
+### R2-1 (NEW, BLOCKING) — double-press on an answered gate bricks the listener
+
+`listener.sh:112`:
+
+```sh
+label="$(sed -n "s/^button$idx: //p" "$pfile" 2>/dev/null | head -1)"
+```
+
+When `$pfile` does not exist — precisely the «no matching registry entry»
+case — `sed` exits 2, `pipefail` fails the pipeline, the assignment fails
+under `set -euo pipefail` (listener.sh:19) and the listener DIES **before**
+reaching the `[[ -z "$label" ]]` polite-decline guard at :113 (dead code) and
+**before** advancing the offset. The same callback is then re-delivered and
+re-crashes EVERY 30s pass — the dialogue contour is permanently bricked (no
+acks, no processing: H13 violated for everything thereafter) until someone
+hand-edits `state/offset`.
+
+Repro evidence (my sandbox, `bash -x` trace): press `GATE-DONE|1` with only
+`pending-gates/GATE-DONE.answered` present → trace ends at
+`++ sed -n 's/^button1: //p' .../pending-gates/GATE-DONE` → `rc=1`, offset
+NOT advanced, `sendMessage` count = 0 (no polite reply ever sent), pass 2
+`rc=1` (loop confirmed).
+
+**The trigger is owner-normal behavior**, not an attack: pickup renames the
+registry entry to `.answered` (pickup.sh:37–38), while the inline buttons
+stay on the old Telegram message forever — the CEO double-tapping a button,
+or tapping a button on an already-answered/closed gate message, fires exactly
+this path. Same crash class: a non-numeric `idx` whose characters break the
+sed expression (e.g. old-format callback data containing `/` from messages
+sent before the fix).
+
+**Record discrepancy:** RESULT.md's fix-round table claims «a press with no
+matching registry entry gets a polite reply and no record» — the polite
+branch exists in code but is unreachable; the claim is false as implemented,
+and no harness scenario covers it (scenario 12 presses only a live gate).
+
+**Fix (one-line class):** tolerate the lookup failure and validate the index,
+e.g. `label="$(sed -n "s/^button$idx: //p" "$pfile" 2>/dev/null | head -1 || true)"`
+plus a `[[ "$idx" =~ ^[0-9]+$ ]]` guard before building the sed expression;
+add a harness press on an ANSWERED gate (assert: polite reply sent, no
+record, offset advanced, next pass clean).
+
+### Per-finding verdicts
+
+| Finding | Verdict | My evidence |
+| :---- | :---- | :---- |
+| M1 (callback_data bytes/verbatim) | **fixed at core / new issue R2-1 in its guard branch** | 111-byte-class label now rides as button TEXT; callback_data `GATE-LL\|2` = 9 bytes; press by index → decision record carries the FULL label verbatim (my probe + scenario 12, whose stub now enforces the real 64-byte cap — rejection proven live). Oversized event id → loud `fatal`, rc≠0, NOT queued (no retry loop). Missing-registry press → R2-1 above, not the claimed polite reply. |
+| M2 (crash-lock blind window) | **fixed** | Dead-pid lock stolen IMMEDIATELY on the next pass («stale lock removed (holder 99999999 is dead)»), pass runs; LIVE-pid lock respected — no steal of a living holder (pass skipped, lock intact); pid-less young lock skipped, pid-less lock >2 min stolen (mtime fallback). Scenario 2 now leaves the crashed pass's lock deliberately and asserts the steal non-vacuously (LOCK_LEFT=1). Worst crash window ≈ one 30s cadence. |
+| M3 (orphan detector precision) | **fixed** | My probe: orphan promise whose own work file is gone, HIDDEN behind unrelated live kroky traffic → detected, owner notified («работа была прервана и её вход утерян»), promise moved to done/; the unrelated kroky processed normally; its own fresh promise NOT falsely orphaned. |
+| M4 (lost digest day) | **fixed** | Marker present past DIGEST_TIME → 0 sends (idempotent); marker absent past DIGEST_TIME → safety-net digest delivered from the listener pass; pass BEFORE digest time fires nothing (scenario 13 + my probes). Residual observation (not a finding): the safety net will deliver a missed digest even inside quiet hours (my 02:00 probe fired) — contract-clean, since quiet hours are defined for the dialogue contour only, but it can buzz the phone at night after a day-long outage; a one-line quiet-hours guard would polish it. |
+| M5 (curl stderr / masked token) | **fixed** | 3 forced curl failures with the token-bearing URL in stderr → ≥3 `bot****<last4>` masked lines, 0 raw-token occurrences in log and transcripts (non-vacuous: the unmasked host-error text IS in the log, so stderr demonstrably flowed through the scrub); failure ladder queued the event, next pass delivered it — this also closes the r1-declared untested-ladder deviation. run.log honesty correction recorded, as claimed. Tiny residual observation: the raw stderr sits transiently in `state/.curl-err.$$` until the attempt loop ends (same on-disk trust class as the token file itself). |
+| M6 (digest section coherence) | **fixed** | Combined waiting list; «решений не ждём» only when BOTH sources are empty — scenario 13 asserts a waiting atom present with ZERO contradiction lines (my run confirms). |
+
+### Regression eye on scenarios 1–11
+
+All PASS in my run; fixture changes (index-format callbacks, digest time
+moved to 21:00 to keep the M4 safety net inert until scenario 13) are sound
+and documented; scenario 2's M2 extension is non-vacuous; scenario 9's
+quiet-hours counts are unaffected by the safety net (marker exists from
+scenario 6 at that point). No weakened assertions found in the diff.
+
+### Bottom line (r2)
+
+Five of six findings genuinely closed with falsifiable harness evidence; the
+sixth is closed at its core but its new guard branch crashes instead of
+declining — and because the crash lands before the offset advance, a routine
+double-press becomes a permanent poison pill for the whole dialogue contour.
+That is the one thing standing between this fix round and ACCEPT; the repair
+is one line plus one harness scenario. **RETURN (R2-1 only).**
+
+*Verifier spend estimate r2: ~35k tokens (diff read ~10k, harness re-run +
+delta probes ~20k, verdict update ~5k); cumulative ~125k of the ~180k
+envelope.*

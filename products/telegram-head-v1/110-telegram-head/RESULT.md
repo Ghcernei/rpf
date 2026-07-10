@@ -131,3 +131,34 @@ documented in the harness), scenarios 12–14 new. First run after the fixes
 was green. All committed transcripts are from the final run. Fix-round cost
 ~45k (inside the ~50k round budget); cumulative executor total ~185k of
 ~350k. Same perimeter, no git operations. Ready for G2.
+
+## Fix round r2 — R2-1 (RETURN) fixed
+
+**Honest correction first:** the fix-round table above claims «a press with
+no matching registry entry gets a polite reply and no record». That claim was
+FALSE as implemented — the polite branch was dead code. On a missing registry
+file the `sed` lookup pipeline failed under `set -euo pipefail` and killed
+the listener BEFORE the guard and BEFORE the offset advance, so the same
+callback re-crashed every 30s pass: an owner-normal double-tap or a press on
+an already-answered gate permanently bricked the dialogue contour (verifier's
+R2-1, with `bash -x` repro). I wrote the guard and never exercised its
+failure leg.
+
+**Fix (listener.sh, handle_callback):** the button index is validated as
+numeric BEFORE it reaches the sed expression (this also covers old-format
+callback data containing `/`); the registry lookup runs only for a numeric
+index on an existing file and is failure-tolerant (`|| true`); both decline
+paths send the polite «этот вопрос уже закрыт» reply, make NO record, advance
+the offset, and exit 0.
+
+**New evidence — scenario 15 (workspace/):** a TRUE double-tap (fresh gate →
+legit press → pickup renames the registry to `.answered` → same button
+pressed again), a press on scenario-1's long-answered gate, and two malformed
+callbacks (sed-breaking `/`; pipe-less junk) → 4 polite declines, zero new
+records, rc 0 on every pass, offset advanced past all bad presses, and
+`/status` answered immediately after (contour alive). Every assertion maps
+onto the verifier's pre-fix repro (rc=1, frozen offset, zero replies) — the
+pre-fix code fails every leg.
+
+Full harness re-run: **15/15 PASS**, first attempt. r2 fix cost ~12k (budget
+~15k); cumulative executor total ~197k of ~350k. Same perimeter, no git.

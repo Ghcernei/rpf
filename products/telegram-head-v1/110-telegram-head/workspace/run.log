@@ -258,3 +258,45 @@ Cumulative executor total: ~185k of ~350k.
 
 2026-07-10T14:40:00Z CYCLE-END fix round; RESULT.md fix-round section filed;
 STATUS.md appended. Ready for G2 (CEO live smoke).
+
+## Fix round r2 — RETURN on R2-1 (double-press poison pill), surgical fix
+
+2026-07-10T14:45:00Z r2 verdict read: M2-M6 confirmed fixed, M1 core fixed,
+but my M1 guard branch carried a NEW blocking regression. HONEST CORRECTION:
+the r1 fix-round claim «a press with no matching registry entry gets a polite
+reply and no record» was FALSE AS IMPLEMENTED — the polite branch existed but
+was unreachable: on a missing registry file the sed pipeline failed under
+set -euo pipefail and killed the pass BEFORE the guard and BEFORE the offset
+advance, so an owner-normal double-tap (or a press on an answered gate, whose
+registry pickup renames to .answered while buttons stay on the old message)
+became a permanent poison pill: the same callback re-crashed every 30s pass.
+I wrote the guard and never exercised its failure leg — the exact defect
+class the verifier exists to catch, third lesson of this kind (101-r1 F1/F5,
+now R2-1).
+
+Fix (listener.sh handle_callback):
+1. idx validated as numeric ([[ "$idx" =~ ^[0-9]+$ ]]) BEFORE it touches the
+   sed expression (also covers old-format callback data with «/»);
+2. the registry lookup runs only when idx is numeric AND the file exists,
+   and the pipeline is failure-tolerant (|| true) — the polite decline is
+   now genuinely reachable;
+3. both decline paths: polite reply sent, NO record, offset advances, pass
+   exits 0.
+
+Harness: scenario 15 added — (a) TRUE double-tap flow (fresh gate, legit
+press, pickup answers → registry .answered, press the same button again),
+(b) press on scenario-1's long-answered gate, (c) two malformed callbacks
+(«Да/принять» with a sed-breaking slash; pipe-less junk). Asserts: 4 polite
+declines, zero new records, rc 0 on every pass, offset == last update id,
+and the contour answers /status right after. Falsifiability: each assertion
+maps 1:1 onto the verifier's pre-fix repro (rc=1, offset frozen, 0 replies)
+— pre-fix code fails every leg.
+
+Full re-run: 15/15 PASS, first attempt after the fix.
+
+BUDGET CHECKPOINT: r2 fix ~12k (verdict r2 read ~4k, fix ~2k, scenario ~4k,
+re-run + records ~2k), inside the ~15k budget. Cumulative executor total:
+~197k of ~350k.
+
+2026-07-10T14:55:00Z CYCLE-END r2 fix; RESULT.md r2 section + correction
+filed; STATUS.md appended. Ready for verify r3 / G2.

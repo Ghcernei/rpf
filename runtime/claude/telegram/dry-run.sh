@@ -812,6 +812,65 @@ else
 fi
 
 # ============================================================================
+# SCENARIO 15 — R2-1: presses that must DECLINE, not crash. A double-tap, a
+# press on an already-answered gate, and malformed callback data are
+# owner-normal; each must produce a polite reply, an advanced offset, rc 0,
+# and NO record — and the contour must stay alive afterwards. Against the
+# pre-fix code every leg here fails: the pass dies at the sed lookup with
+# rc!=0, the offset freezes, and no polite reply is ever sent.
+# ============================================================================
+T="$ATOM_WS/scenario-15-double-press.txt"
+{ echo "Scenario 15 — double-press / answered-gate / malformed callbacks (R2-1)"; echo "Generated: $(date -u +%Y-%m-%dT%H:%M:%SZ)"; } > "$T"
+POLITE="Не нашёл этот вопрос"
+
+# (a) true double-tap flow: fresh gate, legit press, pickup answers it
+# (registry -> .answered, buttons stay on the old message), press AGAIN
+bash "$TG_DIR/send-event.sh" --kind gate --id GATE-DT --text "Гейт GATE-DT: проверка двойного нажатия." --buttons "Да|Нет" >> "$T" 2>&1
+add_callback "$OWNER_CHAT" "GATE-DT|1"
+listener >> "$T" 2>&1
+bash "$TG_DIR/pickup.sh" >> "$T" 2>&1            # gate answered, registry renamed
+DT_ANSWERED=0; [[ -f "$TGH/state/pending-gates/GATE-DT.answered" ]] && DT_ANSWERED=1
+RECORDS_BEFORE=$(ls "$INBOX"/*-gate-answer-*.md 2>/dev/null | wc -l | tr -d ' ')
+B15=$(sent_count)
+add_callback "$OWNER_CHAT" "GATE-DT|1"           # the double-tap
+bash "$TG_DIR/listener.sh" >> "$T" 2>&1; RC_A=$?
+
+# (b) press on a long-answered gate from scenario 1
+add_callback "$OWNER_CHAT" "GATE-T1|1"
+bash "$TG_DIR/listener.sh" >> "$T" 2>&1; RC_B=$?
+
+# (c) malformed: old-format data with «/» breaking a sed expression, and
+# pipe-less junk (id == idx == the whole string)
+add_callback "$OWNER_CHAT" "GATE-T1|Да/принять"
+add_callback "$OWNER_CHAT" "junkdata-no-pipe"
+bash "$TG_DIR/listener.sh" >> "$T" 2>&1; RC_C=$?
+
+POLITE_COUNT=$(sent_since "$B15" | grep -c "$POLITE" || true)
+RECORDS_AFTER=$(ls "$INBOX"/*-gate-answer-*.md 2>/dev/null | wc -l | tr -d ' ')
+OFFSET15=$(cat "$TGH/state/offset"); MAX15=$(cat "$UPDATE_SEQ")
+# contour must still be alive: a normal command right after
+add_message "$OWNER_CHAT" "/status"
+B15B=$(sent_count)
+bash "$TG_DIR/listener.sh" >> "$T" 2>&1; RC_D=$?
+STILL_ALIVE=$(sent_since "$B15B" | grep -c "ATOM-D1" || true)
+{
+  echo ""; echo "--- assertions ---"
+  echo "double-tap setup real: first press recorded via pickup, registry renamed .answered: $DT_ANSWERED (must be 1)"
+  echo "listener rc on double-tap / answered-gate / malformed passes: $RC_A / $RC_B / $RC_C (all must be 0 — pre-fix code dies here)"
+  echo "polite declines sent: $POLITE_COUNT (must be 4 — one per bad press; pre-fix code sends none)"
+  echo "no records made by declined presses: $RECORDS_BEFORE -> $RECORDS_AFTER (must be equal)"
+  echo "offset advanced past ALL bad presses: $OFFSET15 vs last update $MAX15 (must be equal — pre-fix offset freezes and the poison press replays forever)"
+  echo "contour alive after the storm: /status answered: $STILL_ALIVE (must be >0), rc: $RC_D (0)"
+} >> "$T"
+if [[ $DT_ANSWERED -eq 1 && $RC_A -eq 0 && $RC_B -eq 0 && $RC_C -eq 0 \
+      && "$POLITE_COUNT" -eq 4 && "$RECORDS_BEFORE" == "$RECORDS_AFTER" \
+      && "$OFFSET15" == "$MAX15" && "$STILL_ALIVE" -gt 0 && $RC_D -eq 0 ]]; then
+  record "15-double-press" PASS "double-tap, answered-gate press, and two malformed callbacks all politely declined (4 replies), zero records, offset advanced, every pass rc 0, contour healthy after — the R2-1 poison pill is gone"
+else
+  record "15-double-press" FAIL "answered=$DT_ANSWERED rc=$RC_A/$RC_B/$RC_C polite=$POLITE_COUNT records=$RECORDS_BEFORE/$RECORDS_AFTER offset=$OFFSET15/$MAX15 alive=$STILL_ALIVE/$RC_D"
+fi
+
+# ============================================================================
 # SUMMARY
 # ============================================================================
 {

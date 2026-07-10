@@ -1,5 +1,5 @@
 Scenario 14 — masked curl errors (verify M5) + failure ladder to queue
-Generated: 2026-07-10T14:36:02Z
+Generated: 2026-07-10T14:49:57Z
 
 --- assertions ---
 all 3 attempts failed (nothing sent): 0 (0); event queued, not lost: 1 (1); ladder gave up after 2 retries: 1 (>0)
