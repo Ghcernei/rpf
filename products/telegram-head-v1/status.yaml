@@ -7,3 +7,10 @@ atoms:
     opened: 2026-07-10
     gate: GATE-026 (G1 go)
     mandate: INFO-032 + INFO-033 (two-contour channel model)
+  ATOM-111:
+    folder: 111-project-router
+    status: running
+    maturity: —
+    opened: 2026-07-10
+    gate: GATE-029 (G1 go)
+    mandate: INFO-034 (one bot per owner, project router; registry exception in go scope)
