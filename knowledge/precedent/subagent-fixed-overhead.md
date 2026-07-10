@@ -1,5 +1,7 @@
 # Precedent — Fixed subagent overhead dominates small atoms
 
+> Maturity: validated (подтверждения: веер ATOM-007 — 21 агент; ATOM-090/091; ATOM-100/101 — конверты с ~50k фиксом держались) — INFO-028 п.3.
+
 **Source:** ATOM-007 Wave 0 (2026-07-07), five S-tier role atoms (ROLE-004..008).
 
 **Measurement:** planned envelopes 12k tokens each (naive: reads ~3k + writes

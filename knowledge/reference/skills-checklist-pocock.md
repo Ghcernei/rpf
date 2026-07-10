@@ -1,5 +1,7 @@
 # Внешний источник: Matt Pocock — «Building Great Agent Skills: The Missing Manual»
 
+> Maturity: draft (внешний источник усвоен; deletion test и эхо-проверка ещё не применялись в touch; validated после первого touch с этой дисциплиной) — INFO-028 п.3.
+
 Источник: https://www.youtube.com/watch?v=UNzCG3lw6O0 (транскрипт разобран 08.07.2026, решение CEO — взять применимое в правила).
 
 ## Что усвоено (кандидаты → touch-очередь №7)

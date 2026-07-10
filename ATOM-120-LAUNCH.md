@@ -116,7 +116,11 @@ clone. The package sells nothing; it leads to `git clone`. Activation
   SHOWN); manual update without heartbeat (exact commands); rollback to any tag
   (command); fully disabling the check (command). The right «не трогайте мой
   инстанс» is stated EXPLICITLY, not implied. Commands must match the real kit
-  (dependency on ATOM-100's delivered mechanics, H11 there).
+  (dependency on ATOM-100's delivered mechanics, H11 there). Plus the identity
+  guarantee (INFO-028 п.4, user-facing): the instance's core (vendored
+  framework) is never silently modified by local changes, every state is
+  recoverable via git history, and the user's own decisions/ is the journal of
+  every change their instance made to itself.
 - H9. `CHANGELOG.md` — one entry per release tag, written in user-benefit
   language («что улучшится у тебя»), rendered at tier S from the release's
   freeze summary of changes (the INFO-016 anti-rationalization discipline:

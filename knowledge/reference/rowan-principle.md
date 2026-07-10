@@ -1,5 +1,7 @@
 # The Rowan principle — healthy agency doctrine
 
+> Maturity: draft → validated pending (доктрина принята решением CEO; поведенческое подтверждение 1: ATOM-100 — e1_to_human=0, rowan_fails=0. validated после 3 деревьев с записанной rowan-статистикой) — INFO-028 п.3.
+
 Source: Elbert Hubbard, «A Message to Garcia» (1899) — lieutenant Rowan is
 handed a letter for general Garcia, whereabouts unknown; he does not ask
 «where is he?» — he finds out and delivers. Adopted as Qroky doctrine by
