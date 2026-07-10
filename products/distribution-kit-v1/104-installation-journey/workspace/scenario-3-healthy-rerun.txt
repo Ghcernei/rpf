@@ -1,5 +1,5 @@
 Scenario 3 — rerun on the already-healthy Scenario-1 workspace
-Generated: 2026-07-10T17:02:07Z
+Generated: 2026-07-10T20:21:24Z
 No answers should be needed — every step is already 'done'.
 
 == Qroky setup ==
@@ -38,13 +38,13 @@ Step 9 of 9 — starting phrase everywhere on this machine (optional)
 
 Copy-paste this into your terminal:
 
-    cd /private/tmp/qroky-install-dry-run.wHmxkU/w1 && claude
+    cd /private/tmp/qroky-install-dry-run.wHvlo4/w1 && claude
 
 then say:
 
     qroky start
 
-(In VS Code instead: File → Open Folder → /private/tmp/qroky-install-dry-run.wHmxkU/w1 → start a new chat — same phrase.)
+(In VS Code instead: File → Open Folder → /private/tmp/qroky-install-dry-run.wHvlo4/w1 → start a new chat — same phrase.)
 
 One honest note: the FIRST time claude starts, it asks a couple of its own
 questions (color theme, login) — that is normal; answer them and continue.

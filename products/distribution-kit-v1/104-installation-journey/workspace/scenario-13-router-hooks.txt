@@ -1,10 +1,7 @@
-Scenario 9 — backup opt-in + opt-out (v0.1.1, interview point 8)
-Generated: 2026-07-10T20:21:30Z
-gh stub: auth status fails until auth login; repo create --push does a
-REAL git push into a local bare repo (fake-github/) — the negative grep
-below runs over an actually-pushed payload.
+Scenario 13 — kit router hooks (ATOM-111, GATE-029)
+Generated: 2026-07-10T20:21:39Z
 
---- OPT-IN branch: fresh install, Telegram token GOODTOKEN789 stored, backup = yes ---
+--- (a) first workspace: full telegram journey on machine13 ---
 == Qroky setup ==
 
 Step 1 of 9 — choose your language
@@ -22,8 +19,8 @@ a single Enter. Nothing installs behind your back.
 Step 2 of 9 — choose your working folder
 Where should your private Qroky folder live?
 Press Enter to use the suggested folder, or type a different path.
-Suggested: /private/tmp/qroky-install-dry-run.wHvlo4/w9a
->   working folder: /private/tmp/qroky-install-dry-run.wHvlo4/w9a
+Suggested: /private/tmp/qroky-install-dry-run.wHvlo4/w13a
+>   working folder: /private/tmp/qroky-install-dry-run.wHvlo4/w13a
 
 Step 3 of 9 — check the Claude Code assistant
   Claude Code — found (claude-code 0.0.0-dry-run-stub)
@@ -48,7 +45,7 @@ and questions it can ask you on your phone? Type y to connect now:   Let's creat
     7. Copy that whole code.
 Paste the token here (or type "skip" to skip this step):   checking the token with Telegram...
   token works — connected to bot: qroky_test_bot
-  token saved on this computer only (never sent anywhere else): ****N789
+  token saved on this computer only (never sent anywhere else): ****N123
   Now open your bot in Telegram — @qroky_test_bot — and press Start
   (or send it any message). I am waiting for it here, up to 4 seconds...
   got you — your Telegram is now linked to this assistant (only YOUR chat will ever be served)
@@ -84,29 +81,15 @@ you. Yes/no now, you can change your mind later. One honest line about how
 it works: it only READS your own workspace to build the summary — it never
 takes actions on its own and never sends anything anywhere except this
 digest to you. Recommended: yes.
-Turn the morning digest on? Yes/no (y/n), default y:   morning digest — installed but OFF. Turn it on any time with:
-      bash install.sh --enable-heartbeat
+Turn the morning digest on? Yes/no (y/n), default y:   morning digest — installed and ON
 
 Step 8 of 9 — backup to your own GitHub (optional)
 Backup — keep a private, off-computer copy of your workspace, so a lost or
 broken computer never means lost work. One honest line about where it goes:
 the backup is stored in YOUR OWN private GitHub account — nobody else's;
 nobody but you can see it. Recommended: yes.
-Turn the backup on? Yes/no (y/n), default y:   Let's connect your own GitHub account — about 2 minutes, no prior
-  knowledge needed (GitHub is a free service for storing private copies
-  of folders; your copy will be visible only to you):
-    1. A sign-in helper will start right now, in this window.
-    2. If you don't have a GitHub account yet, it will offer to create
-       one — free, only an email address is needed.
-    3. Pick "Login with a web browser" when asked.
-    4. It shows a short one-time code — copy it.
-    5. Your browser opens; paste the code there and approve.
-    6. Come back to this window — setup continues by itself.
-fake-gh: logged in (dry-run stub)
-  creating your private backup copy and sending the first snapshot...
-  backup is ON — a private copy named "qroky-backup" now lives in YOUR GitHub account.
-  To restore on any computer (one command): gh repo clone qroky-backup
-  (your secret files — like the Telegram token — are never included in the backup)
+Turn the backup on? Yes/no (y/n), default y:   backup — off, as you chose. Turn it on any time with:
+      bash install.sh --enable-backup
 
 Step 9 of 9 — starting phrase everywhere on this machine (optional)
 Make "qroky start" work in ANY chat on this machine, not only in your
@@ -121,13 +104,13 @@ Type y for machine-wide; Enter = no, working folder only:   as you chose: the ph
 
 Copy-paste this into your terminal:
 
-    cd /private/tmp/qroky-install-dry-run.wHvlo4/w9a && claude
+    cd /private/tmp/qroky-install-dry-run.wHvlo4/w13a && claude
 
 then say:
 
     qroky start
 
-(In VS Code instead: File → Open Folder → /private/tmp/qroky-install-dry-run.wHvlo4/w9a → start a new chat — same phrase.)
+(In VS Code instead: File → Open Folder → /private/tmp/qroky-install-dry-run.wHvlo4/w13a → start a new chat — same phrase.)
 
 One honest note: the FIRST time claude starts, it asks a couple of its own
 questions (color theme, login) — that is normal; answer them and continue.
@@ -140,37 +123,7 @@ Not professional advice.
 
 (total elapsed: 1s)
 
---- opt-in assertions ---
-exit code: 0
-state: step_backup done: yes; answer_backup_optin=yes: yes
-gh auth walkthrough shown (numbered steps): yes
-restore command printed (gh repo clone qroky-backup): yes
-pushed bare repo exists: yes
-raw token grep over PUSHED history (must be 0): 0
-token FILENAME in pushed tree (must be 0): 0
-pushed tree non-empty (install-state.json present — the grep cannot pass vacuously): yes
-
---- pushed tree listing (for the record) ---
-.claude/skills/qroky/SKILL.md
-.gitignore
-.gitmodules
-.qroky/heartbeat.sh
-.qroky/launchd/md.qroky.heartbeat.w9a.plist
-.qroky/telegram/launchd/md.qroky.telegram.digest.plist
-.qroky/telegram/launchd/md.qroky.telegram.listener.plist
-.qroky/telegram/profile.conf
-.qroky/telegram/run-digest.sh
-.qroky/telegram/run-listener.sh
-.qroky/telegram/state/chat_id
-.qroky/telegram/state/digest-sent-2026-07-10
-.qroky/telegram/state/offset
-.qroky/telegram/telegram.log
-CLAUDE.md
-framework
-install-state.json
-telemetry/OFF
-
---- OPT-OUT branch: fresh install, backup = no ---
+--- (b) second workspace, SAME machine registry: join only ---
 == Qroky setup ==
 
 Step 1 of 9 — choose your language
@@ -188,8 +141,8 @@ a single Enter. Nothing installs behind your back.
 Step 2 of 9 — choose your working folder
 Where should your private Qroky folder live?
 Press Enter to use the suggested folder, or type a different path.
-Suggested: /private/tmp/qroky-install-dry-run.wHvlo4/w9b
->   working folder: /private/tmp/qroky-install-dry-run.wHvlo4/w9b
+Suggested: /private/tmp/qroky-install-dry-run.wHvlo4/w13b
+>   working folder: /private/tmp/qroky-install-dry-run.wHvlo4/w13b
 
 Step 3 of 9 — check the Claude Code assistant
   Claude Code — found (claude-code 0.0.0-dry-run-stub)
@@ -203,8 +156,9 @@ Step 4 of 9 — check your subscription
 Step 5 of 9 — connect Telegram (optional)
 Enter = skip, connect later (one command: bash install.sh --enable-telegram).
 Or: would you like your assistant on Telegram — a morning digest, updates,
-and questions it can ask you on your phone? Type y to connect now:   Telegram — skipped. Connect any time with one command:
-      bash install.sh --enable-telegram
+and questions it can ask you on your phone? Type y to connect now:   your Telegram bot is already connected on this computer (main project: w13a).
+  This project just JOINED it — same chat, no second bot, no new questions.
+  Messages from here will arrive labeled with this project's name.
 
 Step 6 of 9 — daily support sharing (optional)
 Daily support sharing — before asking, here is EXACTLY what would leave this
@@ -257,13 +211,13 @@ Type y for machine-wide; Enter = no, working folder only:   as you chose: the ph
 
 Copy-paste this into your terminal:
 
-    cd /private/tmp/qroky-install-dry-run.wHvlo4/w9b && claude
+    cd /private/tmp/qroky-install-dry-run.wHvlo4/w13b && claude
 
 then say:
 
     qroky start
 
-(In VS Code instead: File → Open Folder → /private/tmp/qroky-install-dry-run.wHvlo4/w9b → start a new chat — same phrase.)
+(In VS Code instead: File → Open Folder → /private/tmp/qroky-install-dry-run.wHvlo4/w13b → start a new chat — same phrase.)
 
 One honest note: the FIRST time claude starts, it asks a couple of its own
 questions (color theme, login) — that is normal; answer them and continue.
@@ -276,8 +230,23 @@ Not professional advice.
 
 (total elapsed: 1s)
 
---- opt-out assertions ---
-exit code: 0
-state: answer_backup_optin=no recorded: yes; step done (never re-asked): yes
-enable-later command printed: yes
-repos on fake GitHub before/after opt-out run: 1/1 (must be equal — nothing pushed)
+--- (c) apply-update auto-complete: token+binding present, head undeployed ---
+Apply this update now? Type "yes" to confirm, anything else cancels:   update applied: v1.1.0 -> v1.2.0. A record was written to: /private/tmp/qroky-install-dry-run.wHvlo4/w13c/decisions/UPDATE-2026-07-10-v1.2.0.md
+  connecting the bot to this computer (checks every 30 seconds; daily digest at 09:05)...
+  first listener pass — healthy
+  Telegram assistant — ON (listener every 30 s, digest daily at 09:05; its files live in .qroky/telegram/ inside your workspace)
+
+--- (d) apply-update with token but NO binding: hint only, no deploy ---
+Apply this update now? Type "yes" to confirm, anything else cancels:   update applied: v1.2.0 -> v1.3.0. A record was written to: /private/tmp/qroky-install-dry-run.wHvlo4/w13d/decisions/UPDATE-2026-07-10-v1.3.0.md
+  the update brought the Telegram assistant, and your token is already saved —
+  one command finishes the connection (it waits for your Start press):
+      bash install.sh --enable-telegram
+
+--- assertions ---
+(a) exit: 0 (0); registry: 1 line(s) (1), line1 == workdir: yes; REGISTERED log line: 1 (>0)
+(b) exit: 0 (0); JOINED message: 1 (>0); BotFather walkthrough shown: 0 (must be 0)
+(b) registry: 2 lines (2), primary unchanged: yes
+(b) second launchd pair bootstrapped: 0 (must be 0); own token file: 0 (0); sends during join: 0 (0 — no second hello); state bound: 1 (1)
+(c) skip-install exit: 0 (0); apply exit: 0 (0); AUTO-COMPLETE log: 1 (>0)
+(c) wrapper deployed: 1 (1); plists rendered: 2 (2); state bound: 1 (1); sends during auto-complete: 0 (must be 0 — no second hello, H5)
+(d) apply exit: 0 (0); finishing command named: 1 (>0); log: 1 (>0); deployed anyway: 0 (must be 0 — no half-alive unbound listener)

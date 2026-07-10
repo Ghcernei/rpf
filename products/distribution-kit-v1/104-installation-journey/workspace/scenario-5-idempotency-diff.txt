@@ -1,7 +1,7 @@
 Scenario 5 — run the same command twice with identical answers,
 diff the state file (structural fields only, excluding the commit
 timestamp) and the workspace file listing between the two runs.
-Generated: 2026-07-10T17:02:10Z
+Generated: 2026-07-10T20:21:28Z
 
 --- RUN 1 ---
 == Qroky setup ==
@@ -21,8 +21,8 @@ a single Enter. Nothing installs behind your back.
 Step 2 of 9 — choose your working folder
 Where should your private Qroky folder live?
 Press Enter to use the suggested folder, or type a different path.
-Suggested: /private/tmp/qroky-install-dry-run.wHmxkU/w5
->   working folder: /private/tmp/qroky-install-dry-run.wHmxkU/w5
+Suggested: /private/tmp/qroky-install-dry-run.wHvlo4/w5
+>   working folder: /private/tmp/qroky-install-dry-run.wHvlo4/w5
 
 Step 3 of 9 — check the Claude Code assistant
   Claude Code — found (claude-code 0.0.0-dry-run-stub)
@@ -89,13 +89,13 @@ Type y for machine-wide; Enter = no, working folder only:   as you chose: the ph
 
 Copy-paste this into your terminal:
 
-    cd /private/tmp/qroky-install-dry-run.wHmxkU/w5 && claude
+    cd /private/tmp/qroky-install-dry-run.wHvlo4/w5 && claude
 
 then say:
 
     qroky start
 
-(In VS Code instead: File → Open Folder → /private/tmp/qroky-install-dry-run.wHmxkU/w5 → start a new chat — same phrase.)
+(In VS Code instead: File → Open Folder → /private/tmp/qroky-install-dry-run.wHvlo4/w5 → start a new chat — same phrase.)
 
 One honest note: the FIRST time claude starts, it asks a couple of its own
 questions (color theme, login) — that is normal; answer them and continue.
@@ -146,13 +146,13 @@ Step 9 of 9 — starting phrase everywhere on this machine (optional)
 
 Copy-paste this into your terminal:
 
-    cd /private/tmp/qroky-install-dry-run.wHmxkU/w5 && claude
+    cd /private/tmp/qroky-install-dry-run.wHvlo4/w5 && claude
 
 then say:
 
     qroky start
 
-(In VS Code instead: File → Open Folder → /private/tmp/qroky-install-dry-run.wHmxkU/w5 → start a new chat — same phrase.)
+(In VS Code instead: File → Open Folder → /private/tmp/qroky-install-dry-run.wHvlo4/w5 → start a new chat — same phrase.)
 
 One honest note: the FIRST time claude starts, it asks a couple of its own
 questions (color theme, login) — that is normal; answer them and continue.
@@ -163,7 +163,7 @@ A note on responsibility: the system produces drafts and analysis; legal,
 financial, and medical decisions and signatures are always made by a human.
 Not professional advice.
 
-(total elapsed: 1s)
+(total elapsed: 0s)
 --- RUN 2 exit: 0 ---
 
 --- file listing diff (run 1 vs run 2) ---

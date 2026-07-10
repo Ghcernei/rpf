@@ -1,5 +1,5 @@
 Scenario 2 — kill the install mid-way, rerun completes to the end
-Generated: 2026-07-10T17:02:02Z
+Generated: 2026-07-10T20:21:19Z
 Mechanism (round-2 fix, verify F1): RUN A opts INTO Telegram (y +
 GOODTOKEN456) so the QROKY_TEST_DELAY_STEP=telegram hook — which sits
 AFTER the token is stored but BEFORE the telegram step's state commit
@@ -28,8 +28,8 @@ a single Enter. Nothing installs behind your back.
 Step 2 of 9 — choose your working folder
 Where should your private Qroky folder live?
 Press Enter to use the suggested folder, or type a different path.
-Suggested: /private/tmp/qroky-install-dry-run.wHmxkU/w2
->   working folder: /private/tmp/qroky-install-dry-run.wHmxkU/w2
+Suggested: /private/tmp/qroky-install-dry-run.wHvlo4/w2
+>   working folder: /private/tmp/qroky-install-dry-run.wHvlo4/w2
 
 Step 3 of 9 — check the Claude Code assistant
   Claude Code — found (claude-code 0.0.0-dry-run-stub)
@@ -62,14 +62,14 @@ Paste the token here (or type "skip" to skip this step):   checking the token wi
   connecting the bot to this computer (checks every 30 seconds; daily digest at 09:05)...
   first listener pass — healthy
   Telegram assistant — ON (listener every 30 s, digest daily at 09:05; its files live in .qroky/telegram/ inside your workspace)
-(process 53483 SIGKILLed mid-step, as intended)
+(process 62035 SIGKILLed mid-step, as intended)
 
 --- state file immediately after the kill ---
 {
   "version": 1,
-  "generated_at": "2026-07-10T17:02:02Z",
+  "generated_at": "2026-07-10T20:21:20Z",
   "answer_language": "en",
-  "answer_workdir": "/private/tmp/qroky-install-dry-run.wHmxkU/w2",
+  "answer_workdir": "/private/tmp/qroky-install-dry-run.wHvlo4/w2",
   "answer_telegram_optin": "",
   "answer_telegram_token_stored": "no",
   "answer_telegram_bound": "no",
@@ -89,8 +89,8 @@ Paste the token here (or type "skip" to skip this step):   checking the token wi
   "step_backup": "pending",
   "step_machinewide": "pending",
   "backup_repo": "",
-  "framework_source": "/private/tmp/qroky-install-dry-run.wHmxkU/fake-framework-origin",
-  "framework_ref": "dadd579751003f23e8244402994cfb5820e07e37",
+  "framework_source": "/private/tmp/qroky-install-dry-run.wHvlo4/fake-framework-origin",
+  "framework_ref": "097909a1b563e0c34fd9bde503ce86a83ff44e90",
   "framework_tag": "v1.0.0"
 }
 
@@ -171,13 +171,13 @@ Type y for machine-wide; Enter = no, working folder only:   as you chose: the ph
 
 Copy-paste this into your terminal:
 
-    cd /private/tmp/qroky-install-dry-run.wHmxkU/w2 && claude
+    cd /private/tmp/qroky-install-dry-run.wHvlo4/w2 && claude
 
 then say:
 
     qroky start
 
-(In VS Code instead: File → Open Folder → /private/tmp/qroky-install-dry-run.wHmxkU/w2 → start a new chat — same phrase.)
+(In VS Code instead: File → Open Folder → /private/tmp/qroky-install-dry-run.wHvlo4/w2 → start a new chat — same phrase.)
 
 One honest note: the FIRST time claude starts, it asks a couple of its own
 questions (color theme, login) — that is normal; answer them and continue.
@@ -188,16 +188,16 @@ A note on responsibility: the system produces drafts and analysis; legal,
 financial, and medical decisions and signatures are always made by a human.
 Not professional advice.
 
-(total elapsed: 0s)
+(total elapsed: 1s)
 
 --- RUN B exit code: 0 ---
 
 --- final state file ---
 {
   "version": 1,
-  "generated_at": "2026-07-10T17:02:06Z",
+  "generated_at": "2026-07-10T20:21:24Z",
   "answer_language": "en",
-  "answer_workdir": "/private/tmp/qroky-install-dry-run.wHmxkU/w2",
+  "answer_workdir": "/private/tmp/qroky-install-dry-run.wHvlo4/w2",
   "answer_telegram_optin": "no",
   "answer_telegram_token_stored": "no",
   "answer_telegram_bound": "no",
@@ -217,8 +217,8 @@ Not professional advice.
   "step_backup": "done",
   "step_machinewide": "done",
   "backup_repo": "",
-  "framework_source": "/private/tmp/qroky-install-dry-run.wHmxkU/fake-framework-origin",
-  "framework_ref": "dadd579751003f23e8244402994cfb5820e07e37",
+  "framework_source": "/private/tmp/qroky-install-dry-run.wHvlo4/fake-framework-origin",
+  "framework_ref": "097909a1b563e0c34fd9bde503ce86a83ff44e90",
   "framework_tag": "v1.0.0"
 }
 

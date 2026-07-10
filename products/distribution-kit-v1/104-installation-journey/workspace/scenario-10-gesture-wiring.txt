@@ -1,5 +1,5 @@
 Scenario 10 — gesture wiring (v0.1.2): the 'qroky start' promise is kept on the TARGET machine
-Generated: 2026-07-10T17:02:14Z
+Generated: 2026-07-10T20:21:32Z
 
 --- RUN 1 (fresh install) ---
 == Qroky setup ==
@@ -19,8 +19,8 @@ a single Enter. Nothing installs behind your back.
 Step 2 of 9 — choose your working folder
 Where should your private Qroky folder live?
 Press Enter to use the suggested folder, or type a different path.
-Suggested: /private/tmp/qroky-install-dry-run.wHmxkU/w10
->   working folder: /private/tmp/qroky-install-dry-run.wHmxkU/w10
+Suggested: /private/tmp/qroky-install-dry-run.wHvlo4/w10
+>   working folder: /private/tmp/qroky-install-dry-run.wHvlo4/w10
 
 Step 3 of 9 — check the Claude Code assistant
   Claude Code — found (claude-code 0.0.0-dry-run-stub)
@@ -87,13 +87,13 @@ Type y for machine-wide; Enter = no, working folder only:   as you chose: the ph
 
 Copy-paste this into your terminal:
 
-    cd /private/tmp/qroky-install-dry-run.wHmxkU/w10 && claude
+    cd /private/tmp/qroky-install-dry-run.wHvlo4/w10 && claude
 
 then say:
 
     qroky start
 
-(In VS Code instead: File → Open Folder → /private/tmp/qroky-install-dry-run.wHmxkU/w10 → start a new chat — same phrase.)
+(In VS Code instead: File → Open Folder → /private/tmp/qroky-install-dry-run.wHvlo4/w10 → start a new chat — same phrase.)
 
 One honest note: the FIRST time claude starts, it asks a couple of its own
 questions (color theme, login) — that is normal; answer them and continue.
@@ -144,13 +144,13 @@ Step 9 of 9 — starting phrase everywhere on this machine (optional)
 
 Copy-paste this into your terminal:
 
-    cd /private/tmp/qroky-install-dry-run.wHmxkU/w10 && claude
+    cd /private/tmp/qroky-install-dry-run.wHvlo4/w10 && claude
 
 then say:
 
     qroky start
 
-(In VS Code instead: File → Open Folder → /private/tmp/qroky-install-dry-run.wHmxkU/w10 → start a new chat — same phrase.)
+(In VS Code instead: File → Open Folder → /private/tmp/qroky-install-dry-run.wHvlo4/w10 → start a new chat — same phrase.)
 
 One honest note: the FIRST time claude starts, it asks a couple of its own
 questions (color theme, login) — that is normal; answer them and continue.
@@ -165,7 +165,7 @@ Not professional advice.
 --- RUN 2 exit: 0 ---
 
 --- assertions ---
-a) skill file exists and is non-empty: yes (/private/tmp/qroky-install-dry-run.wHmxkU/w10/.claude/skills/qroky/SKILL.md)
+a) skill file exists and is non-empty: yes (/private/tmp/qroky-install-dry-run.wHvlo4/w10/.claude/skills/qroky/SKILL.md)
 b) CLAUDE.md trigger block present after RUN 1: yes (start markers: 1)
    trigger block points at the skill file: yes
 c) exactly ONE start marker after the re-run (must be 1): 1
