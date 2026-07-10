@@ -34,7 +34,7 @@ atoms:
     mandate: G2 blocking finding (gesture never shipped) + M1 workdir default
   ATOM-104:
     folder: 104-installation-journey
-    status: running
+    status: reviewed (kit v0.2, verify ACCEPT r1 zero findings)
     maturity: —
     opened: 2026-07-10
     gate: GATE-028 (G1 go + 2 follow-up decisions)

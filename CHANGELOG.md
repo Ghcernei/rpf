@@ -5,6 +5,22 @@ better for you). Rendered from the release's verified records — nothing here
 is composed from memory. Rule (INFO-024): a release without a changelog
 entry is not published.
 
+## v0.2 — 2026-07-10
+
+- Gave your bot key → the bot greets you right away: «Я на связи. Завтра
+  утром пришлю первый дайджест» — and it means it. The Telegram assistant
+  now installs itself with the kit: replies to you within a minute, sends a
+  morning digest, delivers gates as buttons you can answer from your phone
+  (a press has the same force as an answer typed at the computer).
+- You always know where you are: the installer opens with a map (9
+  questions → ~3 minutes → two lines to start), every question says «N из
+  9», and the finish screen gives you a ready copy-paste block with YOUR
+  real folder path — plus a line for VS Code users.
+- New question 9: make «qroky start» work from any chat on this machine
+  (optional, exactly two small files, removal documented).
+- New «Первые 5 минут» guide section: what to say first and what success
+  looks like.
+
 ## v0.1.2 — 2026-07-10
 
 - «qroky start» now works out of the box: the starting gesture ships inside
