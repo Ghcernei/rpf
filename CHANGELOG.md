@@ -5,6 +5,21 @@ better for you). Rendered from the release's verified records — nothing here
 is composed from memory. Rule (INFO-024): a release without a changelog
 entry is not published.
 
+## v0.3 — 2026-07-10
+
+- One bot, all your projects: events arrive labeled «[project]», a button
+  press files the decision in the RIGHT project, the morning digest is one
+  message with a section per project, and «что в работе <имя>» filters to
+  one. A thought that names no project gets exactly one clarifying question
+  with buttons.
+- If you have one project, nothing changes — output is byte-identical to
+  before; the router switches on only when a second project appears (a new
+  workspace simply JOINS the already-connected bot: no second key, no
+  second Start).
+- Existing installs migrate silently on update: no questions, no re-binding,
+  no repeated greeting. Updating also auto-completes a half-connected
+  Telegram (the «gave the key, nothing happened» case is gone).
+
 ## v0.2 — 2026-07-10
 
 - Gave your bot key → the bot greets you right away: «Я на связи. Завтра

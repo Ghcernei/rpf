@@ -148,3 +148,25 @@ gate from each answered from the phone, one merged digest.
 
 *Verifier spend estimate: ~75k of the ~150k envelope (contract + full diff ~35k, two
 harness runs + seven probe groups + compat byte-diff ~30k, cross-check + verdict ~10k).*
+
+---
+
+## Fix round re-check (r2) — commit 323422f: all three minors FIXED
+
+- **F2 fixed.** The glue is gone from the committed scenario-19 transcript (pending
+  line and «расход» now on separate lines) and from my own fresh run; my pre-111
+  byte-compat diff re-run on an identical fixture: outbound texts AND /status now
+  **byte-identical** to v1 (trailing newlines restored at the three `$()` sites in
+  digest.sh/lib.sh, verified in the diff).
+- **F3 fixed.** README gained a «Project router» section (registry path,
+  register/unregister incl. `--list`, JOIN behavior, compat switch, dead-path ⚠) and
+  profile.conf.example a router block (`PROJECT_NAME` per-project, `DEFAULT_PROJECT`
+  human-level) — both match the code as I verified it in r1.
+- **F1 also folded in:** the kit workspace transcripts are now committed
+  (HEAD SUMMARY = 15 PASS, scenario-13-router-hooks.txt tracked).
+- **Regression:** my own full head harness run — **21/21 PASS, exit 0**; executor
+  transcripts backed up and restored byte-identical.
+
+**ATOM-111 stands at ACCEPT with zero open findings.** Next: G2.
+
+*Verifier spend r2: ~8k; cumulative ~83k of the ~150k envelope.*
