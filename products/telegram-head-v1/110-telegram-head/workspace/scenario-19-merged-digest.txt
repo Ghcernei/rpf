@@ -1,6 +1,6 @@
 Scenario 19 — merged digest (H2)
-Generated: 2026-07-10T20:15:24Z
-registered: /var/folders/pd/mlvnqxbj7tj0h1qb5qv78_l00000gn/T/qroky-tg-dry.jlfcVS/quiet-proj -> /var/folders/pd/mlvnqxbj7tj0h1qb5qv78_l00000gn/T/qroky-tg-dry.jlfcVS/home/.qroky/registry (3 workspace(s) total)
+Generated: 2026-07-10T20:42:27Z
+registered: /var/folders/pd/mlvnqxbj7tj0h1qb5qv78_l00000gn/T/qroky-tg-dry.VvRAHV/quiet-proj -> /var/folders/pd/mlvnqxbj7tj0h1qb5qv78_l00000gn/T/qroky-tg-dry.VvRAHV/home/.qroky/registry (3 workspace(s) total)
 
 --- assertions ---
 ONE message: 1 (must be 1); merged header + both project sections: 1 (1)
@@ -31,7 +31,8 @@ already-signaled events as status lines: 19 (>0)
 • bankco-product/ATOM-B1 — running
 
 Ждёт тебя:
-• GATE-B2 — ждёт твоего решения (кнопки в чате выше)расход: 300k токенов (bankco executor)
+• GATE-B2 — ждёт твоего решения (кнопки в чате выше)
+расход: 300k токенов (bankco executor)
 
 [quiet-proj] — тихо: изменений нет, решений не ждём
 

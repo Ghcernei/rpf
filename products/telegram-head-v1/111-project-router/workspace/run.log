@@ -146,3 +146,24 @@ Files (perimeter respected):
 2026-07-10 breath: phase record — RESULT/STATUS/NARRATIVE written, report to coordinator.
 Budget: ~175k of ~250k executor envelope (estimate incl. pre-compaction design phase);
 harness wall time ~2 min/run, 0 network calls, 0 real tokens.
+
+2026-07-10 breath: micro fix round (verify r1: ACCEPT, 0 blocking; F2+F3, ~20k budget)
+F2 (rendering, root cause = $() stripping the trailing newline v1 carried inline):
+  digest.sh — PENDING_LINES and the merged branch's pending block get their final
+    newline restored when non-empty (v1 body byte-identical again; merged sections no
+    longer glue «…выше)расход:…»);
+  lib.sh render_status — v1 branch re-adds the EOF newline $() stripped (byte-identical
+    to pre-111); router branch: per-project blocks separated by ONE blank line, single
+    trailing newline at the very end, empty products dir renders «• пока пусто».
+  Head harness re-run: 21/21 GREEN, transcripts refreshed; scenario-19 glue gone
+  (checked verbatim), scenario-6 v1 digest shows the restored blank line before
+  «Уже в ленте». No assert was loosened — rendering fixed, not tests.
+F3 (docs): README.md — header table now names ATOM-111/INFO-034; new section
+  «Project router» (registry, register/unregister, primary-as-home, compat switch,
+  labels+routing home, merged digest, status filter, re-ask, JOIN for a second
+  workspace, silent migration, dead path, NOT-list); Files table gains register.sh/
+  unregister.sh and the digest's merged note. profile.conf.example — router block:
+  human-level home explanation, PROJECT_NAME (the only per-project setting),
+  DEFAULT_PROJECT («общий» button).
+F1 handled by coordinator (kit transcripts committed).
+Spend this round: ~15k of ~20k. NO git (perimeter unchanged).

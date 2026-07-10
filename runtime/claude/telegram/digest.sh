@@ -81,7 +81,11 @@ pending_gate_lines() { # $1 = workspace path filter ("" = all)
   done
   printf '%s' "$out"
 }
+# $() strips the trailing newline the v1 inline loop used to carry — restore
+# it, or the v1 body loses its blank line before the next section and the
+# merged section glues «…выше)расход:…» (verify r1-F2).
 PENDING_LINES="$(pending_gate_lines "")"
+[[ -n "$PENDING_LINES" ]] && PENDING_LINES+=$'\n'
 
 # ---- уже просигналено сегодня → строки статуса, не алармы (H6) --------------
 SIGNALED_LINES=""
@@ -146,7 +150,9 @@ else
       continue
     fi
     collect_status "$ws/products"
-    WAIT_COMBINED="$WAIT_LINES$(pending_gate_lines "$ws")"
+    PG="$(pending_gate_lines "$ws")"          # $() eats the final newline —
+    [[ -n "$PG" ]] && PG+=$'\n'               # restore it (verify r1-F2 glue)
+    WAIT_COMBINED="$WAIT_LINES$PG"
     sp_file="$ws/.qroky/telegram/state/spend/$TODAY"
     [[ "$ws" == "$TG_ROOT" ]] && sp_file="$STATE_DIR/spend/$TODAY"
     SPL="расход: данных нет"

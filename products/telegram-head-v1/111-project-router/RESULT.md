@@ -96,3 +96,21 @@ Multi-user, per-project bots, forum topics, priorities, cross-machine registry.
 
 ~175k of ~250k executor envelope (estimate, incl. design phase before a
 context compaction). Harness: ~0 LLM tokens (stubs), 0 network calls, no git.
+
+## Fix round 1 (verify r1: ACCEPT, 0 blocking, 3 minor)
+
+- **F1** (untracked kit transcripts) — fixed by the coordinator (commit).
+- **F2** (rendering) — root cause: `$()` at three call sites stripped the
+  trailing newline the v1 inline loops carried. Restored in `digest.sh`
+  (PENDING_LINES + merged pending block) and `lib.sh` `render_status` (v1 EOF
+  newline back; router sections now separated by one blank line). Single-
+  project digest and /status are byte-identical to v1 again; the merged
+  digest's «…выше)расход:…» glue is gone. Head harness re-run: **21/21**,
+  transcripts refreshed; no assert loosened.
+- **F3** (docs) — `README.md` gained the «Project router» section (registry,
+  register/unregister, primary-as-home, compat switch, labels, merged digest,
+  status filter, re-ask, second-workspace JOIN, silent migration, dead path,
+  NOT-list) + updated header/Files tables; `profile.conf.example` gained the
+  router block (`PROJECT_NAME`, `DEFAULT_PROJECT`, human-level-home note).
+
+Spend: ~15k of the ~20k fix budget. Total atom spend ~190k of ~250k.

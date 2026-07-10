@@ -2,9 +2,9 @@
 
 | Field | Value |
 | :---- | :---- |
-| Product | `runtime/claude/telegram/` — polling listener, shared send helper, inbox conventions, digest, decision-parity records |
-| Atom | ATOM-110 (telegram-head-v1) |
-| Mandate | INFO-032 (verbatim), INFO-033 (two-contour channel model, final) |
+| Product | `runtime/claude/telegram/` — polling listener, shared send helper, inbox conventions, digest, decision-parity records, project router |
+| Atom | ATOM-110 (telegram-head-v1), ATOM-111 (project router) |
+| Mandate | INFO-032 (verbatim), INFO-033 (two-contour channel model, final), INFO-034 (one bot — many projects) |
 | Maturity | reviewed target; validated after the first real phone-answered gate (G2) |
 
 ## The two contours (INFO-033)
@@ -43,6 +43,48 @@ sent and the event is durable. The file bus (`decisions/inbox/`) is the
 safety net: a press while NO session runs persists and is consumed exactly
 once on wake (the mandated DoD scenario, proven by `dry-run.sh`).
 
+## Project router (ATOM-111, INFO-034) — one bot, many projects
+
+One listener/digest pair per MACHINE serves every registered project. The
+registry is `~/.qroky/registry` — plain text, one absolute workspace path per
+line, `#` comments and blank lines allowed. It is the ONLY machine-level file
+the head owns (the recorded I3-class exception, GATE-029). Manage it with
+`register.sh <path>` / `unregister.sh <path>` — both idempotent, both honest
+about no-ops; `register.sh --list` shows the current entries.
+
+- **Primary workspace = the FIRST registry entry.** Its `.qroky/telegram/` is
+  the human-level home: chat binding, token path, quiet hours, digest time,
+  detail level, offset, queue, pending gates — everything about the HUMAN
+  lives there, in ONE documented place. Per-project configuration is the name
+  override only (`PROJECT_NAME` in that workspace's own `profile.conf`).
+- **Compat switch:** router rendering activates only when the registry holds
+  MORE than one workspace. A single-project machine behaves byte-identically
+  to v1 — including a freshly migrated one, until a second project registers.
+- **Labels & routing home:** with the router active, every outbound event is
+  labeled «[проект]» (folder basename, or `PROJECT_NAME`). A button press
+  renders the decision record into the ORIGIN project's `decisions/` — same
+  renderer, parity by construction untouched.
+- **ONE merged digest:** a section per project («Сделано / В работе / Ждёт
+  тебя / расход»), a quiet project is one line, pending gates stay in their
+  origin's section, spend gets a numeric total when the ledgers allow it.
+- **/status across projects**, and «что в работе <имя>» (or `/status <имя>`)
+  narrows to one project by its label.
+- **Free input:** a message that names a project routes there directly; one
+  that names none gets exactly ONE mechanical re-ask with project buttons
+  (plus «общий» when `DEFAULT_PROJECT` is set). The press routes the original
+  text — no second question.
+- **Joining a second project:** run the kit installer in the new workspace —
+  with a bound primary on the machine it only REGISTERS («бот уже подключён»):
+  no second token, no second Start, no second hello, no second launchd pair.
+- **Migration from v1:** automatic and silent — a bound v1 install seeds the
+  registry with itself as primary on the first listener pass after the code
+  update. Zero questions, zero sends, no re-bind, no replayed beats.
+- **Dead registry path:** flagged in the log, one honest ⚠ line in /status
+  and in the digest — never a crash; `unregister.sh` removes it.
+
+NOT in the router (closed list, INFO-034): multi-user, per-project bots,
+forum topics, priorities, cross-machine registry.
+
 ## Security v1 (INFO-032 §4 — instead of 2FA)
 
 - **chat_id binding**: only the owner's chat_id is honored; anything else is
@@ -67,7 +109,8 @@ once on wake (the mandated DoD scenario, proven by `dry-run.sh`).
 | `pickup.sh` | mechanical inbox consumption → decision records (session/heartbeat callable) |
 | `send-event.sh` | THE shared outbound helper (session + heartbeat callers) |
 | `record-decision.sh` | THE decision-record renderer (both channels — parity by construction) |
-| `digest.sh` | digest contour renderer/sender |
+| `digest.sh` | digest contour renderer/sender (merged per-project sections when the router is active) |
+| `register.sh` / `unregister.sh` | machine registry (`~/.qroky/registry`) — add/remove a project, idempotent |
 | `install.sh` / `uninstall.sh` | launchd jobs (listener 30 s; digest at profile time), `--bind`, health check |
 | `profile.conf.example` | the two contours' independent settings |
 | `dry-run.sh` | sandboxed harness, stubbed Bot API — run before anything real |

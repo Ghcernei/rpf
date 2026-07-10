@@ -205,7 +205,7 @@ render_status() { # /status [name-filter]: plain-language summary, no LLM.
   # Router (registry >1): every registered workspace, labeled «[name]»;
   # an optional filter narrows to one project by its label (ci). Dead
   # registry paths render one honest line — never break the reply (H6).
-  local filter="${1:-}" out="" w n
+  local filter="${1:-}" out="" w n block
   if router_active; then
     while IFS= read -r w; do
       [[ -n "$w" ]] || continue
@@ -214,16 +214,23 @@ render_status() { # /status [name-filter]: plain-language summary, no LLM.
         [[ "$(printf '%s' "$n" | tr '[:upper:]' '[:lower:]')" == "$(printf '%s' "$filter" | tr '[:upper:]' '[:lower:]')" ]] || continue
       fi
       if [[ ! -d "$w" ]]; then
-        out+="[$n] ⚠ путь из реестра не найден: $w"$'\n'
+        out+="[$n] ⚠ путь из реестра не найден: $w"$'\n\n'
         continue
       fi
-      out+="[$n]"$'\n'"$(_render_status_one "$w/products")"$'\n'
+      # $() strips the block's trailing newline (verify r1-F2) — re-add it
+      # plus one blank line, so project sections separate cleanly.
+      block="$(_render_status_one "$w/products")"
+      out+="[$n]"$'\n'"${block:-• пока пусто}"$'\n\n'
     done <<EOF
 $(workspaces_or_root)
 EOF
+    out="${out%$'\n'}"   # one trailing newline at the very end, not two
     [[ -n "${out//[$'\n' ]/}" ]] || out="Проект с таким именем в реестре не найден. Зарегистрированы: $(workspaces_or_root | while IFS= read -r x; do [[ -n "$x" ]] && printf '%s ' "$(workspace_name "$x")"; done)"
   else
     out="$(_render_status_one "$PRODUCTS_DIR")"
+    # v1 ended with a newline the $() wrap above just stripped — restore it,
+    # so a single-project /status stays byte-identical to v1 (verify r1-F2).
+    [[ -n "$out" ]] && out+=$'\n'
     [[ -n "${out//[$'\n' ]/}" ]] || out="Пока нет ни одной задачи в products/ — статусов нет."
   fi
   # ≤1 message: Telegram cap 4096; keep margin and say so when truncated

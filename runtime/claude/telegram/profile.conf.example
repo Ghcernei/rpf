@@ -28,3 +28,20 @@ TOKEN_FILE="$HOME/qroky/.qroky/telegram.token"
 
 # Telegram Bot API base — change only for the dry-run harness.
 API_BASE="https://api.telegram.org"
+
+# ---- Project router (ATOM-111, INFO-034) ------------------------------------
+# One bot serves every project registered in ~/.qroky/registry (one workspace
+# path per line; register.sh / unregister.sh manage it). The FIRST entry is
+# the PRIMARY workspace, and ITS profile.conf — this file — is the human-level
+# home: everything above (digest time, quiet hours, detail, risk word, token
+# path) is read from here for the whole machine. With one registered project
+# the head behaves exactly like v1.
+
+# Per-project override — the ONLY setting a non-primary workspace's own
+# profile.conf is read for: the label shown in «[проект]» event prefixes,
+# /status sections, and re-ask buttons. Default: the workspace folder name.
+#PROJECT_NAME="miapos"
+
+# Human-level (this file, primary only): adds an «общий» button to the
+# project re-ask, routing unaddressed thoughts to the named project's inbox.
+#DEFAULT_PROJECT="miapos"

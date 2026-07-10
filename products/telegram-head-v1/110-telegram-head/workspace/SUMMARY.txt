@@ -1,5 +1,5 @@
 dry-run.sh — Telegram head, summary of all scenarios
-Generated: 2026-07-10T20:15:09Z
+Generated: 2026-07-10T20:42:08Z
 
 PASS — 1-parity: press -> inbox -> record with full question + verbatim label; session record differs in channel line only (diff non-empty)
 PASS — 2-closed-session: press with no session persisted; consumed exactly once across two wakes; SIGKILL inside the write window left complete-or-nothing; crashed pass's lock stolen IMMEDIATELY by the next pass (M2) and the press re-delivered, not lost
@@ -24,5 +24,5 @@ PASS — 20-reask: no-project text got exactly ONE mechanical re-ask (buttons in
 PASS — 21-deadpath: dead registry path: rc 0 everywhere, live projects unaffected, one honest ⚠ line in /status and in the digest, log flagged, unregister clean + idempotent
 
 Totals: 21 passed, 0 failed
-Sandbox: /var/folders/pd/mlvnqxbj7tj0h1qb5qv78_l00000gn/T/qroky-tg-dry.jlfcVS (removed on exit)
+Sandbox: /var/folders/pd/mlvnqxbj7tj0h1qb5qv78_l00000gn/T/qroky-tg-dry.VvRAHV (removed on exit)
 Budget line: harness burns ~0 tokens (no LLM — stubbed), ~60s wall time, 0 network calls
