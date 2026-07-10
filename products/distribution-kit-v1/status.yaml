@@ -25,3 +25,10 @@ atoms:
     opened: 2026-07-10
     parent: ATOM-100
     mandate: INFO-030 p.3-4 (backup interview point 8 + disclaimer layer)
+  ATOM-103:
+    folder: 103-gesture-fix
+    status: reviewed (kit v0.1.2, verify ACCEPT r1 zero findings)
+    maturity: —
+    opened: 2026-07-10
+    parent: ATOM-100
+    mandate: G2 blocking finding (gesture never shipped) + M1 workdir default
