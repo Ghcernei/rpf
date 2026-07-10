@@ -1,4 +1,12 @@
-# LAUNCH — ATOM-120 (launch-package-v1: the public face at opening)
+# LAUNCH — ATOM-120 (launch-package-v1: soft launch through the network)
+
+> AMENDED 2026-07-10 per INFO-031 (CEO decision: soft launch via warm network
+> instead of a public launch). Landing EXCLUDED from the tree (qroky.com =
+> DNS redirect to GitHub, HUMAN-TASK CEO); HN/Reddit drafts and the LinkedIn
+> post FROZEN with trigger «после 2–3 волн тёплой раздачи». Focus: README as
+> the only storefront + messenger handoff message (EN/RU/RO) + feedback
+> channel (GitHub issues + support instance drafts under CEO E2). Budget
+> recalculated ~750k → ~550k.
 
 > Runtime instruction. QUEUED: execute only after the distribution-kit tree
 > (ATOM-100) closes, and only after a fresh CEO «го» on this plan (G1 gate at
@@ -14,24 +22,24 @@
 > «clone or leave» decision; mission_value: activation (clone → first closed atom)
 > is metric №1 (INFO-021 §1.1); why_not_lower: public-face texts are a
 > perimeter-crossing product with a CEO gate — not an inline edit, not one E1.
-> Budget (proportionality + precedents, INFO-019 flagged practice per GATE-022):
-> subtree ~750k — README+FAQ+UPDATES+CHANGELOG executor ~230k (M),
-> landing+posts+checklist executor ~200k (M), blind verify ~160k (L, ×3.5+40k
-> over the text package), parent orchestration + narrative ≤5%, ~50k fixed per
-> subagent. E4 only on breach.
+> Budget (proportionality + precedents, INFO-019 flagged practice per GATE-022;
+> recalculated per INFO-031): subtree ~550k — README+FAQ+UPDATES+CHANGELOG
+> executor ~230k (M), handoff-message+checklist executor ~100k (M), blind
+> verify ~140k (L, ×3.5+40k over the text package), parent orchestration +
+> narrative ≤5%, ~50k fixed per subagent. E4 only on breach.
 > G-gates: G1 (CEO go on this plan at start); G2 (CEO reads ALL outward texts —
-> perimeter; LinkedIn draft goes to CEO for edit, his voice is the hard bar).
+> perimeter; the handoff message in all three languages goes to CEO for edit).
 
 ---
 ---
 atom: ATOM-120
-product: Public Launch Package v1 (README rewrite, landing in-repo, launch posts, launch checklist)
+product: Soft Launch Package v1 (README rewrite as the only storefront, messenger handoff message EN/RU/RO, wave-distribution launch checklist)
 parent: — (top-level business atom; order INFO-021; starts after ATOM-100 closes)
 role: orchestrator (launch session); executor roles: reuse sales-operator (voice/outreach) + pilot-toolsmith (artifact renders); a dedicated storyteller role only if proportionality justifies it at execution (O5.1)
 formulated_by: launch session from CEO order INFO-021 (verbatim file + English-only amendment), 2026-07-09
 verification: independent blind (L) + CEO gate on every outward text (perimeter)
 maturity_target: reviewed (validated — after ≥1 stranger completes clone→install from these texts)
-budget: ~750k subtree (see header; INFO-019 flagged practice, referenced explicitly; raised from ~700k by INFO-024 — UPDATES page + changelog pipeline)
+budget: ~550k subtree (see header; INFO-019 flagged practice, referenced explicitly; ~750k → ~550k per INFO-031 — landing and posts left the tree)
 recursion_allowance: 2
 ---
 
@@ -40,26 +48,28 @@ recursion_allowance: 2
 ## 1. Product Identity
 | Field | Value |
 | :---- | :---- |
-| Product | `README.md` (rewritten, EN-only) + `docs/REPO-GUIDE.md` (current navigator preserved) + `marketing/` (landing, posts, later/, verticals/) + launch checklist |
-| Atom ID | ATOM-120 (children per plan: 121 README+FAQ; 122 landing+posts+checklist; 121/122-verify) |
+| Product | `README.md` (rewritten, EN-only, the ONLY storefront) + `docs/REPO-GUIDE.md` (current navigator preserved) + `marketing/handoff/` (messenger handoff message EN/RU/RO) + launch checklist (wave distribution) |
+| Atom ID | ATOM-120 (children per plan: 121 README+FAQ; 122 handoff+checklist; 121/122-verify) |
 | Parent product | Qroky public opening (INFO-017 self-service; INFO-021 order) |
 | Executor role(s) | sales-operator + pilot-toolsmith (reuse — F2); new role only via O5.1 proportionality case |
 | Input product(s) | `decisions/INFO-021` (order + amendment, verbatim — the mandate); `decisions/INFO-017`, `INFO-020` (positioning: autonomy hero, governance = seat belt, second paragraph); `products/landing-v0/` (drafts to move & rewrite); current `README.md`; real proof artifacts ONLY: garden test records, ATOM-007 RESULT/TEAM debrief (21 agents / 7 roles), `knowledge/precedent/verify-envelope-calibration.md` (curve), `decisions/` journal, cost blocks (real monthly numbers); `distribution/` (install commands must match the REAL kit — dependency on ATOM-100 output) |
-| Consumer(s) | A stranger deciding «clone or leave» in 30 seconds; warm network (Влад/Mihai/Olga); CEO (LinkedIn draft in his voice) |
+| Consumer(s) | Warm-network recipients of the handoff message (and the third parties they forward it to); a reader landing on the repo via qroky.com redirect deciding «clone or leave» in 30 seconds; CEO (sends every message by hand) |
 | Maturity target | reviewed (validated after first stranger install) |
 | Gates | G1 = CEO go on this plan at start (mandatory); G2 = CEO on ALL outward texts (perimeter); DNS/publication = HUMAN-TASK CEO |
 | Instantiation | subagents (executors), session (blind verify) |
 | Verification mode | independent blind (public face, perimeter-crossing) + CEO judgment criteria (§4 soft) |
-| Budget envelope | ~700k subtree |
+| Budget envelope | ~550k subtree (INFO-031) |
 | Recursion-depth allowance | 2 |
 
 ## 2. Job To Be Done
 
-The stranger's 30 seconds: land on the repo, read the hero line, see how it works
-on REAL artifacts, copy three lines (`git clone && bash install.sh`), understand
-what they do vs what the system does, have their skeptic questions answered — and
-clone. The package sells nothing; it leads to `git clone`. Activation
-(clone → first closed atom) is metric №1.
+Soft launch (INFO-031): the CEO forwards a 2–3 paragraph message to 2–3 warm
+contacts per wave; the message leads to the repo; the README does ALL the
+selling in 30 seconds — hero line, «how it works» on REAL artifacts, three-line
+install (`git clone && bash install.sh`), what they do vs what the system does,
+skeptic FAQ — and the reader clones. Feedback flows back through GitHub issues
+(support instance drafts replies, CEO sends). The package sells nothing; it
+leads to `git clone`. Activation (clone → first closed atom) is metric №1.
 
 ## 3. Mandate (closed decisions — formalize, do not reopen; full text INFO-021)
 
@@ -82,6 +92,16 @@ clone. The package sells nothing; it leads to `git clone`. Activation
    decisions journal. NO invented quotes/logos/market figures. Reserve marked
    placeholders for: second-Mac test, books, first external user — added when
    they happen.
+5. **Soft launch (INFO-031, supersedes the order's public-launch shape):**
+   landing is OUT of the tree (qroky.com = DNS redirect to the GitHub repo,
+   HUMAN-TASK CEO; `products/landing-v0/` stays versioned, marked frozen);
+   HN/Reddit drafts and the LinkedIn post are FROZEN with the verbatim
+   trigger «после 2–3 волн тёплой раздачи» — a tree-level NOT-DOING, not a
+   rejection. Distribution is by waves: 2–3 people per wave, days between
+   waves so the feedback loop closes before the next one. The handoff
+   message is a personal-channel artifact — EN/RU/RO versions are legitimate
+   (the EN-only rule of §3.3 covers the public face; boundary recorded in
+   INFO-031 п.4).
 
 ## 4. Definition of Done
 
@@ -99,20 +119,28 @@ clone. The package sells nothing; it leads to `git clone`. Activation
   legal/financial/medical decisions and signatures are always the human's;
   not professional advice»); «what if the project/author disappears» —
   everything is local, open source, works without us, forkable; and the
-  backup line «backups go to YOUR OWN private GitHub account».
+  backup line «backups go to YOUR OWN private GitHub account». README also
+  carries (INFO-031) an «early access» block: built in the open, issues
+  welcome — with a direct link to GitHub issues as THE feedback channel.
 - H2. Old navigator preserved at `docs/REPO-GUIDE.md` (content-identical move).
 - H3. Hero contains none of: audit / journal / verify (grep) — they live in the
   second echelon.
 - H4. Every factual claim traces to a repo artifact (link or path next to the
   claim; verify checks each).
-- H5. Landing in repo `marketing/` (moved from products/landing-v0), hero
-  rewritten to autonomy, one page → GitHub button; bank variant frozen at
-  `marketing/verticals/` marked not-for-publication; HN/Reddit draft parked at
-  `marketing/later/` marked «week 2, after warm-traffic polish».
-- H6. Launch checklist exists: publication order (README merge → landing live →
-  LinkedIn → warm network), readiness criterion (release kit closed + ≥1
-  external user completed install), day-of-week recommendation with reasoning,
-  AND the hard rule (INFO-024, verbatim): «релиз без changelog не публикуется».
+- H5. (Replaced per INFO-031.) Messenger handoff message at
+  `marketing/handoff/` in THREE languages (EN/RU/RO), 2–3 paragraphs each,
+  natively written (not machine-glued): what this is, why the recipient's
+  opinion matters, the repo link, the line «15 минут; сломается — пиши мне»
+  (localized), and it must read well when FORWARDED to a third party the CEO
+  doesn't know. `products/landing-v0/` untouched, marked frozen with the
+  trigger; no `marketing/` landing move.
+- H6. Launch checklist exists: soft-launch order (README merge → qroky.com
+  DNS redirect [HUMAN-TASK CEO] → wave 1 of 2–3 warm contacts → feedback
+  loop closes via issues → waves 2–3, days apart), a wave counter, the
+  unfreeze trigger line for HN/Reddit/LinkedIn (verbatim: «после 2–3 волн
+  тёплой раздачи»), readiness criterion (release kit closed + ≥1 external
+  user completed install), AND the hard rule (INFO-024, verbatim): «релиз
+  без changelog не публикуется».
 - H7. Blind verify: accept. Publication itself — HUMAN-TASK CEO (DNS, merges,
   posting): nothing goes outward by agent hands (S4/S5 perimeter).
 - H8. `docs/UPDATES.md` — the user's page on updates (INFO-024): the mechanics
@@ -142,10 +170,13 @@ clone. The package sells nothing; it leads to `git clone`. Activation
 **Soft (judge — CEO at G2):**
 - S1. 30-second stranger test on README: hero + first screen answer «what is it
   and why do I care» without scrolling.
-- S2. LinkedIn draft sounds like the CEO, not like a press release (his voice;
-  «две недели управлял компанией через систему, которая построила себя; вот
-  журнал»; draft delivered for his edit).
-- S3. Warm-network shorts are askable: a friend can repost without editing.
+- S2. The handoff message sounds like the CEO writing to a friend, not like
+  marketing copy (all three languages delivered for his edit; his voice is
+  the hard bar). LinkedIn draft: FROZEN per INFO-031 — not built in this
+  tree; unfreezes with the wave trigger.
+- S3. Forwardability: the handoff message still works when the recipient
+  forwards it to someone the CEO doesn't know — no context assumed beyond
+  the message itself.
 
 **Maturity target:** reviewed. Do not gold-plate; placeholders stay placeholders.
 
@@ -154,11 +185,13 @@ clone. The package sells nothing; it leads to `git clone`. Activation
 - Hero candidates draw on INFO-020 wording; governance/seat-belt is paragraph 2.
 - Real numbers: cost blocks of ATOM-007 (2.76M subtree, $-figure), ATOM-090/091;
   the calibration curve from knowledge/precedent.
-- The landing move retires `products/landing-v0/` (leave a pointer README).
-- Layout: `marketing/` at root per order; if LA2 resists — E7 with INFO-021 as
-  the recorded human decision (INFO-021 §3.5).
-- Voice source for LinkedIn: CEO's style profile (machine-local); the draft is
-  raw material for HIS edit, not a finished post.
+- `products/landing-v0/` stays where it is — add ONE freeze note to its
+  README (trigger verbatim), nothing else touched.
+- Layout: `marketing/handoff/` at root per order logic; if LA2 resists — E7
+  with INFO-021/031 as the recorded human decisions.
+- Voice source for the handoff message: CEO's style profile (machine-local);
+  all three language versions are raw material for HIS edit, not finished
+  messages. He sends every one by hand (S4/S5 perimeter).
 
 ## 6. Escalation
 
@@ -169,5 +202,7 @@ publication HUMAN-TASK. Monetization divergence: flagged, not resolvable here.
 
 ---
 *End of launch file. Formulated 2026-07-09 from INFO-021 (order file verbatim +
-English-only amendment). Queued behind ATOM-100 (distribution kit): install
-commands in H1 depend on the real kit.*
+English-only amendment); amended 2026-07-10 per INFO-030 (H1 FAQ lines, H10
+CONTRIBUTING/forking) and INFO-031 (soft launch: landing out, posts frozen,
+handoff message in, wave distribution). Queued behind ATOM-100 (distribution
+kit): install commands in H1 depend on the real kit.*
