@@ -16,6 +16,8 @@
 | [ ] | 3 | **Поправка pilot-design (протокол E8-2)** | Proposal готов: `products/pilot-prerequisites-v1/078-fix-round/workspace/pilot-design-amendment-proposal.md` — применить твоей рукой или сказать «атомом» | 10 мин |
 | [ ] | 4 | **G2 дерева A: сухой прогон install.sh на чистой машине** | Критерий релиза kit'а (S3): ≤15 мин, ноль вопросов вне интервью. Одна команда из `distribution/README.ru.md`, **восемь** вопросов (8-й — бэкап, INFO-030). Verify ACCEPT r2 уже есть — **прогон делать ПОСЛЕ закрытия ATOM-102** (поправка v0.1.1 меняет интервью); дерево закрывается `reviewed` твоим вердиктом | 20 мин |
 | [ ] | 5 | **DNS: qroky.com → редирект на GitHub-репо** (INFO-031) | Лендинг исключён из запуска — домен просто ведёт на репо. По времени — к soft launch (после ATOM-120), можно и раньше | 10 мин |
+| [ ] | 6 | **Докатка соседнего мака = финал G2 дерева A** | `cd ~/work/qroky && git pull`, затем `cd distribution && bash install.sh --apply-update` (найдёт **v0.1.2** — первый релиз-тег, ответь «да»), затем `bash install.sh`, затем `claude` в рабочей папке (`~/work/qroky/distribution/qroky`) НОВОЙ сессией → «qroky start». Оживший жест = G2 зачтён, дерево A закрывается твоим словом | 10 мин |
+| [ ] | 7 | **Смоук дерева B с телефона (G2 ATOM-110)** | Создай тестового бота у @BotFather → токен в файл → путь в `runtime/claude/telegram/profile.conf` (образец: profile.conf.example) → `bash runtime/claude/telegram/install.sh` + `--bind` → напиши боту «что в работе». Ответ в течение минуты = зачёт; после — нажми настоящий гейт с телефона (S1) | 15 мин |
 
 ## 2. 🟡 Согласовать со мной (жду твоего решения)
 
