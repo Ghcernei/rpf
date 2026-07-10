@@ -9,7 +9,11 @@
 # working folder, Claude Code check, subscription check, Telegram opt-in,
 # daily-support-sharing opt-in, morning-digest opt-in, backup opt-in to
 # your OWN private GitHub — v0.1.1), sets up a private workspace with the
-# assistant's rulebook vendored into it, and ends with
+# assistant's rulebook vendored into it, wires the "qroky start" gesture
+# into the workspace itself (v0.1.2, automatic — the gesture's rulebook
+# page is copied to <workdir>/.claude/skills/qroky/SKILL.md and a
+# marker-guarded trigger note is written to <workdir>/CLAUDE.md, so the
+# closing promise actually works on THIS machine), and ends with
 # how to say "qroky start". Every step is safe to re-run: it checks what is
 # already done before doing anything, so re-running never repeats work or
 # re-asks a question you already answered — the answers live in
@@ -145,6 +149,7 @@ state_load() {
   STEP_LANGUAGE="$(state_get step_language || true)"
   STEP_WORKDIR="$(state_get step_workdir || true)"
   STEP_FRAMEWORK="$(state_get step_framework || true)"
+  STEP_GESTURE="$(state_get step_gesture || true)"
   STEP_CLAUDE_CODE="$(state_get step_claude_code || true)"
   STEP_SUBSCRIPTION="$(state_get step_subscription || true)"
   STEP_TELEGRAM="$(state_get step_telegram || true)"
@@ -175,6 +180,7 @@ state_commit() {
     printf '  "step_language": "%s",\n' "$(json_escape "${STEP_LANGUAGE:-pending}")"
     printf '  "step_workdir": "%s",\n' "$(json_escape "${STEP_WORKDIR:-pending}")"
     printf '  "step_framework": "%s",\n' "$(json_escape "${STEP_FRAMEWORK:-pending}")"
+    printf '  "step_gesture": "%s",\n' "$(json_escape "${STEP_GESTURE:-pending}")"
     printf '  "step_claude_code": "%s",\n' "$(json_escape "${STEP_CLAUDE_CODE:-pending}")"
     printf '  "step_subscription": "%s",\n' "$(json_escape "${STEP_SUBSCRIPTION:-pending}")"
     printf '  "step_telegram": "%s",\n' "$(json_escape "${STEP_TELEGRAM:-pending}")"
@@ -237,7 +243,9 @@ resolve_candidate_workdir() {
   elif [[ -f "$WORKDIR_POINTER" ]]; then
     cat "$WORKDIR_POINTER"
   else
-    printf '%s' "./qroky"
+    # v0.1.2 (M1): suggest a folder OUTSIDE this kit clone — the old
+    # "./qroky" default landed the workspace inside distribution/.
+    printf '%s' "$HOME/qroky-work"
   fi
 }
 
@@ -347,6 +355,81 @@ step_framework() {
   installer again — it will continue from exactly this step.
   If this keeps failing, whoever gave you this kit can send a local copy to
   point QROKY_FRAMEWORK_SOURCE at instead.
+  (The technical details were saved to: ${LOG_FILE:-the install log})"
+  fi
+}
+
+# ---------------------------------------------------------------------------
+# Gesture wiring — automatic, no question (question inventory stays 8;
+# v0.1.2, first G2 dry-run BLOCKING finding: the finale promised "qroky
+# start" but nothing on the target machine ever knew the gesture — the
+# skill file lived only on the author's computer). Wired at PROJECT level
+# only (the gesture protocol's own rule: never write into ~ or system
+# paths): the vendored rulebook page is copied to
+# <workdir>/.claude/skills/qroky/SKILL.md and a marker-guarded trigger
+# note is appended to <workdir>/CLAUDE.md — check→do, idempotent (re-run
+# never duplicates the block; same pattern as the backup .gitignore).
+# ---------------------------------------------------------------------------
+GESTURE_MARKER_START="<!-- qroky-gesture:start -->"
+GESTURE_MARKER_END="<!-- qroky-gesture:end -->"
+
+_gesture_wire_attempt() {
+  local src="$FRAMEWORK_DIR/runtime/claude/skill/qroky/SKILL.md"
+  local dst="$WORKSPACE_DIR/.claude/skills/qroky/SKILL.md"
+  # The source ships inside the vendored rulebook — if it is absent the
+  # rulebook copy predates v0.1.2 and no retry will conjure it (the ladder
+  # still runs for uniformity; the human message after it names the fix).
+  [[ -s "$src" ]] || return 1
+  mkdir -p "$(dirname "$dst")" || return 1
+  # check→do: copy only when missing or different (keeps healthy reruns
+  # write-free for H3's health-check promise).
+  if [[ ! -f "$dst" ]] || ! cmp -s "$src" "$dst"; then
+    cp "$src" "$dst" || return 1
+  fi
+  # check→do: append the trigger note only if its marker is absent —
+  # re-runs leave exactly ONE block, never two.
+  local claude_md="$WORKSPACE_DIR/CLAUDE.md"
+  if ! grep -qF "$GESTURE_MARKER_START" "$claude_md" 2>/dev/null; then
+    cat >> "$claude_md" <<EOF
+$GESTURE_MARKER_START
+# Qroky gesture (written by install.sh — safe to leave; re-runs never duplicate this block)
+A chat message STARTING with «кроки» or «qroky» (case-insensitive) — including
+«qroky start» — triggers the protocol in \`.claude/skills/qroky/SKILL.md\`:
+read that file and follow it exactly (survey read-only → propose a one-screen
+plan → wait for an explicit «го»). The word inside ordinary prose does NOT
+trigger. Mission orientation: the confirmed two whys live in \`qroky/mission.md\`
+once set up, and parent runs narrate themselves in \`NARRATIVE.md\` next to
+\`STATUS.md\` (skill §7 M6).
+$GESTURE_MARKER_END
+EOF
+  fi
+  return 0
+}
+
+step_gesture() {
+  local dst="$WORKSPACE_DIR/.claude/skills/qroky/SKILL.md"
+  if [[ "${STEP_GESTURE:-}" == "done" && -s "$dst" ]] \
+     && grep -qF "$GESTURE_MARKER_START" "$WORKSPACE_DIR/CLAUDE.md" 2>/dev/null; then
+    L_GESTURE_ALREADY
+    return 0
+  fi
+  L_GESTURE_WIRING
+  if run_with_ladder gesture _gesture_wire_attempt; then
+    L_GESTURE_DONE
+    STEP_GESTURE="done"
+    state_commit
+    log "gesture DONE skill=$dst trigger=CLAUDE.md"
+  else
+    STEP_GESTURE="failed"
+    state_commit
+    fail_to_human gesture \
+      "The starting phrase (\"qroky start\") could not be wired into your working
+  folder: the rulebook copy downloaded in the previous step does not contain
+  the gesture file it should (runtime/claude/skill/qroky/SKILL.md).
+  This usually means the rulebook version is older than this installer.
+  Try: bash install.sh --apply-update   — then run this installer again;
+  if that shows no update, whoever gave you this kit can send the matching
+  rulebook version.
   (The technical details were saved to: ${LOG_FILE:-the install log})"
   fi
 }
@@ -904,7 +987,8 @@ main_interview() {
   step_language;   say ""
   step_workdir;    say ""
   step_claude_code
-  step_framework;  say ""
+  step_framework
+  step_gesture;    say ""
   step_subscription; say ""
   step_telegram;   say ""
   step_telemetry;  say ""

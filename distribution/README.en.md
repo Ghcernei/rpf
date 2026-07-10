@@ -22,6 +22,21 @@ tells you exactly what to install and how — then you run the same command
 again, and it continues from exactly where it stopped. Nothing is repeated,
 nothing you already answered is asked twice.
 
+## Your first conversation
+
+When setup finishes, start like this:
+
+1. Open a terminal **in your working folder** (the one you chose at
+   question 2). In VS Code instead: File → Open Folder → your working
+   folder, then start a new chat.
+2. Type: `claude`
+3. Say: `qroky start`
+
+One honest note: the starting phrase lives **in the working folder** — the
+installer wires it into that folder (a small rules file plus a note the
+assistant reads there). A chat opened anywhere else on the computer will
+not know it.
+
 ## The eight questions
 
 1. **Language** — English, Română, or Русский. Everything after this point

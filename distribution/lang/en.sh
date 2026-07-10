@@ -42,6 +42,11 @@ L_WORKDIR_ALREADY() { printf '  this folder is already your Qroky workspace — 
 L_FRAMEWORK_VENDORING() { printf '  downloading the rulebook the assistant follows (pinned to one fixed version, so it never changes without asking you)...\n'; }
 L_FRAMEWORK_ALREADY() { printf '  the rulebook is already in place — nothing to do (health check)\n'; }
 
+# --- v0.1.2 (gesture wiring — automatic, not a question) ---
+L_GESTURE_WIRING() { printf '  teaching this folder the starting phrase ("qroky start")...\n'; }
+L_GESTURE_DONE() { printf '  starting phrase wired — a chat opened IN THIS FOLDER will understand "qroky start"\n'; }
+L_GESTURE_ALREADY() { printf '  the starting phrase is already in place — nothing to do (health check)\n'; }
+
 L_CLAUDE_FOUND() { printf '  Claude Code — found (%s)\n' "$1"; }
 L_CLAUDE_MISSING() {
   printf 'The Claude Code assistant is not installed on this machine.\n'
@@ -143,11 +148,13 @@ L_FINALE() {
 
 Your assistant is ready. To start:
   1. Open a terminal in: $1
+     (In VS Code instead: File → Open Folder → $1, then start a new chat.)
   2. Type: claude
   3. Say: qroky start
 
 That single phrase — "qroky start" — is all you need; it works in any
-language you type it in.
+language you type it in. One honest note: the phrase lives in that folder —
+a chat opened anywhere else will not know it.
 EOF
 }
 

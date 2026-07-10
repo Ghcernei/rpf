@@ -22,6 +22,21 @@ spune exact ce să instalezi și cum — apoi rulezi din nou aceeași comandă,
 și continuă chiar de unde s-a oprit. Nimic nu se repetă, nimic la care ai
 răspuns deja nu se întreabă a doua oară.
 
+## Prima ta conversație
+
+Când instalarea se termină, începe așa:
+
+1. Deschide un terminal **în folderul tău de lucru** (cel ales la
+   întrebarea 2). În VS Code: File → Open Folder → folderul tău de lucru,
+   apoi începe o conversație nouă.
+2. Scrie: `claude`
+3. Spune: `qroky start`
+
+O notă sinceră: fraza de pornire trăiește **în folderul de lucru** —
+instalatorul o conectează în acel folder (un mic fișier de reguli plus o
+notă pe care asistentul o citește acolo). O conversație deschisă oriunde
+altundeva pe calculator nu o va cunoaște.
+
 ## Cele opt întrebări
 
 1. **Limba** — English, Română, sau Русский. Tot ce urmează după acest

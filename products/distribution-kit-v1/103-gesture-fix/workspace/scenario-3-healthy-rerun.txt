@@ -1,0 +1,60 @@
+Scenario 3 — rerun on the already-healthy Scenario-1 workspace
+Generated: 2026-07-10T14:24:37Z
+No answers should be needed — every step is already 'done'.
+
+== Qroky setup ==
+
+Step 1 of 8 — choose your language
+  language set: en
+
+Step 2 of 8 — choose your working folder
+  this folder is already your Qroky workspace — reusing it
+
+Step 3 of 8 — check the Claude Code assistant
+  Claude Code — found (claude-code 0.0.0-dry-run-stub)
+  the rulebook is already in place — nothing to do (health check)
+  the starting phrase is already in place — nothing to do (health check)
+
+Step 4 of 8 — check your subscription
+  already set up — nothing to do (health check)
+
+Step 5 of 8 — connect Telegram (optional)
+  already set up — nothing to do (health check)
+
+Step 6 of 8 — daily support sharing (optional)
+  already set up — nothing to do (health check)
+
+Step 7 of 8 — morning digest (optional)
+  already set up — nothing to do (health check)
+
+Step 8 of 8 — backup to your own GitHub (optional)
+  already set up — nothing to do (health check)
+
+
+== Setup finished. Nothing failed. ==
+
+Your assistant is ready. To start:
+  1. Open a terminal in: /private/tmp/qroky-install-dry-run.PaeYK0/w1
+     (In VS Code instead: File → Open Folder → /private/tmp/qroky-install-dry-run.PaeYK0/w1, then start a new chat.)
+  2. Type: claude
+  3. Say: qroky start
+
+That single phrase — "qroky start" — is all you need; it works in any
+language you type it in. One honest note: the phrase lives in that folder —
+a chat opened anywhere else will not know it.
+
+A note on responsibility: the system produces drafts and analysis; legal,
+financial, and medical decisions and signatures are always made by a human.
+Not professional advice.
+
+(total elapsed: 0s)
+
+--- exit code: 0 ---
+
+--- file tree diff (content hashes, excluding install.log which is append-only by design) ---
+(no differences — no file content changed)
+
+--- state diff (excluding the generated_at timestamp, which always updates on commit) ---
+(no differences — every field identical)
+
+'already done' health-check lines printed: 9 (expect 9 — one per step incl. the v0.1.2 gesture step)

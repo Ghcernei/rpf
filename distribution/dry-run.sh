@@ -33,8 +33,9 @@
 #                     only matters for this local-path trick, never for a
 #                     real founder's https default; see 071's dry-run.sh)
 #
-# Nine transcripts are written next to this comment's sibling folder:
-#   products/distribution-kit-v1/102-kit-amendment/workspace/
+# Transcripts are written next to this comment's sibling folder
+# (v0.1.2 / ATOM-103 — records live in the CURRENT atom's workspace):
+#   products/distribution-kit-v1/103-gesture-fix/workspace/
 #   scenario-1-full-clean-run.txt
 #   scenario-2-kill-mid-install.txt
 #   scenario-3-healthy-rerun.txt
@@ -42,6 +43,9 @@
 #   scenario-5-idempotency-diff.txt
 #   scenario-6-secrets-negative-grep.txt
 #   scenario-7-self-update.txt
+#   scenario-8-heartbeat-both-branches.txt
+#   scenario-9-backup-optin-optout.txt
+#   scenario-10-gesture-wiring.txt
 #   SUMMARY.txt
 #
 # Usage: ./dry-run.sh   (no arguments; self-contained; safe to re-run)
@@ -49,7 +53,7 @@
 set -uo pipefail   # NOT -e: scenarios intentionally capture non-zero exits
 
 HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-ATOM_WORKSPACE="$(cd "$HERE/../products/distribution-kit-v1/102-kit-amendment/workspace" && pwd)"
+ATOM_WORKSPACE="$(cd "$HERE/../products/distribution-kit-v1/103-gesture-fix/workspace" && pwd)"
 SANDBOX="$(mktemp -d /private/tmp/qroky-install-dry-run.XXXXXX)"
 cleanup() { rm -rf "$SANDBOX"; }
 trap cleanup EXIT
@@ -171,6 +175,13 @@ FAKE_FW="$SANDBOX/fake-framework-origin"
 mkdir -p "$FAKE_FW"
 git -C "$FAKE_FW" init -q
 echo "# stub framework — dry-run only, not the real rulebook" > "$FAKE_FW/README.md"
+# v0.1.2 (ATOM-103): the framework repo now ships the gesture file that
+# step_gesture vendors into the workspace — the fake origin carries the
+# REAL vendored file from this repo, so scenario 10's "workdir copy matches
+# vendored source" diff compares against the genuine article, not a stub.
+VENDORED_SKILL="$HERE/../runtime/claude/skill/qroky/SKILL.md"
+mkdir -p "$FAKE_FW/runtime/claude/skill/qroky"
+cp "$VENDORED_SKILL" "$FAKE_FW/runtime/claude/skill/qroky/SKILL.md"
 git -C "$FAKE_FW" -c user.email=dryrun@qroky.local -c user.name="Qroky dry run" add -A
 git -C "$FAKE_FW" -c user.email=dryrun@qroky.local -c user.name="Qroky dry run" commit -q -m "stub commit 1"
 git -C "$FAKE_FW" -c user.email=dryrun@qroky.local -c user.name="Qroky dry run" \
@@ -371,7 +382,7 @@ HEALTH_LINES=$(printf '%s' "$OUT3" | grep -c "already set up\|already your Qroky
   echo "--- state diff (excluding the generated_at timestamp, which always updates on commit) ---"
   diff <(printf '%s' "$BEFORE_STATE_NO_TS") <(printf '%s' "$AFTER_STATE_NO_TS") && echo "(no differences — every field identical)"
   echo ""
-  echo "'already done' health-check lines printed: $HEALTH_LINES (expect 8, one per step)"
+  echo "'already done' health-check lines printed: $HEALTH_LINES (expect 9 — one per step incl. the v0.1.2 gesture step)"
 } >> "$T3"
 TREE_DIFF="$(diff <(printf '%s' "$BEFORE_TREE") <(printf '%s' "$AFTER_TREE"))"
 STATE_DIFF="$(diff <(printf '%s' "$BEFORE_STATE_NO_TS") <(printf '%s' "$AFTER_STATE_NO_TS"))"
@@ -755,6 +766,80 @@ if [[ $STATUS9A -eq 0 && $BACKUP_DONE9 -gt 0 && $BACKUP_OPTIN9 -gt 0 \
   record "9-backup-optin-optout" PASS "opt-in: auth walkthrough shown, real push, zero token leaks in pushed history, token file excluded, tree non-empty, restore command printed; opt-out: choice recorded, enable-later shown, nothing pushed"
 else
   record "9-backup-optin-optout" FAIL "a_exit=$STATUS9A done=$BACKUP_DONE9 optin=$BACKUP_OPTIN9 walk=$WALKTHROUGH_SHOWN9 restore=$RESTORE_SHOWN9 bare=$([[ -d "$BARE9" ]] && echo 1 || echo 0) leak=$PUSHED_LEAK9 tokenfile=$PUSHED_TOKENFILE9 nonempty=$PUSHED_NONEMPTY9 b_exit=$STATUS9B recorded=$OPTOUT_RECORDED9 stepdone=$OPTOUT_STEP_DONE9 enable=$ENABLE_LATER_SHOWN9 repos=$REPOS_BEFORE9B/$REPOS_AFTER9B"
+fi
+
+# ---------------------------------------------------------------------------
+# SCENARIO 10 — gesture wiring (v0.1.2, ATOM-103, first G2 dry-run BLOCKING
+# finding: the finale promised "qroky start" but neither the skill file nor
+# any trigger ever reached the target machine). Fresh install in W10, then a
+# re-run. Asserts (each negative-able — all four fail on the v0.1.1 build):
+#   a) <workdir>/.claude/skills/qroky/SKILL.md exists and is NON-EMPTY
+#   b) <workdir>/CLAUDE.md contains the trigger block (start marker present)
+#   c) after the re-run, CLAUDE.md contains exactly ONE start marker
+#      (idempotency — no duplicate blocks) and the skill file is unchanged
+#   d) the workdir copy is byte-identical to the vendored source
+#      (runtime/claude/skill/qroky/SKILL.md in this repo — the same file the
+#      fake framework origin ships)
+# Plus the M1 fold-in assert: install.sh's default workdir suggestion is
+# $HOME/qroky-work — OUTSIDE the kit clone (the old "./qroky" default landed
+# the workspace inside distribution/).
+# ---------------------------------------------------------------------------
+T10="$ATOM_WORKSPACE/scenario-10-gesture-wiring.txt"
+W10="$SANDBOX/w10"
+{
+  echo "Scenario 10 — gesture wiring (v0.1.2): the 'qroky start' promise is kept on the TARGET machine"
+  echo "Generated: $(date -u +%Y-%m-%dT%H:%M:%SZ)"
+  echo ""
+  echo "--- RUN 1 (fresh install) ---"
+} > "$T10"
+OUT10A="$(run_install "$W10" $'en\n\nn\nn\ny\nn\n')"
+STATUS10A=$?
+{
+  echo "$OUT10A"
+  echo "--- RUN 1 exit: $STATUS10A ---"
+} >> "$T10"
+SKILL10="$W10/.claude/skills/qroky/SKILL.md"
+SKILL_EXISTS10=0; [[ -s "$SKILL10" ]] && SKILL_EXISTS10=1
+MARKERS_RUN1=$(grep -cF '<!-- qroky-gesture:start -->' "$W10/CLAUDE.md" 2>/dev/null || true)
+SKILL_MD5_RUN1="$( (md5 -q "$SKILL10" 2>/dev/null || md5sum "$SKILL10" 2>/dev/null | cut -d' ' -f1) || true)"
+{
+  echo ""
+  echo "--- RUN 2 (re-run — must not duplicate the trigger block) ---"
+} >> "$T10"
+OUT10B="$(run_install "$W10" '')"
+STATUS10B=$?
+{
+  echo "$OUT10B"
+  echo "--- RUN 2 exit: $STATUS10B ---"
+} >> "$T10"
+MARKERS_RUN2=$(grep -cF '<!-- qroky-gesture:start -->' "$W10/CLAUDE.md" 2>/dev/null || true)
+SKILL_MD5_RUN2="$( (md5 -q "$SKILL10" 2>/dev/null || md5sum "$SKILL10" 2>/dev/null | cut -d' ' -f1) || true)"
+VENDOR_DIFF10="$(diff "$VENDORED_SKILL" "$SKILL10" 2>&1)"
+DEFAULT_OUTSIDE10=$(grep -cF 'printf '"'"'%s'"'"' "$HOME/qroky-work"' "$INSTALL" || true)
+TRIGGER_MENTIONS_SKILL10=$(grep -cF '.claude/skills/qroky/SKILL.md' "$W10/CLAUDE.md" 2>/dev/null || true)
+{
+  echo ""
+  echo "--- assertions ---"
+  echo "a) skill file exists and is non-empty: $([[ $SKILL_EXISTS10 -eq 1 ]] && echo yes || echo NO-DEFECT) ($SKILL10)"
+  echo "b) CLAUDE.md trigger block present after RUN 1: $([[ "$MARKERS_RUN1" -eq 1 ]] && echo yes || echo NO-DEFECT) (start markers: $MARKERS_RUN1)"
+  echo "   trigger block points at the skill file: $([[ "$TRIGGER_MENTIONS_SKILL10" -gt 0 ]] && echo yes || echo NO-DEFECT)"
+  echo "c) exactly ONE start marker after the re-run (must be 1): $MARKERS_RUN2"
+  echo "   skill file unchanged across the re-run: $([[ -n "$SKILL_MD5_RUN1" && "$SKILL_MD5_RUN1" == "$SKILL_MD5_RUN2" ]] && echo yes || echo NO-DEFECT)"
+  echo "d) workdir copy byte-identical to the vendored source: $([[ -z "$VENDOR_DIFF10" ]] && echo yes || echo NO-DEFECT)"
+  [[ -n "$VENDOR_DIFF10" ]] && { echo "--- diff (vendored vs workdir) ---"; echo "$VENDOR_DIFF10"; }
+  echo "M1) default workdir suggestion is \$HOME/qroky-work (outside the clone): $([[ "$DEFAULT_OUTSIDE10" -gt 0 ]] && echo yes || echo NO-DEFECT)"
+  echo ""
+  echo "--- CLAUDE.md as landed (for the record) ---"
+  cat "$W10/CLAUDE.md" 2>/dev/null || echo "(missing)"
+} >> "$T10"
+if [[ $STATUS10A -eq 0 && $STATUS10B -eq 0 && $SKILL_EXISTS10 -eq 1 \
+      && "$MARKERS_RUN1" -eq 1 && "$MARKERS_RUN2" -eq 1 \
+      && "$TRIGGER_MENTIONS_SKILL10" -gt 0 \
+      && -n "$SKILL_MD5_RUN1" && "$SKILL_MD5_RUN1" == "$SKILL_MD5_RUN2" \
+      && -z "$VENDOR_DIFF10" && "$DEFAULT_OUTSIDE10" -gt 0 ]]; then
+  record "10-gesture-wiring" PASS "skill file landed non-empty, ONE trigger block after re-run, workdir copy identical to vendored source, default workdir outside the clone"
+else
+  record "10-gesture-wiring" FAIL "exit_a=$STATUS10A exit_b=$STATUS10B skill=$SKILL_EXISTS10 markers_run1=$MARKERS_RUN1 markers_run2=$MARKERS_RUN2 trigger_ref=$TRIGGER_MENTIONS_SKILL10 md5_stable=$([[ "$SKILL_MD5_RUN1" == "$SKILL_MD5_RUN2" ]] && echo yes || echo no) vendor_diff_empty=$([[ -z "$VENDOR_DIFF10" ]] && echo yes || echo no) default_outside=$DEFAULT_OUTSIDE10"
 fi
 
 # ---------------------------------------------------------------------------

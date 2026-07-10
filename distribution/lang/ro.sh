@@ -37,6 +37,11 @@ L_WORKDIR_ALREADY() { printf '  acest folder este deja spațiul tău Qroky — �
 L_FRAMEWORK_VENDORING() { printf '  descarc regulamentul pe care îl urmează asistentul (fixat la o versiune anume, ca să nu se schimbe niciodată fără să te întrebe)...\n'; }
 L_FRAMEWORK_ALREADY() { printf '  regulamentul este deja la locul lui — nimic de făcut (verificare de sănătate)\n'; }
 
+# --- v0.1.2 (conectarea frazei de pornire — automat, nu o întrebare) ---
+L_GESTURE_WIRING() { printf '  învăț acest folder fraza de pornire ("qroky start")...\n'; }
+L_GESTURE_DONE() { printf '  fraza de pornire e conectată — o conversație deschisă ÎN ACEST FOLDER va înțelege "qroky start"\n'; }
+L_GESTURE_ALREADY() { printf '  fraza de pornire este deja la locul ei — nimic de făcut (verificare de sănătate)\n'; }
+
 L_CLAUDE_FOUND() { printf '  Claude Code — găsit (%s)\n' "$1"; }
 L_CLAUDE_MISSING() {
   printf 'Asistentul Claude Code nu este instalat pe acest calculator.\n'
@@ -139,11 +144,13 @@ L_FINALE() {
 
 Asistentul tău e gata. Ca să începi:
   1. Deschide un terminal în: $1
+     (În VS Code: File → Open Folder → $1, apoi începe o conversație nouă.)
   2. Scrie: claude
   3. Spune: qroky start
 
 Această singură frază — "qroky start" — este tot ce ai nevoie; funcționează
-în orice limbă o scrii.
+în orice limbă o scrii. O notă sinceră: fraza trăiește în acel folder — o
+conversație deschisă altundeva nu o va cunoaște.
 EOF
 }
 
