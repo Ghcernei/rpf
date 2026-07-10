@@ -1,0 +1,9 @@
+Scenario 16 — v1 -> router migration (H5)
+Generated: 2026-07-10T20:15:22Z
+
+--- assertions ---
+pass rc: 0 (0); registry seeded with the workspace as line 1: 1 (must be 1)
+sends during migration: 0 (must be 0 — no second hello, no replayed beats)
+offset untouched: 1 (1); binding untouched: 1 (1); migration log line: 1 (>0)
+second pass did not duplicate the seed: 1 line(s) (must be 1)
+main-harness registry was seeded implicitly at scenario 1: 1 (must be 1)

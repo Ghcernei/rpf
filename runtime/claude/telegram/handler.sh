@@ -89,25 +89,66 @@ work_kroky() { # <inbox-file>; ack already sent by the listener
 promise_is_open() { compgen -G "$INBOX_DIR/*-promise-$1.md" >/dev/null; }
 
 work_user_message() { # <inbox-file>; router: ONE re-ask, then task-proposal
-  local f="$1" chat msg pending reply
+  local f="$1" chat msg pending reply ws routed target_inbox where
   chat="$(sed -n 's/^chat_id: //p' "$f" | head -1)"
+  ws="$(sed -n 's/^workspace: //p' "$f" | head -1 || true)"
+  routed="$(sed -n 's/^routed: //p' "$f" | head -1 || true)"
   msg="$(awk 'flag{print} /^---$/{flag=1}' "$f")"
   pending="$STATE_DIR/router/$chat.pending"
 
-  if [[ -f "$pending" ]]; then
-    # second message = the clarification answer -> formulate the task
-    if reply="$(printf 'ORIGINAL:\n%s\n\nCLARIFICATION:\n%s\n' "$(cat "$pending")" "$msg" | run_llm formulate)"; then
-      llm_burn_note "router-formulate"
-      inbox_write task-proposal "$(date +%s)" >/dev/null <<EOF
+  # ATOM-111: the proposal lands in the ORIGIN project's inbox. workspace: is
+  # set by the listener (project named in text, or chosen via re-ask button);
+  # absent (v1 / single project) → local inbox, exactly as before.
+  target_inbox="$INBOX_DIR"; where="decisions/inbox"
+  if [[ -n "$ws" && -d "$ws" ]]; then
+    target_inbox="$ws/decisions/inbox"
+    where="[$(workspace_name "$ws")] decisions/inbox"
+  fi
+
+  if [[ "$routed" == "1" ]]; then
+    # button-routed re-ask answer: the human already answered ONE question
+    # (which project) — a second clarify round would break the H4 contract.
+    if reply="$(printf '%s' "$msg" | run_llm formulate)"; then
+      llm_burn_note "router-formulate-routed"
+      inbox_write_to "$target_inbox" task-proposal "$(date +%s)" >/dev/null <<EOF
 kind: task-proposal
 chat_id: $chat
 timestamp: $(date -u +%Y-%m-%dT%H:%M:%SZ)
 ---
 $reply
 EOF
-      rm -f "$pending"
-      send_to_owner "Оформил как задачу — живая сессия увидит её в decisions/inbox. Формулировка:"$'\n'"$reply"
-      log handler "router: task-proposal written for chat $chat"
+      send_to_owner "Оформил как задачу — живая сессия увидит её в $where. Формулировка:"$'\n'"$reply"
+      log handler "router: routed task-proposal written to $target_inbox"
+      mv "$f" "$INBOX_DIR/done/$(basename "$f")"
+    else
+      send_to_owner "Не могу сформулировать без обработчика (claude CLI недоступен) — сообщение сохранено, живая сессия оформит. Детали: telegram.log."
+      log handler "router: NO LLM at routed formulate — kept in inbox"
+    fi
+    return 0
+  fi
+
+  if [[ -f "$pending" ]]; then
+    # second message = the clarification answer -> formulate the task
+    if reply="$(printf 'ORIGINAL:\n%s\n\nCLARIFICATION:\n%s\n' "$(cat "$pending")" "$msg" | run_llm formulate)"; then
+      llm_burn_note "router-formulate"
+      # the FIRST message may have carried the project name — honor it
+      if [[ -f "$pending.ws" ]]; then
+        local pws; pws="$(cat "$pending.ws")"
+        if [[ -d "$pws" ]]; then
+          target_inbox="$pws/decisions/inbox"
+          where="[$(workspace_name "$pws")] decisions/inbox"
+        fi
+      fi
+      inbox_write_to "$target_inbox" task-proposal "$(date +%s)" >/dev/null <<EOF
+kind: task-proposal
+chat_id: $chat
+timestamp: $(date -u +%Y-%m-%dT%H:%M:%SZ)
+---
+$reply
+EOF
+      rm -f "$pending" "$pending.ws"
+      send_to_owner "Оформил как задачу — живая сессия увидит её в $where. Формулировка:"$'\n'"$reply"
+      log handler "router: task-proposal written for chat $chat -> $target_inbox"
     else
       send_to_owner "Не могу сформулировать без обработчика (claude CLI недоступен) — твой ответ сохранён, живая сессия оформит. Детали: telegram.log."
       log handler "router: NO LLM at formulate — kept in inbox"
@@ -118,8 +159,10 @@ EOF
     if reply="$(printf '%s' "$msg" | run_llm clarify)"; then
       llm_burn_note "router-clarify"
       printf '%s' "$msg" > "$pending.tmp" && mv "$pending.tmp" "$pending"
+      # remember the named project across the clarify round-trip
+      if [[ -n "$ws" ]]; then printf '%s' "$ws" > "$pending.ws.tmp" && mv "$pending.ws.tmp" "$pending.ws"; fi
       send_to_owner "$reply"
-      log handler "router: clarifying question sent to chat $chat"
+      log handler "router: clarifying question sent to chat $chat${ws:+ (project remembered: $ws)}"
     else
       send_to_owner "Записал. Обработчик на этой машине недоступен (claude CLI) — живая сессия разберёт твоё сообщение из decisions/inbox."
       log handler "router: NO LLM at clarify — kept in inbox"

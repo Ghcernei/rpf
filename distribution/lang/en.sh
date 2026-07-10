@@ -326,3 +326,15 @@ L_MACHINEWIDE_FAILED() {
   printf '  else is affected — the phrase still works in your working folder, and you\n'
   printf '  can re-run this installer any time to try again.\n'
 }
+
+# ATOM-111 (project router): second workspace joins the shared bot; update fold.
+L_TELEGRAM_ALREADY_CONNECTED() {
+  printf '  your Telegram bot is already connected on this computer (main project: %s).\n' "$1"
+  printf '  This project just JOINED it — same chat, no second bot, no new questions.\n'
+  printf '  Messages from here will arrive labeled with this project'\''s name.\n'
+}
+L_TELEGRAM_UPDATE_FINISH_HINT() {
+  printf '  the update brought the Telegram assistant, and your token is already saved —\n'
+  printf '  one command finishes the connection (it waits for your Start press):\n'
+  printf '      bash install.sh --enable-telegram\n'
+}

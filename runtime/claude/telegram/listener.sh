@@ -45,6 +45,20 @@ fi
 printf '%s' "$$" > "$LOCK_DIR/pid"
 trap 'rm -rf "$LOCK_DIR" 2>/dev/null || true' EXIT
 
+# ---- v1 → router migration (ATOM-111, H5): a BOUND v1 install gets its
+# machine registry seeded on the first pass after the code update — zero
+# questions, zero sends, no re-bind, no offset change; the workspace simply
+# becomes registry entry №1 (the primary). An unbound head does not seed:
+# a fresh install registers through the kit instead.
+RF="$(registry_file)"
+if [[ ! -f "$RF" ]] && [[ -n "$(bound_chat_id)" ]]; then
+  mkdir -p "$(dirname "$RF")"
+  printf '%s\n' "$TG_ROOT" > "$RF.tmp.$$" && mv "$RF.tmp.$$" "$RF"
+  log listener "migration: registry seeded with $TG_ROOT (v1 -> router, zero questions, nothing re-sent)"
+fi
+
+mkdir -p "$STATE_DIR/route-pending"
+
 OFFSET_FILE="$STATE_DIR/offset"
 OFFSET=0; [[ -f "$OFFSET_FILE" ]] && OFFSET="$(cat "$OFFSET_FILE")"
 
@@ -94,12 +108,47 @@ pending_risk_ids() { # gate ids awaiting the explicit word
   return 0   # empty result is not an error (set -e caller)
 }
 
+# ---- project re-ask resolution (ATOM-111, H4): the pressed button names a
+# workspace persisted in state/route-pending/<id>; the stored original text
+# becomes a ROUTED user-message for the handler (which skips its own clarify
+# for routed items — the human already answered one question). Same R2-1
+# discipline as gates: a stale/double/malformed press declines politely,
+# the offset advances, the pass never dies.
+handle_route_callback() {
+  local id="$1" idx="$2" rfile="$STATE_DIR/route-pending/$1" ws="" label="" text=""
+  tg_api listener answerCallbackQuery --data-urlencode "callback_query_id=$CB_ID" >/dev/null || true
+  if [[ "$idx" =~ ^[0-9]+$ && -f "$rfile" ]]; then
+    ws="$(sed -n "s/^workspace$idx: //p" "$rfile" 2>/dev/null | head -1 || true)"
+    label="$(sed -n "s/^button$idx: //p" "$rfile" 2>/dev/null | head -1 || true)"
+  fi
+  if [[ -z "$ws" || ! -d "$ws" ]]; then
+    ack "$CHAT_ID" "Не нашёл этот переспрос — возможно, он уже закрыт. Напиши мысль заново, лучше сразу с именем проекта."
+    log listener "route callback declined (id=$id idx=$idx) — no record made"
+    return 0
+  fi
+  text="$(awk 'flag{print} /^---$/{flag=1}' "$rfile")"
+  inbox_write user-message "$(date +%s)" >/dev/null <<EOF
+kind: user-message
+chat_id: $CHAT_ID
+workspace: $ws
+routed: 1
+timestamp: $(date -u +%Y-%m-%dT%H:%M:%SZ)
+---
+$text
+EOF
+  mv "$rfile" "$rfile.answered" 2>/dev/null || true
+  ack "$CHAT_ID" "Принял — направляю в [${label:-$(workspace_name "$ws")}], оформлю и покажу здесь."
+  log listener "route callback: text routed to $ws"
+  NEED_WAKE=1
+}
+
 handle_callback() { # button press → parity event or risk re-ask
   # callback_data is "<event-id>|<button-index>" (verify M1: 64-byte cap) —
   # the verbatim label is resolved from the pending-gates registry, so the
   # recorded answer is EXACTLY what the button displayed, at any length.
   local id idx label pfile
   id="${CB_DATA%%|*}"; idx="${CB_DATA#*|}"
+  if [[ "$id" == route-* ]]; then handle_route_callback "$id" "$idx"; return 0; fi
   pfile="$STATE_DIR/pending-gates/$id"
   if [[ -f "$pfile" ]] && head -1 "$pfile" | grep -q '^risk: 1'; then
     # H5: button-press-style reply to a risk item → rejected and re-asked
@@ -136,6 +185,73 @@ EOF
   NEED_WAKE=1
 }
 
+match_project_in_text() { # $1 = lowercased text → workspace path, or fail
+  local lower="$1" w n
+  while IFS= read -r w; do
+    [[ -n "$w" && -d "$w" ]] || continue
+    n="$(workspace_name "$w" | tr '[:upper:]' '[:lower:]')"
+    [[ -n "$n" && "$lower" == *"$n"* ]] || continue
+    printf '%s' "$w"; return 0
+  done < <(registry_entries)
+  return 1
+}
+
+send_project_reask() { # ONE mechanical re-ask with project buttons (H4)
+  # The original text is persisted to state/route-pending/<id> BEFORE the
+  # question goes out — a crash after send still finds it at press time.
+  # Exactly one question, buttons only (plus «общий» when DEFAULT_PROJECT is
+  # set); never a guess, never a second clarify round from this side.
+  local text="$1" id="route-$(date +%s)-$RANDOM"
+  local labels="" meta="" w n i=0
+  while IFS= read -r w; do
+    [[ -n "$w" && -d "$w" ]] || continue
+    i=$((i + 1)); n="$(workspace_name "$w")"
+    labels+="${labels:+|}$n"
+    meta+="button$i: $n"$'\n'"workspace$i: $w"$'\n'
+  done < <(registry_entries)
+  if [[ -n "$DEFAULT_PROJECT" ]]; then
+    local dw; dw="$(workspace_by_name "$DEFAULT_PROJECT" || true)"
+    if [[ -n "$dw" ]]; then
+      i=$((i + 1)); labels+="${labels:+|}общий"
+      meta+="button$i: общий"$'\n'"workspace$i: $dw"$'\n'
+    fi
+  fi
+  local markup=""
+  if [[ $i -gt 0 ]]; then
+    markup="$(py - "$id" "$labels" <<'PYEOF'
+import sys, json
+ev_id, raw = sys.argv[1], sys.argv[2]
+rows = [[{"text": b.strip(), "callback_data": f"{ev_id}|{i}"}]
+        for i, b in enumerate(raw.split("|"), 1) if b.strip()]
+print(json.dumps({"inline_keyboard": rows}, ensure_ascii=False))
+PYEOF
+)" || markup=""
+  fi
+  if [[ -z "$markup" ]]; then
+    # registry poisoned down to zero live paths (or markup build failed) —
+    # honest v1 fallback: the thought still lands durably, nothing is lost.
+    log listener "re-ask impossible (no live projects to offer) — falling back to plain user-message"
+    inbox_write user-message "$(date +%s)" >/dev/null <<EOF
+kind: user-message
+chat_id: $CHAT_ID
+timestamp: $(date -u +%Y-%m-%dT%H:%M:%SZ)
+---
+$text
+EOF
+    ack "$CHAT_ID" "Принял, смотрю — отвечу здесь."
+    NEED_WAKE=1; return 0
+  fi
+  atomic_write "$STATE_DIR/route-pending/$id" <<EOF
+$meta---
+$text
+EOF
+  if send_text listener "$CHAT_ID" "В какой проект это направить? Один тап — и я оформлю." "$markup"; then
+    log listener "project re-ask sent (id=$id, $i buttons)"
+  else
+    log listener "project re-ask send FAILED (id=$id) — текст сохранён в route-pending; назови проект следующим сообщением"
+  fi
+}
+
 handle_message() {
   local text="$TEXT" lower
   lower="$(printf '%s' "$text" | tr '[:upper:]' '[:lower:]')"
@@ -153,9 +269,17 @@ EOF
     NEED_WAKE=1; return 0
   fi
 
-  if [[ "$text" == "/status" || "$lower" == "что в работе"* ]]; then
-    ack "$CHAT_ID" "$(render_status)"   # mechanical, no LLM (H8)
-    log listener "status rendered"
+  if [[ "$text" == "/status"* || "$lower" == "что в работе"* ]]; then
+    # H8 mechanical, no LLM. Router (ATOM-111): «что в работе <имя>» or
+    # «/status <имя>» narrows to one project; bare form shows all registered.
+    local filter=""
+    if [[ "$lower" == "что в работе"* ]]; then filter="${lower#что в работе}"
+    elif [[ "$text" == "/status "* ]]; then filter="${text#/status }"
+    fi
+    filter="${filter//\?/}"
+    filter="$(printf '%s' "$filter" | sed -E 's/^[[:space:]]+//; s/[[:space:]]+$//')"
+    ack "$CHAT_ID" "$(render_status "$filter")"
+    log listener "status rendered${filter:+ (filter: $filter)}"
     return 0
   fi
 
@@ -184,11 +308,22 @@ EOF
   fi
 
   # Free text (H9/H13): instant ack by the listener itself, durable event,
-  # thinking happens in the handler this pass wakes.
+  # thinking happens in the handler this pass wakes. Router (ATOM-111, H4):
+  # with >1 registered project, a text that NAMES a project routes there
+  # directly; a text naming none gets ONE re-ask with project buttons.
+  # EXCEPT while the handler's own clarifying question is in flight — that
+  # text is an ANSWER, not a new thought; re-asking would break the
+  # «exactly one question» contract of the v1 router.
+  local target=""
+  if router_active && [[ ! -f "$STATE_DIR/router/$CHAT_ID.pending" ]]; then
+    target="$(match_project_in_text "$lower")" || target=""
+    if [[ -z "$target" ]]; then send_project_reask "$text"; return 0; fi
+  fi
   inbox_write user-message "$(date +%s)" >/dev/null <<EOF
 kind: user-message
 chat_id: $CHAT_ID
-timestamp: $(date -u +%Y-%m-%dT%H:%M:%SZ)
+${target:+workspace: $target
+}timestamp: $(date -u +%Y-%m-%dT%H:%M:%SZ)
 ---
 $text
 EOF
@@ -229,30 +364,45 @@ EOF
 done
 
 # ---- NARRATIVE feed sweep (dialogue contour, kind=beat; H7/D8) --------------
+# Router (ATOM-111): the sweep covers EVERY registered workspace (v1 machine:
+# just TG_ROOT). Offset keys: the primary keeps its v1 key ($slug) — the H5
+# migration must never replay already-sent beats; other workspaces key by
+# their basename, so equal slugs in two projects stay distinct.
 if [[ "$DETAIL_LEVEL" != "1" ]]; then    # level 1 = gates only, no beats
-  for nf in "$PRODUCTS_DIR"/*/NARRATIVE.md; do
-    [[ -f "$nf" ]] || continue
-    slug="$(basename "$(dirname "$nf")")"
-    off_file="$STATE_DIR/narrative/$slug.offset"
-    off=0; [[ -f "$off_file" ]] && off="$(cat "$off_file")"
-    size="$(wc -c < "$nf" | tr -d ' ')"
-    if [[ "$size" -gt "$off" ]]; then
-      new="$(tail -c "+$((off + 1))" "$nf")"
-      if [[ "$DETAIL_LEVEL" == "2" ]]; then
-        # level 2 — broad strokes: beat headlines only (bold-opening lines)
-        beat="$(printf '%s\n' "$new" | grep '^\*\*' || true)"
-      else
-        beat="$new"                       # level 3 — full reasoning beats
-      fi
-      if [[ -n "${beat//[$'\n' ]/}" ]]; then
-        [[ ${#beat} -gt 3800 ]] && beat="${beat:0:3800}"$'\n'"…(продолжение в $slug/NARRATIVE.md)"
-        "$TG_LIB_DIR/send-event.sh" --kind beat --id "narrative-$slug-$off" \
-          --text "[$slug]"$'\n'"$beat" \
-          || { log listener "beat send failed for $slug — offset kept, retry next pass"; continue; }
-      fi
-      printf '%s' "$size" > "$off_file.tmp" && mv "$off_file.tmp" "$off_file"
+  while IFS= read -r ws; do
+    [[ -n "$ws" ]] || continue
+    if [[ ! -d "$ws" ]]; then
+      # H6: a dead registry path is FLAGGED, never fatal — the pass, the
+      # other projects, and the digest (which shows its own ⚠ line) go on.
+      log listener "registry path not found: $ws — skipped this pass (fix $(registry_file))"
+      continue
     fi
-  done
+    for nf in "$ws"/products/*/NARRATIVE.md; do
+      [[ -f "$nf" ]] || continue
+      slug="$(basename "$(dirname "$nf")")"
+      key="$slug"; [[ "$ws" != "$TG_ROOT" ]] && key="$(basename "$ws")--$slug"
+      lbl="[$slug]"; router_active && lbl="[$(workspace_name "$ws") · $slug]"
+      off_file="$STATE_DIR/narrative/$key.offset"
+      off=0; [[ -f "$off_file" ]] && off="$(cat "$off_file")"
+      size="$(wc -c < "$nf" | tr -d ' ')"
+      if [[ "$size" -gt "$off" ]]; then
+        new="$(tail -c "+$((off + 1))" "$nf")"
+        if [[ "$DETAIL_LEVEL" == "2" ]]; then
+          # level 2 — broad strokes: beat headlines only (bold-opening lines)
+          beat="$(printf '%s\n' "$new" | grep '^\*\*' || true)"
+        else
+          beat="$new"                     # level 3 — full reasoning beats
+        fi
+        if [[ -n "${beat//[$'\n' ]/}" ]]; then
+          [[ ${#beat} -gt 3800 ]] && beat="${beat:0:3800}"$'\n'"…(продолжение в $slug/NARRATIVE.md)"
+          "$TG_LIB_DIR/send-event.sh" --kind beat --id "narrative-$key-$off" \
+            --workspace "$ws" --text "$lbl"$'\n'"$beat" \
+            || { log listener "beat send failed for $slug — offset kept, retry next pass"; continue; }
+        fi
+        printf '%s' "$size" > "$off_file.tmp" && mv "$off_file.tmp" "$off_file"
+      fi
+    done
+  done < <(workspaces_or_root)
 fi
 
 # ---- quiet-hours queue: flush when the window has ended (H14) ---------------

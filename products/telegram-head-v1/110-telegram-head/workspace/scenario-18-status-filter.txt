@@ -1,0 +1,10 @@
+Scenario 18 — /status across projects + name filter (H3)
+Generated: 2026-07-10T20:15:24Z
+
+--- assertions ---
+/status covers both projects with labels and real atoms: 1 (1), in ONE message: 1 (1)
+«что в работе bankco» narrows: has ATOM-B1: 1 (>0), leaks primary ATOM-D1: 0 (must be 0)
+unknown name answered honestly with the registered list: 1 (must be 1)
+
+--- /status reply (verbatim) ---
+{"method": "sendMessage", "chat_id": "424242", "text": "[miapos]\n• demo-product:\n    ATOM-D1 — running\n    ATOM-D3 — blocked (awaiting CEO gate)\n    готово/закрыто: 1\n[bankco]\n• bankco-product:\n    ATOM-B1 — running"}

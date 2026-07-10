@@ -28,11 +28,21 @@ for f in "$INBOX_DIR"/*-gate-answer-*.md; do
       continue
     fi
   fi
-  # strip the pending-gate header (risk/sent/---) down to the question text
+  # ATOM-111: the decision record goes HOME — the origin workspace persisted
+  # with the pending gate wins over the local default; no field (v1 entry) or
+  # a dead path → v1 behavior (local decisions/), logged honestly.
+  out_dir="$DECISIONS_DIR"
+  ws="$(sed -n 's/^workspace: //p' "$qfile" 2>/dev/null | head -1 || true)"
+  if [[ -n "$ws" ]]; then
+    if [[ -d "$ws" ]]; then out_dir="$ws/decisions"; mkdir -p "$out_dir"
+    else log pickup "origin workspace of $gate not found ($ws) — record kept locally in $DECISIONS_DIR"
+    fi
+  fi
+  # strip the pending-gate header (risk/workspace/sent/---) to the question
   qtext="$(mktemp "$STATE_DIR/.q.XXXXXX")"
   awk 'flag{print} /^---$/{flag=1}' "$qfile" > "$qtext"
   "$TG_LIB_DIR/record-decision.sh" --gate "$gate" --question-file "$qtext" \
-    --answer "$answer" --channel "$channel" --timestamp "$ts" >/dev/null
+    --answer "$answer" --channel "$channel" --timestamp "$ts" --out-dir "$out_dir" >/dev/null
   rm -f "$qtext"
   [[ -f "$STATE_DIR/pending-gates/$gate" ]] \
     && mv "$STATE_DIR/pending-gates/$gate" "$STATE_DIR/pending-gates/$gate.answered"

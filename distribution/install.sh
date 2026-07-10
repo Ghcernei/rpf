@@ -706,6 +706,18 @@ EOF
     L_TELEGRAM_NO_LAUNCHD "$TG_HOME_DIR"
     log "telegram NO-LAUNCHD (files in place; manual scheduling instruction shown)"
   fi
+
+  # ATOM-111 (router): enroll this workspace in the machine-level project
+  # registry — ONE listener per machine serves every registered project.
+  # Idempotent by construction (register.sh checks before appending); a
+  # rulebook that predates the router simply has no register.sh — no-op.
+  if [[ -f "$head_src/register.sh" ]]; then
+    if /bin/bash "$head_src/register.sh" "$WORKSPACE_DIR" >>"${LOG_FILE:-/dev/null}" 2>&1; then
+      log "telegram REGISTERED workspace in ${QROKY_REGISTRY:-$HOME/.qroky/registry}"
+    else
+      log "telegram REGISTER-FAILED (non-fatal; run runtime/claude/telegram/register.sh manually)"
+    fi
+  fi
   return 0
 }
 
@@ -721,11 +733,38 @@ _telegram_bootstrap_attempt() {
   return 0
 }
 
+# First registry entry (comments/blanks stripped) — the machine's PRIMARY
+# workspace, whose .qroky/telegram/ is the human-level home (ATOM-111).
+_registry_primary() {
+  local rf="${QROKY_REGISTRY:-$HOME/.qroky/registry}"
+  [[ -f "$rf" ]] || return 0
+  grep -v '^[[:space:]]*#' "$rf" 2>/dev/null | grep -v '^[[:space:]]*$' | head -1 || true
+}
+
 # The whole connect journey, shared by question 5 and --enable-telegram:
 # token (reuse a stored one when it still works) -> Start press -> bind ->
 # hello -> deploy. Sets ANSWER_TELEGRAM_* fields; never kills the install.
 _telegram_connect_flow() {
   local token="" username="" tries=0
+
+  # ATOM-111 (router): a machine whose PRIMARY workspace is already bound has
+  # its one listener and one digest running — a SECOND workspace only joins
+  # the registry. No second token ask, no second Start wait, no second hello,
+  # no second launchd pair (NOT-DOING: per-project bots).
+  local reg_primary; reg_primary="$(_registry_primary)"
+  if [[ -n "$reg_primary" && "$reg_primary" != "$WORKSPACE_DIR" \
+        && -s "$reg_primary/.qroky/telegram/state/chat_id" ]]; then
+    local head_src="$FRAMEWORK_DIR/runtime/claude/telegram"
+    if [[ -f "$head_src/register.sh" ]]; then
+      /bin/bash "$head_src/register.sh" "$WORKSPACE_DIR" >>"${LOG_FILE:-/dev/null}" 2>&1 || true
+    fi
+    L_TELEGRAM_ALREADY_CONNECTED "$(basename "$reg_primary")"
+    ANSWER_TELEGRAM_OPTIN="yes"
+    ANSWER_TELEGRAM_TOKEN_STORED="primary"
+    ANSWER_TELEGRAM_BOUND="yes"
+    log "telegram ROUTER-REGISTERED (primary=$reg_primary; this workspace joins the shared listener — no second bot)"
+    return 0
+  fi
   # A token stored by an earlier run (e.g. the Start wait timed out then)
   # is reused when it still validates — no re-asking what is already known.
   if [[ -s "$TOKEN_FILE" ]]; then
@@ -1300,6 +1339,29 @@ $(git -C "$FRAMEWORK_DIR" tag -l --format='%(contents)' "$latest" 2>/dev/null)
 EOF
   L_UPDATE_APPLIED "$old_tag" "$latest" "$record"
   log "self-update APPLIED $old_tag -> $latest"
+
+  # ATOM-111 fold of the recorded upgrade defect («токен есть, головы нет»):
+  # an update that BRINGS the telegram head auto-completes a half-connected
+  # install. Stored token + captured binding + head now vendored + not yet
+  # deployed -> deploy right here, zero extra questions. A token WITHOUT a
+  # binding cannot deploy (no half-alive unbound listener — same rule as
+  # question 5): the one finishing command is named instead.
+  local head_src="$FRAMEWORK_DIR/runtime/claude/telegram"
+  if [[ -s "$TOKEN_FILE" && -f "$head_src/listener.sh" \
+        && ! -f "$WORKSPACE_DIR/.qroky/telegram/run-listener.sh" ]]; then
+    if [[ -s "$WORKSPACE_DIR/.qroky/telegram/state/chat_id" ]]; then
+      log "self-update telegram AUTO-COMPLETE (token+binding present, head arrived with $latest)"
+      _telegram_deploy_head
+      ANSWER_TELEGRAM_OPTIN="yes"
+      ANSWER_TELEGRAM_TOKEN_STORED="yes"
+      ANSWER_TELEGRAM_BOUND="yes"
+      STEP_TELEGRAM="done"
+      state_commit
+    else
+      L_TELEGRAM_UPDATE_FINISH_HINT
+      log "self-update telegram TOKEN-WITHOUT-BINDING — enable-later hint shown, nothing deployed"
+    fi
+  fi
 }
 
 # ---------------------------------------------------------------------------

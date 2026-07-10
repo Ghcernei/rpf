@@ -323,3 +323,15 @@ L_MACHINEWIDE_FAILED() {
   printf '  scrisă). Nimic altceva nu e afectat — fraza funcționează în continuare în\n'
   printf '  folderul de lucru; rulează din nou instalatorul oricând ca să încerci iar.\n'
 }
+
+# ATOM-111 (router de proiecte): al doilea proiect se alătură botului comun; coada actualizării.
+L_TELEGRAM_ALREADY_CONNECTED() {
+  printf '  botul tău de Telegram e deja conectat pe acest computer (proiectul principal: %s).\n' "$1"
+  printf '  Acest proiect doar S-A ALĂTURAT — același chat, fără al doilea bot, fără întrebări noi.\n'
+  printf '  Mesajele de aici vor sosi marcate cu numele acestui proiect.\n'
+}
+L_TELEGRAM_UPDATE_FINISH_HINT() {
+  printf '  actualizarea a adus asistentul Telegram, iar token-ul tău e deja salvat —\n'
+  printf '  o singură comandă termină conectarea (așteaptă apăsarea ta pe Start):\n'
+  printf '      bash install.sh --enable-telegram\n'
+}

@@ -1,5 +1,5 @@
 Scenario 2 — the mandated DoD scenario (H2)
-Generated: 2026-07-10T14:49:47Z
+Generated: 2026-07-10T20:15:10Z
 press persisted while NO session runs: 1 file(s) in inbox
 
 --- assertions ---

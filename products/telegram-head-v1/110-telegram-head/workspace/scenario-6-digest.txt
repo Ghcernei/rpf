@@ -1,5 +1,5 @@
 Scenario 6 — digest contour (H6)
-Generated: 2026-07-10T14:49:53Z
+Generated: 2026-07-10T20:15:16Z
 
 --- assertions ---
 all four sections present: 1; running atom listed: 1; pending gate in 'ждёт тебя': 1
@@ -8,4 +8,4 @@ spend from ledger: 1; 3-line changelog for new tag v2.0.0: 1
 second run same day sent nothing: 17 -> 17 (must be equal)
 
 --- digest (verbatim) ---
-{"method": "sendMessage", "chat_id": "424242", "text": "Доброе утро. Дайджест за 2026-07-10:\n\nСделано:\n• demo-product/ATOM-D2 — delivered (accepted r1)\n\nВ работе:\n• demo-product/ATOM-D1 — running\n\nЖдёт тебя сегодня:\n• demo-product/ATOM-D3 — blocked (awaiting CEO gate)\n• GATE-PEND — ждёт твоего решения (кнопки в чате выше)\n\nУже в ленте сегодня (статус, не тревога):\n• GATE-PEND — уже приходило событием сегодня, без повторной тревоги\n• GATE-RISK — уже приходило событием сегодня, без повторной тревоги\n• GATE-T1 — уже приходило событием сегодня, без повторной тревоги\n• GATE-T2 — уже приходило событием сегодня, без повторной тревоги\n• GATE-T3 — уже приходило событием сегодня, без повторной тревоги\n• narrative-demo-product-0 — уже приходило событием сегодня, без повторной тревоги\n\nрасход: ~120k токенов (ATOM-D1 executor)\n\nОбновление правил v2.0.0:\nменяет правило подписи\nулучшает след решений\nдобавляет карту ролей"}
+{"method": "sendMessage", "chat_id": "424242", "text": "Доброе утро. Дайджест за 2026-07-10:\n\nСделано:\n• demo-product/ATOM-D2 — delivered (accepted r1)\n\nВ работе:\n• demo-product/ATOM-D1 — running\n\nЖдёт тебя сегодня:\n• demo-product/ATOM-D3 — blocked (awaiting CEO gate)\n• GATE-PEND — ждёт твоего решения (кнопки в чате выше)\nУже в ленте сегодня (статус, не тревога):\n• GATE-PEND — уже приходило событием сегодня, без повторной тревоги\n• GATE-RISK — уже приходило событием сегодня, без повторной тревоги\n• GATE-T1 — уже приходило событием сегодня, без повторной тревоги\n• GATE-T2 — уже приходило событием сегодня, без повторной тревоги\n• GATE-T3 — уже приходило событием сегодня, без повторной тревоги\n• narrative-demo-product-0 — уже приходило событием сегодня, без повторной тревоги\n\nрасход: ~120k токенов (ATOM-D1 executor)\n\nОбновление правил v2.0.0:\nменяет правило подписи\nулучшает след решений\nдобавляет карту ролей"}

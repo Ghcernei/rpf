@@ -1,0 +1,148 @@
+# run.log — ATOM-111 (telegram-router-v1) — pilot-toolsmith (warm, 6th run)
+# Contract: 111-project-router/INPUT.md; mandate INFO-034 (model verbatim), gate GATE-029.
+
+2026-07-10 breath: core-card reread, phase formulate
+
+## Understanding restatement
+v1 head = one workspace per machine; second project has no phone channel and a second
+head collides on launchd labels. Router v1: ONE listener/digest pair per machine iterating
+~/.qroky/registry (the ONE new file in ~, inside GATE-029's scope); events labeled
+«[project]»; button press routes the decision record HOME; ONE merged digest; /status
+across projects + name filter; free input without a project → ONE mechanical re-ask with
+project buttons; human-level settings in ONE home; migration of the live v1 install with
+ZERO questions (no re-bind, no second hello, no offset replay). NOT-DOING: multi-user,
+per-project bots, topics, priorities, cross-machine registry.
+
+## Design decisions (locked; each declared)
+D1. HUMAN HOME (§3.7 pick): the PRIMARY workspace's telegram home — i.e. the FIRST
+    registry entry's `<w>/.qroky/telegram/`. NOT a second file in ~/.qroky/ (GATE-029
+    covers EXACTLY ONE file there: the registry). Resolution in lib.sh:
+      TG_HOME = QROKY_TG_HOME || primary(registry)/.qroky/telegram || TG_LIB_DIR (v1)
+      TG_ROOT = QROKY_TG_ROOT || primary(registry) || 3-up (v1)
+    The env split becomes the routing: QROKY_TG_ROOT says «which project am I»,
+    TG_HOME says «which human». A v1 install's existing home IS the primary home after
+    migration — zero moves, zero re-asks. Documented in lib.sh header (H7).
+D2. COMPAT SWITCH: router rendering (labels, merged digest, project re-ask) activates
+    only when the registry holds >1 workspace. N∈{0,1} → byte-level v1 behavior — the
+    15 existing scenarios stay green by construction, and a migrated single-project
+    machine sees NOTHING change until a second project registers.
+D3. MIGRATION AUTO-SEED (H5): listener pass, registry absent ∧ chat bound → write the
+    registry with TG_ROOT as line 1 (atomic, mkdir -p). No sends, no bind writes, offset
+    untouched. Registry absent ∧ unbound → no seed (fresh head; kit registers at install).
+D4. ROUTING DATA PATH: pending-gates stay at HUMAN level and gain a `workspace:` line
+    (queue entries serialize WORKSPACE too — flush preserves origin). pickup.sh reads it
+    and passes --out-dir <origin>/decisions to the unchanged record-decision.sh — parity
+    by construction untouched, exactly the INPUT §5 hint. gate-answer bus files stay in
+    the human-level inbox; only the RECORD routes home (H1's assert target).
+D5. FREE INPUT (multi only): name match against registry names (case-insensitive) →
+    routed; no match → ONE mechanical re-ask with project buttons (id `route-<ts>`,
+    callback `route-<ts>|<idx>`, labels+workspaces persisted in state/route-pending/<id>
+    — same 64-byte discipline as gates; «общий» button appended when DEFAULT_PROJECT is
+    set in the human profile). After the button (or a name match), the handler formulates
+    and the task-proposal lands in the TARGET workspace's inbox (H4). Routed presses skip
+    the LLM clarify — the human already answered one question; two asks would be nagging.
+    The «кроки» kind keeps v1 semantics (machine-level gesture; folder routing is the
+    skill's own business) — declared, not silent.
+D6. DEAD PATHS (H6, the R2-1 lesson): every per-workspace iteration guards existence
+    first; dead entry = one FLAG log line + a digest status line, never a crash, never a
+    poison pill. unregister.sh removes cleanly.
+D7. KIT HOOKS (perimeter: registration only + the recorded upgrade defect):
+    (a) deploy → register.sh $WORKSPACE_DIR (idempotent);
+    (b) second-workspace install with a bound primary on the machine → short-circuit:
+        register only, honest «бот уже подключён — добавляю проект», no token/Start/
+        second hello/second launchd pair (the collision INFO-034 diagnosed);
+    (c) --apply-update auto-complete: token stored ∧ bound ∧ head present ∧ profile.conf
+        absent → deploy + register, zero questions («токен есть, головы нет» folded);
+        token stored ∧ NOT bound → one honest --enable-telegram hint (binding needs the
+        human's Start — cannot be auto-completed, Rowan boundary).
+    Kit harness gets per-scenario registry isolation (QROKY_REGISTRY per workdir) so the
+    machine-level file does not couple unrelated scenarios through the shared fake HOME.
+D8. register.sh/unregister.sh honor QROKY_REGISTRY (test override; production
+    ~/.qroky/registry), canonicalize paths, comments/blank lines allowed.
+
+## Harness-checklist (INFO-025) — answers for the router additions
+1. Failure modes: dead registry path (flag+digest line, no crash); route button on
+   expired/missing pending (polite decline, offset advances — R2-1 pattern); registry
+   file empty/comments-only (v1 fallback); name collision between projects (first match
+   wins, documented); seed race (atomic write).
+2. Resume/kill: registry writes atomic (tmp+mv); route-pending survives restarts;
+   offset discipline unchanged (advance after durable handling).
+3. Ladder: sends keep tg_api's ≤2 retries; registry ops are local fs (no ladder needed —
+   failure is loud via fatal/log).
+4. Logs: every router action logs project + outcome; nothing new reads secrets.
+5. Secrets: token path only, unchanged; new files (registry, route-pending) carry paths
+   and labels, never tokens — negative grep extended over new scenario transcripts.
+6. Idempotency: register twice = one line (grep -qxF); unregister missing = no-op with
+   honest line; seed only when absent.
+7. Question inventory: kit stays at NINE (short-circuit branch asks NOTHING new —
+   inventory assert re-run green).
+8. Real-data perimeter: all scenarios in mktemp sandboxes, isolated HOME + QROKY_REGISTRY.
+9. Human hand-offs: Start press still human-only; apply-update auto-complete stops at
+   the binding boundary (hint, not automation).
+
+2026-07-10 phase: build — lib.sh first, then register pair, send-event, listener,
+pickup, handler, digest, head harness 16-21, kit hooks, kit harness.
+
+2026-07-10 breath: phase build — all edits landed
+Files (perimeter respected):
+  runtime/claude/telegram/lib.sh        registry helpers, TG_HOME/TG_ROOT resolution +
+                                        normalization, workspace_name/router_active/
+                                        workspaces_or_root/workspace_by_name,
+                                        inbox_write_to, render_status router wrapper
+  runtime/claude/telegram/register.sh   NEW (idempotent, --list, QROKY_REGISTRY honored)
+  runtime/claude/telegram/unregister.sh NEW (clean removal, honest no-op)
+  runtime/claude/telegram/send-event.sh --workspace flag (normalized), [project] label
+                                        (router-only, never doubled), workspace: line in
+                                        pending-gates, WORKSPACE in queue serialization
+  runtime/claude/telegram/pickup.sh     decision record routes to origin decisions/
+                                        (--out-dir), dead origin → local + honest log
+  runtime/claude/telegram/listener.sh   migration auto-seed (D3), route-callback handler,
+                                        /status name filter («что в работе <имя>»),
+                                        free-input router + ONE re-ask (D5, clarify-in-
+                                        flight guard), multi-workspace NARRATIVE sweep
+                                        (primary keeps v1 offset keys — no H5 replay),
+                                        dead-path flag in sweep (H6)
+  runtime/claude/telegram/digest.sh     v1 body extracted intact behind !router_active;
+                                        merged branch: section per project, empty = one
+                                        line, per-project pending (workspace field, v1
+                                        entries → primary), orphan origins surface in
+                                        primary (never vanish), per-project spend +
+                                        numeric total, dead path ⚠ line
+  runtime/claude/telegram/handler.sh    routed messages skip the second clarify; named-
+                                        project clarify round-trip remembers target
+                                        (.pending.ws); task-proposals land in the ORIGIN
+                                        workspace inbox (inbox_write_to)
+  distribution/install.sh               registration hook after deploy; second-workspace
+                                        join short-circuit in _telegram_connect_flow;
+                                        apply-update auto-complete of «токен есть, головы
+                                        нет» (bound) / --enable-telegram hint (unbound)
+  distribution/lang/{en,ru,ro}.sh       L_TELEGRAM_ALREADY_CONNECTED, L_TELEGRAM_UPDATE_
+                                        FINISH_HINT (3 locales)
+  runtime/claude/telegram/dry-run.sh    scenarios 16-21 (H5 migration, H1 cross-routing,
+                                        H3 status filter, H2 merged digest, H4 re-ask,
+                                        H6 dead path); sandbox path normalization
+  distribution/dry-run.sh               per-workdir registry isolation in run_install;
+                                        scenario 13-router-hooks (a/b/c/d)
+
+2026-07-10 harness runs (falsifiability lived, three real catches):
+  head run 1: 19/21. FAIL 19+20 → ROOT CAUSE был настоящий: macOS TMPDIR ends with «/»,
+    harness $WS2 carried a double slash while register.sh normalizes via cd&&pwd —
+    exposed a PRODUCTION gap: an origin path not byte-equal to a registry entry made a
+    pending gate VANISH from the merged digest. Fixed by construction, not by assert:
+    TG_ROOT normalized in lib.sh, --workspace normalized in send-event.sh, orphan-origin
+    pending gates surface in the primary digest section; harness normalizes $SB too.
+  head run 2: 20/21. FAIL 20 = harness assertion oversight (registry holds THREE
+    workspaces by scenario 20, «общий» is button 4 not 3) — assert fixed, code untouched.
+  head run 3: 21/21 GREEN (15 v1 scenarios stayed green throughout — COMPAT SWITCH held).
+  kit run 1: 12/14. FAIL 9+11 → cross-scenario contamination: scenario 1's deploy
+    registered its workdir as machine primary in the SHARED fake HOME; later telegram
+    flows short-circuited through the new join path and their stdin feeds misaligned.
+    Fix: per-workdir QROKY_REGISTRY in run_install (each workdir = its own «machine»);
+    scenario 13 shares one registry across two workdirs DELIBERATELY.
+  kit run 2: 15/15 GREEN (14 v0.2 checks + new 13-router-hooks: register-on-deploy,
+    second-workspace join with zero token/hello/launchd, apply-update auto-complete with
+    zero sends (H5), hint-only when unbound). Question inventory stayed NINE.
+
+2026-07-10 breath: phase record — RESULT/STATUS/NARRATIVE written, report to coordinator.
+Budget: ~175k of ~250k executor envelope (estimate incl. pre-compaction design phase);
+harness wall time ~2 min/run, 0 network calls, 0 real tokens.

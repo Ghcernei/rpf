@@ -275,7 +275,15 @@ run_install() {
   # actually running this harness — see run.log for the real stray
   # directory this produced under distribution/ before the fix.)
   local workdir="$1" stdin_content="$2"; shift 2
-  ( export QROKY_WORKSPACE_DIR="$workdir"; printf '%s' "$stdin_content" | "$INSTALL" "$@" ) 2>&1
+  # ATOM-111: each workdir is its own "machine" — its own project registry.
+  # Without this, one scenario's telegram deploy registers itself as the
+  # machine primary and every LATER scenario's question 5 short-circuits
+  # through the router join path, misaligning its stdin feed (caught live:
+  # scenarios 9 and 11 broke exactly this way). Scenario 13 shares ONE
+  # registry across two workdirs deliberately, via QROKY_DRYRUN_REGISTRY.
+  ( export QROKY_WORKSPACE_DIR="$workdir"; \
+    export QROKY_REGISTRY="${QROKY_DRYRUN_REGISTRY:-$SANDBOX/registries/$(basename "$workdir").registry}"; \
+    printf '%s' "$stdin_content" | "$INSTALL" "$@" ) 2>&1
 }
 
 # ---------------------------------------------------------------------------
@@ -1174,6 +1182,124 @@ if [[ $STATUS12A -eq 0 && $STATUS12A2 -eq 0 \
   record "12-machinewide-both-branches" PASS "yes: exactly 2 files under ~/.claude, one marker after re-run, skill identical to vendored (I3 exception aboard), removal named; no: fake HOME untouched (negative assert non-vacuous)"
 else
   record "12-machinewide-both-branches" FAIL "a=$STATUS12A a2=$STATUS12A2 claude_files=$FILES_UNDER_CLAUDE_A/$FILES_UNDER_CLAUDE_A2 home_files=$FILES_UNDER_HOME_A markers=$MARKERS_A1/$MARKERS_A2 diff_empty=$([[ -z "$SKILL_DIFF12" ]] && echo yes || echo no) i3=$I3_EXCEPTION12 removal=$REMOVAL_NAMED12 md5=$([[ "$SKILL_MD5_A1" == "$SKILL_MD5_A2" ]] && echo stable || echo CHANGED) b=$STATUS12B b_files=$FILES_UNDER_HOME_B b_claude=$CLAUDE_DIR_B b_ack=$PROJECT_ONLY_LINE_B"
+fi
+
+# ---------------------------------------------------------------------------
+# SCENARIO 13 — ATOM-111 router hooks in the kit: (a) a telegram deploy
+# registers its workspace in the machine registry; (b) a SECOND workspace on
+# the same machine only JOINS — no second token ask, no second launchd pair,
+# no token file of its own; (c) --apply-update auto-completes the recorded
+# «токен есть, головы нет» defect when token+binding exist, and (d) names
+# the one finishing command when the binding is missing (nothing deployed).
+# ---------------------------------------------------------------------------
+T13="$ATOM_WORKSPACE/scenario-13-router-hooks.txt"
+W13A="$SANDBOX/w13a"; W13B="$SANDBOX/w13b"; W13C="$SANDBOX/w13c"; W13D="$SANDBOX/w13d"
+REG13="$SANDBOX/registries/machine13.registry"
+{
+  echo "Scenario 13 — kit router hooks (ATOM-111, GATE-029)"
+  echo "Generated: $(date -u +%Y-%m-%dT%H:%M:%SZ)"
+  echo ""
+  echo "--- (a) first workspace: full telegram journey on machine13 ---"
+} > "$T13"
+OUT13A="$(QROKY_DRYRUN_REGISTRY="$REG13" run_install "$W13A" $'en\n\ny\nGOODTOKEN123\nn\ny\nn\nn\n')"
+STATUS13A=$?
+echo "$OUT13A" >> "$T13"
+REG13_LINE1=""; [[ -f "$REG13" ]] && REG13_LINE1="$(head -1 "$REG13")"
+REG13_COUNT=$(grep -c . "$REG13" 2>/dev/null || true)
+REG13_LOGGED=$(grep -c "telegram REGISTERED workspace" "$W13A/install.log" 2>/dev/null || true)
+
+{
+  echo ""
+  echo "--- (b) second workspace, SAME machine registry: join only ---"
+} >> "$T13"
+BOOTS_BEFORE_B=$(grep -c "bootstrap.*md.qroky.telegram" "$LAUNCHCTL_STATE" 2>/dev/null || true)
+SENT_BEFORE_13B=$(wc -l < "$TG_SENT_LOG" | tr -d ' ')
+OUT13B="$(QROKY_DRYRUN_REGISTRY="$REG13" run_install "$W13B" $'en\n\ny\nn\nn\nn\nn\n')"
+STATUS13B=$?
+echo "$OUT13B" >> "$T13"
+BOOTS_AFTER_B=$(grep -c "bootstrap.*md.qroky.telegram" "$LAUNCHCTL_STATE" 2>/dev/null || true)
+SENT_AFTER_13B=$(wc -l < "$TG_SENT_LOG" | tr -d ' ')
+JOINED13=$(printf '%s' "$OUT13B" | grep -c "just JOINED" || true)
+BOTFATHER13B=$(printf '%s' "$OUT13B" | grep -c "BotFather" || true)
+REG13_COUNT_B=$(grep -c . "$REG13" 2>/dev/null || true)
+REG13_FIRST_B="$(head -1 "$REG13" 2>/dev/null)"
+TOKEN13B=0; [[ -s "$W13B/.qroky/telegram.token" ]] && TOKEN13B=1
+BOUND13B=$(grep -c '"answer_telegram_bound": "yes"' "$W13B/install-state.json" 2>/dev/null || true)
+
+{
+  echo ""
+  echo "--- (c) apply-update auto-complete: token+binding present, head undeployed ---"
+} >> "$T13"
+OUT13C="$(QROKY_DRYRUN_REGISTRY="$SANDBOX/registries/machine13c.registry" run_install "$W13C" $'en\n\nn\nn\nn\nn\nn\n')"
+STATUS13C=$?
+# plant the recorded-defect shape: v1-era token + captured binding, no head
+mkdir -p "$W13C/.qroky/telegram/state"
+printf 'GOODTOKEN123' > "$W13C/.qroky/telegram.token"; chmod 600 "$W13C/.qroky/telegram.token"
+printf '424242' > "$W13C/.qroky/telegram/state/chat_id"
+printf '111' > "$W13C/.qroky/telegram/state/offset"
+git -C "$FAKE_FW" -c user.email=dryrun@qroky.local -c user.name="Qroky dry run" \
+  commit -q --allow-empty -m "stub commit 3"
+git -C "$FAKE_FW" -c user.email=dryrun@qroky.local -c user.name="Qroky dry run" \
+  tag -a v1.2.0 -m "v1.2.0
+
+brings the telegram head
+to installs that predate it
+so half-connects finish themselves"
+SENT_BEFORE_13C=$(wc -l < "$TG_SENT_LOG" | tr -d ' ')
+OUT13C2="$(QROKY_DRYRUN_REGISTRY="$SANDBOX/registries/machine13c.registry" run_install "$W13C" $'y\n' --apply-update)"
+STATUS13C2=$?
+echo "$OUT13C2" >> "$T13"
+SENT_AFTER_13C=$(wc -l < "$TG_SENT_LOG" | tr -d ' ')
+AUTOCOMPLETE13=$(grep -c "telegram AUTO-COMPLETE" "$W13C/install.log" 2>/dev/null || true)
+WRAP13C=0; [[ -x "$W13C/.qroky/telegram/run-listener.sh" ]] && WRAP13C=1
+PLISTS13C=$(ls "$W13C/.qroky/telegram/launchd/"md.qroky.telegram.*.plist 2>/dev/null | wc -l | tr -d ' ')
+BOUND13C=$(grep -c '"answer_telegram_bound": "yes"' "$W13C/install-state.json" 2>/dev/null || true)
+HELLO_DELTA_13C=$(( SENT_AFTER_13C - SENT_BEFORE_13C ))   # H5: no second hello
+
+{
+  echo ""
+  echo "--- (d) apply-update with token but NO binding: hint only, no deploy ---"
+} >> "$T13"
+OUT13D="$(QROKY_DRYRUN_REGISTRY="$SANDBOX/registries/machine13d.registry" run_install "$W13D" $'en\n\nn\nn\nn\nn\nn\n')"
+mkdir -p "$W13D/.qroky"
+printf 'GOODTOKEN123' > "$W13D/.qroky/telegram.token"; chmod 600 "$W13D/.qroky/telegram.token"
+git -C "$FAKE_FW" -c user.email=dryrun@qroky.local -c user.name="Qroky dry run" \
+  commit -q --allow-empty -m "stub commit 4"
+git -C "$FAKE_FW" -c user.email=dryrun@qroky.local -c user.name="Qroky dry run" \
+  tag -a v1.3.0 -m "v1.3.0
+
+another stub line
+and another
+and a third"
+OUT13D2="$(QROKY_DRYRUN_REGISTRY="$SANDBOX/registries/machine13d.registry" run_install "$W13D" $'y\n' --apply-update)"
+STATUS13D2=$?
+echo "$OUT13D2" >> "$T13"
+HINT13D=$(printf '%s' "$OUT13D2" | grep -c -- "--enable-telegram" || true)
+NOBIND_LOG13D=$(grep -c "TOKEN-WITHOUT-BINDING" "$W13D/install.log" 2>/dev/null || true)
+WRAP13D=0; [[ -f "$W13D/.qroky/telegram/run-listener.sh" ]] && WRAP13D=1
+
+{
+  echo ""
+  echo "--- assertions ---"
+  echo "(a) exit: $STATUS13A (0); registry: $REG13_COUNT line(s) (1), line1 == workdir: $([[ "$REG13_LINE1" == "$W13A" ]] && echo yes || echo NO-DEFECT); REGISTERED log line: $REG13_LOGGED (>0)"
+  echo "(b) exit: $STATUS13B (0); JOINED message: $JOINED13 (>0); BotFather walkthrough shown: $BOTFATHER13B (must be 0)"
+  echo "(b) registry: $REG13_COUNT_B lines (2), primary unchanged: $([[ "$REG13_FIRST_B" == "$W13A" ]] && echo yes || echo NO-DEFECT)"
+  echo "(b) second launchd pair bootstrapped: $((BOOTS_AFTER_B - BOOTS_BEFORE_B)) (must be 0); own token file: $TOKEN13B (0); sends during join: $((SENT_AFTER_13B - SENT_BEFORE_13B)) (0 — no second hello); state bound: $BOUND13B (1)"
+  echo "(c) skip-install exit: $STATUS13C (0); apply exit: $STATUS13C2 (0); AUTO-COMPLETE log: $AUTOCOMPLETE13 (>0)"
+  echo "(c) wrapper deployed: $WRAP13C (1); plists rendered: $PLISTS13C (2); state bound: $BOUND13C (1); sends during auto-complete: $HELLO_DELTA_13C (must be 0 — no second hello, H5)"
+  echo "(d) apply exit: $STATUS13D2 (0); finishing command named: $HINT13D (>0); log: $NOBIND_LOG13D (>0); deployed anyway: $WRAP13D (must be 0 — no half-alive unbound listener)"
+} >> "$T13"
+if [[ $STATUS13A -eq 0 && "$REG13_COUNT" -eq 1 && "$REG13_LINE1" == "$W13A" && "$REG13_LOGGED" -gt 0 \
+      && $STATUS13B -eq 0 && "$JOINED13" -gt 0 && "$BOTFATHER13B" -eq 0 \
+      && "$REG13_COUNT_B" -eq 2 && "$REG13_FIRST_B" == "$W13A" \
+      && $((BOOTS_AFTER_B - BOOTS_BEFORE_B)) -eq 0 && $TOKEN13B -eq 0 \
+      && $((SENT_AFTER_13B - SENT_BEFORE_13B)) -eq 0 && "$BOUND13B" -eq 1 \
+      && $STATUS13C -eq 0 && $STATUS13C2 -eq 0 && "$AUTOCOMPLETE13" -gt 0 \
+      && $WRAP13C -eq 1 && "$PLISTS13C" == "2" && "$BOUND13C" -eq 1 && $HELLO_DELTA_13C -eq 0 \
+      && $STATUS13D2 -eq 0 && "$HINT13D" -gt 0 && "$NOBIND_LOG13D" -gt 0 && $WRAP13D -eq 0 ]]; then
+  record "13-router-hooks" PASS "deploy registers the workspace; second workspace joins (registry 2 lines, primary first) with zero token/hello/launchd of its own; apply-update auto-completed the «токен есть, головы нет» half-connect with no second hello (H5) and only HINTED when the binding was missing"
+else
+  record "13-router-hooks" FAIL "a=$STATUS13A/$REG13_COUNT/$([[ "$REG13_LINE1" == "$W13A" ]] && echo ok || echo mism)/$REG13_LOGGED b=$STATUS13B/$JOINED13/$BOTFATHER13B/$REG13_COUNT_B/$((BOOTS_AFTER_B - BOOTS_BEFORE_B))/$TOKEN13B/$((SENT_AFTER_13B - SENT_BEFORE_13B))/$BOUND13B c=$STATUS13C/$STATUS13C2/$AUTOCOMPLETE13/$WRAP13C/$PLISTS13C/$BOUND13C/$HELLO_DELTA_13C d=$STATUS13D2/$HINT13D/$NOBIND_LOG13D/$WRAP13D"
 fi
 
 # ---------------------------------------------------------------------------

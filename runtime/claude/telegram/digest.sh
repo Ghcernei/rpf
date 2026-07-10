@@ -25,14 +25,18 @@ fi
 require_python digest
 
 # ---- сделано / в работе / ждёт (products/*/status.yaml, one python pass) ----
-DONE_LINES="" RUN_LINES="" WAIT_LINES=""
-while IFS=$'\t' read -r state prod atom note; do
-  case "$state" in
-    done)    DONE_LINES+="• $prod/$atom${note:+ — $note}"$'\n' ;;
-    running) RUN_LINES+="• $prod/$atom${note:+ — $note}"$'\n' ;;
-    waiting) WAIT_LINES+="• $prod/$atom${note:+ — $note}"$'\n' ;;
-  esac
-done < <(py - "$PRODUCTS_DIR" <<'PYEOF'
+# ATOM-111: extracted to a function — the router digest runs it once per
+# registered workspace; a v1 machine runs it once on TG_ROOT (byte-same body).
+collect_status() { # $1 = products dir → fills DONE_LINES/RUN_LINES/WAIT_LINES
+  DONE_LINES="" RUN_LINES="" WAIT_LINES=""
+  [[ -d "$1" ]] || return 0
+  while IFS=$'\t' read -r state prod atom note; do
+    case "$state" in
+      done)    DONE_LINES+="• $prod/$atom${note:+ — $note}"$'\n' ;;
+      running) RUN_LINES+="• $prod/$atom${note:+ — $note}"$'\n' ;;
+      waiting) WAIT_LINES+="• $prod/$atom${note:+ — $note}"$'\n' ;;
+    esac
+  done < <(py - "$1" <<'PYEOF'
 import sys, os, re, glob
 root = sys.argv[1]
 for path in sorted(glob.glob(os.path.join(root, "*", "status.yaml"))):
@@ -51,13 +55,33 @@ for path in sorted(glob.glob(os.path.join(root, "*", "status.yaml"))):
             cur = None
 PYEOF
 )
+}
 
 # ---- ждёт тебя сегодня: gates still awaiting an answer ----------------------
-PENDING_LINES=""
-for g in "$STATE_DIR/pending-gates"/*; do
-  [[ -f "$g" && "$g" != *.answered ]] || continue
-  PENDING_LINES+="• $(basename "$g") — ждёт твоего решения (кнопки в чате выше)"$'\n'
-done
+# ATOM-111: an optional workspace filter — a pending gate belongs to the
+# project stored with it; a v1 entry (no workspace field) belongs to primary.
+pending_gate_lines() { # $1 = workspace path filter ("" = all)
+  local g gws out=""
+  for g in "$STATE_DIR/pending-gates"/*; do
+    [[ -f "$g" && "$g" != *.answered ]] || continue
+    if [[ -n "${1:-}" ]]; then
+      gws="$(sed -n 's/^workspace: //p' "$g" 2>/dev/null | head -1 || true)"
+      [[ -z "$gws" ]] && gws="$TG_ROOT"
+      if [[ "$gws" != "$1" ]]; then
+        # An origin matching NO registry entry surfaces in the PRIMARY
+        # section — a pending decision must never vanish from the digest.
+        if [[ "$1" == "$TG_ROOT" ]] && ! registry_entries | grep -qxF "$gws"; then
+          :
+        else
+          continue
+        fi
+      fi
+    fi
+    out+="• $(basename "$g") — ждёт твоего решения (кнопки в чате выше)"$'\n'
+  done
+  printf '%s' "$out"
+}
+PENDING_LINES="$(pending_gate_lines "")"
 
 # ---- уже просигналено сегодня → строки статуса, не алармы (H6) --------------
 SIGNALED_LINES=""
@@ -86,13 +110,16 @@ else
   log digest "changelog skipped: framework is not a git checkout here (or git missing) — honest degradation"
 fi
 
-# verify M6: blocked atoms and pending gates are ONE section — the
-# «решений не ждём» line appears only when BOTH are empty, so a phone screen
-# never shows waiting items and «ничего не ждёт» together.
-WAIT_COMBINED="$WAIT_LINES$PENDING_LINES"
-[[ -n "${WAIT_COMBINED//[$'\n' ]/}" ]] || WAIT_COMBINED="• решений не ждём"$'\n'
+if ! router_active; then
+  # ---- v1 body (single workspace) — byte-shape unchanged from ATOM-110 ------
+  collect_status "$PRODUCTS_DIR"
+  # verify M6: blocked atoms and pending gates are ONE section — the
+  # «решений не ждём» line appears only when BOTH are empty, so a phone screen
+  # never shows waiting items and «ничего не ждёт» together.
+  WAIT_COMBINED="$WAIT_LINES$PENDING_LINES"
+  [[ -n "${WAIT_COMBINED//[$'\n' ]/}" ]] || WAIT_COMBINED="• решений не ждём"$'\n'
 
-MSG="Доброе утро. Дайджест за $TODAY:
+  MSG="Доброе утро. Дайджест за $TODAY:
 
 Сделано:
 ${DONE_LINES:-• пока пусто}
@@ -105,6 +132,55 @@ $SIGNALED_LINES}
 $SPEND_LINE${CHANGELOG:+
 
 $CHANGELOG}"
+else
+  # ---- router body (ATOM-111, H2): ONE message, a section per registered ----
+  # project. Empty project = one line; a dead registry path = an honest ⚠
+  # line, never a crash (H6); spend sums into a total when ledgers open with
+  # a number (free-text ledgers stay listed, just not summed).
+  SECTIONS="" TOTAL_SPEND=0 HAVE_SPEND=0
+  while IFS= read -r ws; do
+    [[ -n "$ws" ]] || continue
+    name="$(workspace_name "$ws")"
+    if [[ ! -d "$ws" ]]; then
+      SECTIONS+="⚠ [$name] — путь из реестра не найден: $ws (поправь ~/.qroky/registry)"$'\n\n'
+      continue
+    fi
+    collect_status "$ws/products"
+    WAIT_COMBINED="$WAIT_LINES$(pending_gate_lines "$ws")"
+    sp_file="$ws/.qroky/telegram/state/spend/$TODAY"
+    [[ "$ws" == "$TG_ROOT" ]] && sp_file="$STATE_DIR/spend/$TODAY"
+    SPL="расход: данных нет"
+    if [[ -f "$sp_file" ]]; then
+      v="$(cat "$sp_file")"; SPL="расход: $v"
+      n="$(printf '%s' "$v" | grep -oE '^[0-9]+' || true)"
+      [[ -n "$n" ]] && { TOTAL_SPEND=$((TOTAL_SPEND + n)); HAVE_SPEND=1; }
+    fi
+    if [[ -z "${DONE_LINES//[$'\n' ]/}${RUN_LINES//[$'\n' ]/}${WAIT_COMBINED//[$'\n' ]/}" ]]; then
+      SECTIONS+="[$name] — тихо: изменений нет, решений не ждём"$'\n\n'
+      continue
+    fi
+    [[ -n "${WAIT_COMBINED//[$'\n' ]/}" ]] || WAIT_COMBINED="• решений не ждём"$'\n'
+    SECTIONS+="[$name]
+Сделано:
+${DONE_LINES:-• пока пусто}
+В работе:
+${RUN_LINES:-• ничего не бежит}
+Ждёт тебя:
+${WAIT_COMBINED}$SPL
+
+"
+  done < <(registry_entries)
+
+  TOTAL_LINE=""
+  [[ $HAVE_SPEND -eq 1 ]] && TOTAL_LINE="итого расход (по числовым ledger): $TOTAL_SPEND"
+  MSG="Доброе утро. Сводный дайджест за $TODAY:
+
+$SECTIONS${SIGNALED_LINES:+Уже в ленте сегодня (статус, не тревога):
+$SIGNALED_LINES
+}${TOTAL_LINE}${CHANGELOG:+
+
+$CHANGELOG}"
+fi
 
 [[ ${#MSG} -gt 3900 ]] && MSG="${MSG:0:3900}"$'\n'"…(обрезано)"
 

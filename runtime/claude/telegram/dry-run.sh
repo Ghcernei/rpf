@@ -20,6 +20,8 @@ ATOM_WS="$RPF_DIR/products/telegram-head-v1/110-telegram-head/workspace"
 mkdir -p "$ATOM_WS"
 
 SB="$(mktemp -d "${TMPDIR:-/tmp}/qroky-tg-dry.XXXXXX")"
+SB="$(cd "$SB" && pwd)"   # normalize: macOS TMPDIR ends with «/» — path
+                          # strings must compare byte-equal to registry entries
 trap 'rm -rf "$SB"' EXIT
 
 PASS=0; FAIL=0; SUMMARY="$ATOM_WS/SUMMARY.txt"
@@ -868,6 +870,317 @@ if [[ $DT_ANSWERED -eq 1 && $RC_A -eq 0 && $RC_B -eq 0 && $RC_C -eq 0 \
   record "15-double-press" PASS "double-tap, answered-gate press, and two malformed callbacks all politely declined (4 replies), zero records, offset advanced, every pass rc 0, contour healthy after — the R2-1 poison pill is gone"
 else
   record "15-double-press" FAIL "answered=$DT_ANSWERED rc=$RC_A/$RC_B/$RC_C polite=$POLITE_COUNT records=$RECORDS_BEFORE/$RECORDS_AFTER offset=$OFFSET15/$MAX15 alive=$STILL_ALIVE/$RC_D"
+fi
+
+# ============================================================================
+# ROUTER SCENARIOS (ATOM-111, INPUT §5 H1-H6). Scenarios 1-15 above ran with
+# registry_count<=1 — v1 behavior by construction (the COMPAT SWITCH); the
+# block below registers a second and third workspace and exercises the
+# router. HOME is the sandbox home, so ~/.qroky/registry is sandboxed too.
+# ============================================================================
+
+# ============================================================================
+# SCENARIO 16 — router H5: v1 -> router migration with ZERO questions. A
+# v1-shaped bound state (chat_id, offset, consumed narrative) gets its
+# registry seeded on the first pass — nothing re-sent, nothing re-bound,
+# offset untouched, old beats not replayed. Runs in ITS OWN state dirs.
+# ============================================================================
+T="$ATOM_WS/scenario-16-migration.txt"
+{ echo "Scenario 16 — v1 -> router migration (H5)"; echo "Generated: $(date -u +%Y-%m-%dT%H:%M:%SZ)"; } > "$T"
+MW="$SB/mig-ws"; MH="$SB/mig-tg"; MREG="$SB/mig-registry"
+mkdir -p "$MW/products/mig-prod" "$MW/decisions" "$MH/state/narrative"
+cat > "$MH/profile.conf" <<EOF
+DIGEST_TIME="21:00"
+QUIET_START="23:00"
+QUIET_END="08:00"
+DETAIL_LEVEL="2"
+TOKEN_FILE="$TGH/.token"
+EOF
+printf '%s' "$OWNER_CHAT" > "$MH/state/chat_id"          # bound (v1 shape)
+cat "$UPDATE_SEQ" > "$MH/state/offset"                    # all updates consumed
+touch "$MH/state/digest-sent-$(date +%Y-%m-%d)"           # digest already fired
+cat > "$MW/products/mig-prod/NARRATIVE.md" <<'EOF'
+**старый бит.** Уже был отправлен в v1 — replay после апгрейда запрещён.
+EOF
+wc -c < "$MW/products/mig-prod/NARRATIVE.md" | tr -d ' ' > "$MH/state/narrative/mig-prod.offset"
+OFFSET_V1="$(cat "$MH/state/offset")"
+B16=$(sent_count)
+QROKY_TG_HOME="$MH" QROKY_TG_ROOT="$MW" QROKY_REGISTRY="$MREG" bash "$TG_DIR/listener.sh" >> "$T" 2>&1
+RC16=$?
+MIG_SEEDED=0; [[ -f "$MREG" && "$(cat "$MREG")" == "$MW" ]] && MIG_SEEDED=1
+MIG_SENDS=$(( $(sent_count) - B16 ))
+MIG_OFFSET_SAME=0; [[ "$(cat "$MH/state/offset")" == "$OFFSET_V1" ]] && MIG_OFFSET_SAME=1
+MIG_CHAT_SAME=0; [[ "$(cat "$MH/state/chat_id")" == "$OWNER_CHAT" ]] && MIG_CHAT_SAME=1
+MIG_LOG=$(grep -c "migration: registry seeded with $MW" "$MH/telegram.log" || true)
+QROKY_TG_HOME="$MH" QROKY_TG_ROOT="$MW" QROKY_REGISTRY="$MREG" bash "$TG_DIR/listener.sh" >> "$T" 2>&1
+MIG_LINES=$(grep -c . "$MREG" || true)                    # second pass: no re-seed
+# the MAIN harness registry was seeded the same way back in scenario 1:
+MAIN_SEEDED=0; [[ -f "$HOME/.qroky/registry" && "$(head -1 "$HOME/.qroky/registry")" == "$ROOT" ]] && MAIN_SEEDED=1
+{
+  echo ""; echo "--- assertions ---"
+  echo "pass rc: $RC16 (0); registry seeded with the workspace as line 1: $MIG_SEEDED (must be 1)"
+  echo "sends during migration: $MIG_SENDS (must be 0 — no second hello, no replayed beats)"
+  echo "offset untouched: $MIG_OFFSET_SAME (1); binding untouched: $MIG_CHAT_SAME (1); migration log line: $MIG_LOG (>0)"
+  echo "second pass did not duplicate the seed: $MIG_LINES line(s) (must be 1)"
+  echo "main-harness registry was seeded implicitly at scenario 1: $MAIN_SEEDED (must be 1)"
+} >> "$T"
+if [[ $RC16 -eq 0 && $MIG_SEEDED -eq 1 && "$MIG_SENDS" -eq 0 && $MIG_OFFSET_SAME -eq 1 \
+      && $MIG_CHAT_SAME -eq 1 && "$MIG_LOG" -gt 0 && "$MIG_LINES" -eq 1 && $MAIN_SEEDED -eq 1 ]]; then
+  record "16-migration" PASS "bound v1 state seeded its registry on the first pass with zero sends, zero re-binds, offset and narrative offsets intact; seed idempotent"
+else
+  record "16-migration" FAIL "rc=$RC16 seeded=$MIG_SEEDED sends=$MIG_SENDS offset=$MIG_OFFSET_SAME chat=$MIG_CHAT_SAME log=$MIG_LOG lines=$MIG_LINES main=$MAIN_SEEDED"
+fi
+
+# ============================================================================
+# SCENARIO 17 — router H1: two workspaces, labels, decision routed HOME.
+# Cross-routing attack: the bankco decision must NOT land in the primary's
+# decisions/. Plus the honest fallback: a gate whose origin path is dead
+# renders locally with a log line, never crashes the pickup.
+# ============================================================================
+T="$ATOM_WS/scenario-17-cross-routing.txt"
+{ echo "Scenario 17 — registry + cross-routing (H1)"; echo "Generated: $(date -u +%Y-%m-%dT%H:%M:%SZ)"; } > "$T"
+WS2="$SB/ws-bankco"
+mkdir -p "$WS2/products/bankco-product" "$WS2/decisions" "$WS2/.qroky/telegram"
+cat > "$WS2/products/bankco-product/status.yaml" <<'EOF'
+atoms:
+  ATOM-B1:
+    folder: b1
+    status: running
+EOF
+printf '# NARRATIVE — bankco\n' > "$WS2/products/bankco-product/NARRATIVE.md"
+printf 'PROJECT_NAME="bankco"\n' > "$WS2/.qroky/telegram/profile.conf"
+mkdir -p "$ROOT/.qroky/telegram"
+printf 'PROJECT_NAME="miapos"\n' > "$ROOT/.qroky/telegram/profile.conf"
+bash "$TG_DIR/register.sh" "$WS2" >> "$T" 2>&1
+REG_AGAIN="$(bash "$TG_DIR/register.sh" "$WS2" 2>&1)"; printf '%s\n' "$REG_AGAIN" >> "$T"
+REG_LINES=$(grep -c . "$HOME/.qroky/registry" || true)
+REG_IDEMP=$(printf '%s' "$REG_AGAIN" | grep -c "already registered" || true)
+B17=$(sent_count)
+bash "$TG_DIR/send-event.sh" --kind gate --id GATE-B1 --workspace "$WS2" \
+  --text "Гейт GATE-B1: принять план банка?" --buttons "Да|Нет" >> "$T" 2>&1
+bash "$TG_DIR/send-event.sh" --kind info --id INFO-LBL --text "проверка метки первичного проекта" >> "$T" 2>&1
+LBL_B=$(sent_since "$B17" | grep -c '\[bankco\] Гейт GATE-B1' || true)
+LBL_P=$(sent_since "$B17" | grep -c '\[miapos\] проверка метки' || true)
+add_callback "$OWNER_CHAT" "GATE-B1|1"
+listener >> "$T" 2>&1
+bash "$TG_DIR/pickup.sh" >> "$T" 2>&1
+B1_HOME=0; [[ -f "$WS2/decisions/GATE-B1-decision.md" ]] && grep -qF "> Да" "$WS2/decisions/GATE-B1-decision.md" && B1_HOME=1
+B1_CROSSED=0; [[ -f "$ROOT/decisions/GATE-B1-decision.md" ]] && B1_CROSSED=1   # attack: must stay 0
+bash "$TG_DIR/send-event.sh" --kind gate --id GATE-PH --workspace "$SB/phantom-gone" \
+  --text "Гейт GATE-PH: происхождение мертво." --buttons "Ок|Нет" >> "$T" 2>&1
+add_callback "$OWNER_CHAT" "GATE-PH|1"
+listener >> "$T" 2>&1
+bash "$TG_DIR/pickup.sh" >> "$T" 2>&1
+PH_LOCAL=0; [[ -f "$ROOT/decisions/GATE-PH-decision.md" ]] && PH_LOCAL=1
+PH_LOG=$(grep -c "origin workspace of GATE-PH not found" "$TGH/telegram.log" || true)
+{
+  echo ""; echo "--- assertions ---"
+  echo "registry after register + re-register: $REG_LINES lines (must be 2), idempotent notice: $REG_IDEMP (1)"
+  echo "bankco event labeled [bankco]: $LBL_B (1); primary event labeled [miapos] (PROJECT_NAME override): $LBL_P (1)"
+  echo "bankco decision at HOME with verbatim answer: $B1_HOME (1); crossed into primary decisions/ (attack): $B1_CROSSED (must be 0)"
+  echo "dead-origin gate fell back to local decisions/: $PH_LOCAL (1) with an honest log line: $PH_LOG (>0)"
+} >> "$T"
+if [[ "$REG_LINES" -eq 2 && "$REG_IDEMP" -eq 1 && "$LBL_B" -eq 1 && "$LBL_P" -eq 1 \
+      && $B1_HOME -eq 1 && $B1_CROSSED -eq 0 && $PH_LOCAL -eq 1 && "$PH_LOG" -gt 0 ]]; then
+  record "17-cross-routing" PASS "second workspace registered idempotently; events labeled per origin (PROJECT_NAME override honored); button press routed the decision record to the ORIGIN workspace only; dead origin degraded honestly to local"
+else
+  record "17-cross-routing" FAIL "reg=$REG_LINES/$REG_IDEMP lbl=$LBL_B/$LBL_P home=$B1_HOME crossed=$B1_CROSSED ph=$PH_LOCAL/$PH_LOG"
+fi
+
+# ============================================================================
+# SCENARIO 18 — router H3: /status across projects + «что в работе <имя>»
+# ============================================================================
+T="$ATOM_WS/scenario-18-status-filter.txt"
+{ echo "Scenario 18 — /status across projects + name filter (H3)"; echo "Generated: $(date -u +%Y-%m-%dT%H:%M:%SZ)"; } > "$T"
+add_message "$OWNER_CHAT" "/status"
+B18=$(sent_count)
+listener >> "$T" 2>&1
+ALL_STATUS="$(sent_since "$B18" | grep '"method": "sendMessage"')"
+ALL_OK=0
+printf '%s' "$ALL_STATUS" | grep -qF '[miapos]' && printf '%s' "$ALL_STATUS" | grep -qF '[bankco]' \
+  && printf '%s' "$ALL_STATUS" | grep -q 'ATOM-D1' && printf '%s' "$ALL_STATUS" | grep -q 'ATOM-B1' && ALL_OK=1
+ALL_MSGS=$(printf '%s\n' "$ALL_STATUS" | grep -c . || true)
+add_message "$OWNER_CHAT" "что в работе bankco"
+B18B=$(sent_count)
+listener >> "$T" 2>&1
+FILT="$(sent_since "$B18B" | grep '"method": "sendMessage"')"
+FILT_HAS=$(printf '%s' "$FILT" | grep -c 'ATOM-B1' || true)
+FILT_LEAK=$(printf '%s' "$FILT" | grep -c 'ATOM-D1' || true)
+add_message "$OWNER_CHAT" "что в работе фантом"
+B18C=$(sent_count)
+listener >> "$T" 2>&1
+UNKNOWN_HONEST=$(sent_since "$B18C" | grep -c "в реестре не найден" || true)
+{
+  echo ""; echo "--- assertions ---"
+  echo "/status covers both projects with labels and real atoms: $ALL_OK (1), in ONE message: $ALL_MSGS (1)"
+  echo "«что в работе bankco» narrows: has ATOM-B1: $FILT_HAS (>0), leaks primary ATOM-D1: $FILT_LEAK (must be 0)"
+  echo "unknown name answered honestly with the registered list: $UNKNOWN_HONEST (must be 1)"
+  echo ""; echo "--- /status reply (verbatim) ---"; printf '%s\n' "$ALL_STATUS"
+} >> "$T"
+if [[ $ALL_OK -eq 1 && "$ALL_MSGS" -eq 1 && "$FILT_HAS" -gt 0 && "$FILT_LEAK" -eq 0 && "$UNKNOWN_HONEST" -eq 1 ]]; then
+  record "18-status-filter" PASS "/status renders every registered project labeled in one message; name filter isolates one project without leaking others; unknown name declined honestly"
+else
+  record "18-status-filter" FAIL "all=$ALL_OK msgs=$ALL_MSGS filt=$FILT_HAS leak=$FILT_LEAK unknown=$UNKNOWN_HONEST"
+fi
+
+# ============================================================================
+# SCENARIO 19 — router H2: ONE merged digest — a section per project, empty
+# project = one line, pending gate in ITS project's section only, spend
+# summed, signaled events as status lines (no duplicate alarms).
+# ============================================================================
+T="$ATOM_WS/scenario-19-merged-digest.txt"
+{ echo "Scenario 19 — merged digest (H2)"; echo "Generated: $(date -u +%Y-%m-%dT%H:%M:%SZ)"; } > "$T"
+WS3="$SB/quiet-proj"
+mkdir -p "$WS3/products" "$WS3/decisions"
+bash "$TG_DIR/register.sh" "$WS3" >> "$T" 2>&1
+mkdir -p "$WS2/.qroky/telegram/state/spend"
+printf '300k токенов (bankco executor)' > "$WS2/.qroky/telegram/state/spend/$(date +%Y-%m-%d)"
+bash "$TG_DIR/send-event.sh" --kind gate --id GATE-B2 --workspace "$WS2" \
+  --text "Гейт GATE-B2: конверт bankco — поднять?" --buttons "Да|Нет" >> "$T" 2>&1
+B19=$(sent_count)
+QROKY_TEST_FORCE_DIGEST=1 bash "$TG_DIR/digest.sh" >> "$T" 2>&1
+DIG="$(sent_since "$B19")"
+DIG_MSGS=$(printf '%s\n' "$DIG" | grep -c '"method": "sendMessage"' || true)
+DIG_TEXT="$(printf '%s\n' "$DIG" | /usr/bin/python3 -c 'import sys,json
+for l in sys.stdin:
+    l=l.strip()
+    if l: print(json.loads(l).get("text",""))')"
+MERGED_OK=0
+printf '%s' "$DIG_TEXT" | grep -qF 'Сводный дайджест' \
+  && printf '%s' "$DIG_TEXT" | grep -qF '[miapos]' \
+  && printf '%s' "$DIG_TEXT" | grep -qF '[bankco]' && MERGED_OK=1
+QUIET_LINE=$(printf '%s' "$DIG_TEXT" | grep -c '\[quiet-proj\] — тихо' || true)
+MIA_SECTION="$(printf '%s\n' "$DIG_TEXT" | awk '/\[miapos\]/{f=1} /\[bankco\]/{f=0} f')"
+BNK_SECTION="$(printf '%s\n' "$DIG_TEXT" | awk '/\[bankco\]/{f=1} /\[quiet-proj\]/{f=0} f')"
+B2_IN_BANKCO=$(printf '%s' "$BNK_SECTION" | grep -c 'GATE-B2' || true)
+B2_IN_MIA=$(printf '%s' "$MIA_SECTION" | grep -c 'GATE-B2' || true)
+D1_IN_MIA=$(printf '%s' "$MIA_SECTION" | grep -c 'ATOM-D1' || true)
+B1_IN_BANKCO=$(printf '%s' "$BNK_SECTION" | grep -c 'ATOM-B1' || true)
+SPEND_MIA=$(printf '%s' "$DIG_TEXT" | grep -c '120k токенов' || true)
+SPEND_BNK=$(printf '%s' "$DIG_TEXT" | grep -c '300k токенов' || true)
+SPEND_TOTAL=$(printf '%s' "$DIG_TEXT" | grep -c 'итого расход (по числовым ledger): 300' || true)
+STATUS_NOT_ALARM=$(printf '%s' "$DIG_TEXT" | grep -c 'уже приходило событием сегодня, без повторной тревоги' || true)
+{
+  echo ""; echo "--- assertions ---"
+  echo "ONE message: $DIG_MSGS (must be 1); merged header + both project sections: $MERGED_OK (1)"
+  echo "empty project rendered as ONE line: $QUIET_LINE (1)"
+  echo "GATE-B2 in bankco section: $B2_IN_BANKCO (>0), in miapos section: $B2_IN_MIA (must be 0)"
+  echo "content per section: ATOM-D1 in miapos: $D1_IN_MIA (>0), ATOM-B1 in bankco: $B1_IN_BANKCO (>0)"
+  echo "spend per project: $SPEND_MIA/$SPEND_BNK (>0 each); numeric total: $SPEND_TOTAL (1)"
+  echo "already-signaled events as status lines: $STATUS_NOT_ALARM (>0)"
+  echo ""; echo "--- digest (verbatim) ---"; printf '%s\n' "$DIG_TEXT"
+} >> "$T"
+if [[ "$DIG_MSGS" -eq 1 && $MERGED_OK -eq 1 && "$QUIET_LINE" -eq 1 && "$B2_IN_BANKCO" -gt 0 \
+      && "$B2_IN_MIA" -eq 0 && "$D1_IN_MIA" -gt 0 && "$B1_IN_BANKCO" -gt 0 \
+      && "$SPEND_MIA" -gt 0 && "$SPEND_BNK" -gt 0 && "$SPEND_TOTAL" -eq 1 && "$STATUS_NOT_ALARM" -gt 0 ]]; then
+  record "19-merged-digest" PASS "one merged message: per-project sections with their own atoms/gates/spend, empty project one line, pending gate confined to its origin section, numeric total, signaled events as status lines"
+else
+  record "19-merged-digest" FAIL "msgs=$DIG_MSGS merged=$MERGED_OK quiet=$QUIET_LINE b2=$B2_IN_BANKCO/$B2_IN_MIA d1=$D1_IN_MIA b1=$B1_IN_BANKCO spend=$SPEND_MIA/$SPEND_BNK/$SPEND_TOTAL signaled=$STATUS_NOT_ALARM"
+fi
+
+# ============================================================================
+# SCENARIO 20 — router H4: free input without a project -> ONE re-ask with
+# project buttons (+«общий» via DEFAULT_PROJECT); the press routes the text;
+# a routed answer gets NO second clarify. A text NAMING a project routes
+# directly, and the clarify round-trip still lands in the named project.
+# ============================================================================
+T="$ATOM_WS/scenario-20-reask.txt"
+{ echo "Scenario 20 — project re-ask (H4)"; echo "Generated: $(date -u +%Y-%m-%dT%H:%M:%SZ)"; } > "$T"
+printf 'DEFAULT_PROJECT="bankco"\n' >> "$TGH/profile.conf"
+UM_BEFORE=$(ls "$INBOX"/*-user-message-*.md 2>/dev/null | wc -l | tr -d ' ')
+add_message "$OWNER_CHAT" "нужен пост про запуск, набросай к вечеру"
+B20=$(sent_count)
+listener >> "$T" 2>&1
+REASK=$(sent_since "$B20" | grep -c "В какой проект это направить" || true)
+REASK_BTNS=$(sent_since "$B20" | grep -c '"reply_markup"' || true)
+UM_AFTER=$(ls "$INBOX"/*-user-message-*.md 2>/dev/null | wc -l | tr -d ' ')
+RP_FILE=$(ls "$TGH/state/route-pending"/route-* 2>/dev/null | grep -v '\.answered$' | head -1)
+RP_OK=0   # registry holds miapos, bankco, quiet-proj (scenario 19) -> «общий» is button 4
+[[ -n "$RP_FILE" ]] && grep -q '^button1: miapos$' "$RP_FILE" && grep -q '^button2: bankco$' "$RP_FILE" \
+  && grep -q '^button3: quiet-proj$' "$RP_FILE" \
+  && grep -q '^button4: общий$' "$RP_FILE" && grep -qxF "workspace4: $WS2" "$RP_FILE" \
+  && grep -qF "нужен пост про запуск" "$RP_FILE" && RP_OK=1
+RID="$(basename "${RP_FILE:-missing}")"
+add_callback "$OWNER_CHAT" "$RID|2"                       # button2 = bankco
+B20B=$(sent_count)
+listener >> "$T" 2>&1
+ROUTED_ACK=$(sent_since "$B20B" | grep -c "направляю в \[bankco\]" || true)
+RM_FILE=$(ls "$INBOX"/*-user-message-*.md 2>/dev/null | head -1)
+RM_OK=0
+[[ -n "$RM_FILE" ]] && grep -qxF "workspace: $WS2" "$RM_FILE" && grep -qx "routed: 1" "$RM_FILE" && RM_OK=1
+handler >> "$T" 2>&1
+NO_CLARIFY=$(sent_since "$B20B" | grep -c "Уточни одно" || true)
+PROP1=$(ls "$WS2/decisions/inbox"/*-task-proposal-*.md 2>/dev/null | wc -l | tr -d ' ')
+FORMULATED=$(sent_since "$B20B" | grep -c "Оформил как задачу" || true)
+# --- named project: direct route, clarify round-trip keeps the target ------
+add_message "$OWNER_CHAT" "в bankco надо обновить статус-страницу"
+B20C=$(sent_count)
+listener >> "$T" 2>&1
+handler >> "$T" 2>&1
+NO_REASK2=$(sent_since "$B20C" | grep -c "В какой проект" || true)
+CLARIFY2=$(sent_since "$B20C" | grep -c "Уточни одно" || true)
+WS_REMEMBERED=0; [[ -f "$TGH/state/router/$OWNER_CHAT.pending.ws" ]] \
+  && [[ "$(cat "$TGH/state/router/$OWNER_CHAT.pending.ws")" == "$WS2" ]] && WS_REMEMBERED=1
+add_message "$OWNER_CHAT" "к пятнице"                     # the clarify ANSWER: no re-ask
+B20D=$(sent_count)
+listener >> "$T" 2>&1
+handler >> "$T" 2>&1
+NO_REASK3=$(sent_since "$B20D" | grep -c "В какой проект" || true)
+PROP2=$(ls "$WS2/decisions/inbox"/*-task-proposal-*.md 2>/dev/null | wc -l | tr -d ' ')
+sed -i '' '/DEFAULT_PROJECT/d' "$TGH/profile.conf"
+{
+  echo ""; echo "--- assertions ---"
+  echo "ONE re-ask with buttons: $REASK/$REASK_BTNS (1/1); text NOT double-filed as user-message: $UM_BEFORE -> $UM_AFTER (equal)"
+  echo "route-pending carries buttons miapos/bankco/общий + workspaces + the original text: $RP_OK (1)"
+  echo "press -> routed ack: $ROUTED_ACK (1); routed user-message with workspace+routed flags: $RM_OK (1)"
+  echo "routed answer skipped the second clarify: $NO_CLARIFY (must be 0); proposal in bankco inbox: $PROP1 (1); owner told: $FORMULATED (1)"
+  echo "named text routed directly (no re-ask): $NO_REASK2 (0), one clarify: $CLARIFY2 (1), target remembered: $WS_REMEMBERED (1)"
+  echo "clarify ANSWER not re-asked: $NO_REASK3 (0); second proposal landed in bankco: $PROP2 (must be 2)"
+} >> "$T"
+if [[ "$REASK" -eq 1 && "$REASK_BTNS" -eq 1 && "$UM_BEFORE" == "$UM_AFTER" && $RP_OK -eq 1 \
+      && "$ROUTED_ACK" -eq 1 && $RM_OK -eq 1 && "$NO_CLARIFY" -eq 0 && "$PROP1" -eq 1 \
+      && "$FORMULATED" -eq 1 && "$NO_REASK2" -eq 0 && "$CLARIFY2" -eq 1 && $WS_REMEMBERED -eq 1 \
+      && "$NO_REASK3" -eq 0 && "$PROP2" -eq 2 ]]; then
+  record "20-reask" PASS "no-project text got exactly ONE mechanical re-ask (buttons incl. «общий»); the press routed the original text and skipped a second clarify; a named text routed directly and its clarify round-trip landed the proposal in the named project"
+else
+  record "20-reask" FAIL "reask=$REASK/$REASK_BTNS um=$UM_BEFORE/$UM_AFTER rp=$RP_OK ack=$ROUTED_ACK rm=$RM_OK clarify=$NO_CLARIFY prop1=$PROP1 told=$FORMULATED named=$NO_REASK2/$CLARIFY2/$WS_REMEMBERED answer=$NO_REASK3 prop2=$PROP2"
+fi
+
+# ============================================================================
+# SCENARIO 21 — router H6: a DEAD registry path poisons nothing. The pass
+# stays rc 0, live projects keep rendering, /status and the digest each show
+# one honest ⚠ line, the log flags the path, unregister removes it cleanly.
+# ============================================================================
+T="$ATOM_WS/scenario-21-deadpath.txt"
+{ echo "Scenario 21 — dead registry path (H6)"; echo "Generated: $(date -u +%Y-%m-%dT%H:%M:%SZ)"; } > "$T"
+printf '%s\n' "$SB/gone-project" >> "$HOME/.qroky/registry"
+add_message "$OWNER_CHAT" "/status"
+B21=$(sent_count)
+bash "$TG_DIR/listener.sh" >> "$T" 2>&1; RC21=$?
+ST21="$(sent_since "$B21")"
+ST_WARN=$(printf '%s' "$ST21" | grep -c "путь из реестра не найден" || true)
+ST_LIVE=$(printf '%s' "$ST21" | grep -c "ATOM-D1" || true)
+DEAD_LOG=$(grep -cF "registry path not found: $SB/gone-project" "$TGH/telegram.log" || true)
+B21B=$(sent_count)
+QROKY_TEST_FORCE_DIGEST=1 bash "$TG_DIR/digest.sh" >> "$T" 2>&1; RC21D=$?
+DIG_WARN=$(sent_since "$B21B" | grep -c "путь из реестра не найден" || true)
+UNREG_OUT="$(bash "$TG_DIR/unregister.sh" "$SB/gone-project" 2>&1)"; printf '%s\n' "$UNREG_OUT" >> "$T"
+UNREG_OK=$(printf '%s' "$UNREG_OUT" | grep -c "unregistered:" || true)
+LINES_AFTER=$(grep -c . "$HOME/.qroky/registry" || true)
+UNREG_NOOP="$(bash "$TG_DIR/unregister.sh" "$SB/gone-project" 2>&1)"
+NOOP_OK=$(printf '%s' "$UNREG_NOOP" | grep -c "not registered (nothing to do)" || true)
+{
+  echo ""; echo "--- assertions ---"
+  echo "listener rc with a dead path: $RC21 (0); digest rc: $RC21D (0)"
+  echo "/status: honest ⚠ line: $ST_WARN (>0) AND live projects still render: $ST_LIVE (>0)"
+  echo "log flags the dead path: $DEAD_LOG (>0); digest carries its ⚠ status line: $DIG_WARN (>0)"
+  echo "unregister removed it: $UNREG_OK (1), registry back to $LINES_AFTER lines (must be 3); repeat = honest no-op: $NOOP_OK (1)"
+} >> "$T"
+if [[ $RC21 -eq 0 && $RC21D -eq 0 && "$ST_WARN" -gt 0 && "$ST_LIVE" -gt 0 && "$DEAD_LOG" -gt 0 \
+      && "$DIG_WARN" -gt 0 && "$UNREG_OK" -eq 1 && "$LINES_AFTER" -eq 3 && "$NOOP_OK" -eq 1 ]]; then
+  record "21-deadpath" PASS "dead registry path: rc 0 everywhere, live projects unaffected, one honest ⚠ line in /status and in the digest, log flagged, unregister clean + idempotent"
+else
+  record "21-deadpath" FAIL "rc=$RC21/$RC21D warn=$ST_WARN live=$ST_LIVE log=$DEAD_LOG dig=$DIG_WARN unreg=$UNREG_OK lines=$LINES_AFTER noop=$NOOP_OK"
 fi
 
 # ============================================================================

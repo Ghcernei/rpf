@@ -1,0 +1,59 @@
+Scenario 19 — merged digest (H2)
+Generated: 2026-07-10T20:15:24Z
+registered: /var/folders/pd/mlvnqxbj7tj0h1qb5qv78_l00000gn/T/qroky-tg-dry.jlfcVS/quiet-proj -> /var/folders/pd/mlvnqxbj7tj0h1qb5qv78_l00000gn/T/qroky-tg-dry.jlfcVS/home/.qroky/registry (3 workspace(s) total)
+
+--- assertions ---
+ONE message: 1 (must be 1); merged header + both project sections: 1 (1)
+empty project rendered as ONE line: 1 (1)
+GATE-B2 in bankco section: 1 (>0), in miapos section: 0 (must be 0)
+content per section: ATOM-D1 in miapos: 2 (>0), ATOM-B1 in bankco: 1 (>0)
+spend per project: 1/1 (>0 each); numeric total: 1 (1)
+already-signaled events as status lines: 19 (>0)
+
+--- digest (verbatim) ---
+Доброе утро. Сводный дайджест за 2026-07-10:
+
+[miapos]
+Сделано:
+• demo-product/ATOM-D2 — delivered (accepted r1)
+
+В работе:
+• demo-product/ATOM-D1 — running
+
+Ждёт тебя:
+• demo-product/ATOM-D3 — blocked (awaiting CEO gate)
+расход: ~120k токенов (ATOM-D1 executor)
+
+[bankco]
+Сделано:
+• пока пусто
+В работе:
+• bankco-product/ATOM-B1 — running
+
+Ждёт тебя:
+• GATE-B2 — ждёт твоего решения (кнопки в чате выше)расход: 300k токенов (bankco executor)
+
+[quiet-proj] — тихо: изменений нет, решений не ждём
+
+Уже в ленте сегодня (статус, не тревога):
+• FAIL-TEST — уже приходило событием сегодня, без повторной тревоги
+• GATE-B1 — уже приходило событием сегодня, без повторной тревоги
+• GATE-B2 — уже приходило событием сегодня, без повторной тревоги
+• GATE-DT — уже приходило событием сегодня, без повторной тревоги
+• GATE-LL — уже приходило событием сегодня, без повторной тревоги
+• GATE-PEND — уже приходило событием сегодня, без повторной тревоги
+• GATE-PH — уже приходило событием сегодня, без повторной тревоги
+• GATE-RISK — уже приходило событием сегодня, без повторной тревоги
+• GATE-T1 — уже приходило событием сегодня, без повторной тревоги
+• GATE-T2 — уже приходило событием сегодня, без повторной тревоги
+• GATE-T3 — уже приходило событием сегодня, без повторной тревоги
+• INFO-LBL — уже приходило событием сегодня, без повторной тревоги
+• NIGHT-BLOCKER — уже приходило событием сегодня, без повторной тревоги
+• NIGHT-RESULT — уже приходило событием сегодня, без повторной тревоги
+• OVERDUE-D3 — уже приходило событием сегодня, без повторной тревоги
+• RESULT-D2 — уже приходило событием сегодня, без повторной тревоги
+• narrative-demo-product-0 — уже приходило событием сегодня, без повторной тревоги
+• narrative-demo-product-188 — уже приходило событием сегодня, без повторной тревоги
+• narrative-demo-product-411 — уже приходило событием сегодня, без повторной тревоги
+
+итого расход (по числовым ledger): 300

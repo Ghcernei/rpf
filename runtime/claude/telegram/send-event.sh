@@ -5,8 +5,14 @@
 #
 # usage:
 #   send-event.sh --kind gate|e1|result|overdue|beat|info --id <event-id> \
-#     --text <message text> [--buttons "Label 1|Label 2|..."] [--risk] [--blocker]
+#     --text <message text> [--buttons "Label 1|Label 2|..."] [--risk] [--blocker] \
+#     [--workspace <path>]   # origin project (default: QROKY_TG_ROOT / registry primary)
 #   send-event.sh --flush-queue     # deliver quiet-hours queue, blockers first
+#
+# Router (ATOM-111): when the machine registry holds >1 workspace, outbound
+# text is prefixed with the origin's «[name] » label (unless it already
+# starts with one), and the origin workspace path is persisted with the
+# pending-gate entry — a button press routes the decision record HOME.
 #
 # Behavior:
 # - quiet hours (profile) => the event is QUEUED, not sent (H14); the queue
@@ -37,6 +43,7 @@ TEXT=$(printf '%q' "$TEXT")
 BUTTONS=$(printf '%q' "$BUTTONS")
 RISK=$(printf '%q' "$RISK")
 BLOCKER=$(printf '%q' "$BLOCKER")
+WORKSPACE=$(printf '%q' "$WORKSPACE")
 EOF
 }
 
@@ -45,6 +52,12 @@ deliver() { # actually send one event (quiet hours already cleared)
   [[ -n "$chat" ]] || { log send-event "no bound chat_id — event $ID queued; run install.sh --bind first"; queue_event; return 0; }
 
   local text="$TEXT" markup="" btn_lines=""
+  # Router label (ATOM-111): origin project up front, human-readable. Only
+  # when >1 workspace is registered (v1 machines see v1 texts), and never
+  # doubled — text already opening with a bracket label keeps its own.
+  if router_active && [[ "$text" != \[* ]]; then
+    text="[$(workspace_name "$WORKSPACE")] $text"
+  fi
   if [[ "$RISK" == "1" ]]; then
     # H5: no buttons for risk-level HUMAN-TASKs — explicit typed word only.
     [[ -n "$BUTTONS" ]] && log send-event "risk item $ID: buttons refused by rule"
@@ -85,6 +98,7 @@ PYEOF
   if [[ "$KIND" == "gate" || "$KIND" == "e1" ]]; then
     atomic_write "$STATE_DIR/pending-gates/$ID" <<EOF
 risk: $RISK
+workspace: $WORKSPACE
 sent: $(date -u +%Y-%m-%dT%H:%M:%SZ)
 ${btn_lines:+$btn_lines
 }---
@@ -113,13 +127,13 @@ flush_queue() {
   for f in "$QUEUE_DIR"/*.ev; do        # glob sorts: 0-blockers first (H14)
     [[ -f "$f" ]] || continue
     # shellcheck disable=SC1090
-    KIND="" ID="" TEXT="" BUTTONS="" RISK="0" BLOCKER="0"; . "$f"
+    KIND="" ID="" TEXT="" BUTTONS="" RISK="0" BLOCKER="0" WORKSPACE="$TG_ROOT"; . "$f"
     rm "$f"                             # claim before deliver; failure re-queues
     deliver
   done
 }
 
-KIND="" ID="" TEXT="" BUTTONS="" RISK="0" BLOCKER="0" FLUSH=0
+KIND="" ID="" TEXT="" BUTTONS="" RISK="0" BLOCKER="0" FLUSH=0 WORKSPACE="$TG_ROOT"
 while [[ $# -gt 0 ]]; do
   case "$1" in
     --kind) KIND="$2"; shift 2 ;;
@@ -128,6 +142,9 @@ while [[ $# -gt 0 ]]; do
     --buttons) BUTTONS="$2"; shift 2 ;;
     --risk) RISK=1; shift ;;
     --blocker) BLOCKER=1; shift ;;
+    # normalized like register.sh writes registry entries — the workspace
+    # persisted with a pending gate must compare byte-equal to them
+    --workspace) WORKSPACE="$2"; [[ -d "$WORKSPACE" ]] && WORKSPACE="$(cd "$WORKSPACE" && pwd)"; shift 2 ;;
     --flush-queue) FLUSH=1; shift ;;
     *) fatal send-event "unknown argument: $1" ;;
   esac
