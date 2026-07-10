@@ -1,0 +1,8 @@
+Scenario 4 — chat_id binding (H4)
+Generated: 2026-07-10T13:53:28Z
+
+--- assertions ---
+replies sent to the foreign chat: 0 (must be 0 — no action)
+flag lines in the log: 2 (must be 2 — one per foreign update)
+quarantine records: 2 (must be 2)
+inbox events created from foreign updates: 0 (must be 0)

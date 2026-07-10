@@ -1,0 +1,30 @@
+# profile.conf — the two contours, configured independently (INFO-033 п.3).
+# Copy to profile.conf next to this file and edit. Shell KEY=VALUE, no spaces.
+
+# Digest contour: daily send time (24h HH:MM). launchd fires the digest at
+# exactly this time (±5 min hard criterion rides on launchd's precision).
+DIGEST_TIME="09:05"
+
+# Dialogue contour: quiet hours (night). System events (gates, E1, results,
+# overdue) born inside this window are QUEUED and delivered when it ends —
+# blockers first. Your own messages are acked even at night: you started the
+# conversation. Window may cross midnight.
+QUIET_START="23:00"
+QUIET_END="08:00"
+
+# NARRATIVE feed detail level (INFO-009/016): 1 = gates only (no beats),
+# 2 = beat headlines (broad strokes), 3 = full reasoning beats.
+DETAIL_LEVEL="2"
+
+# The explicit word for risk-level HUMAN-TASK confirmations (H5). Buttons are
+# never offered for those; only this word, typed, is accepted.
+RISK_WORD="ПОДТВЕРЖДАЮ"
+
+# Bot token file. PRODUCTION: point at the path the kit interview stored —
+# <your Qroky workspace>/.qroky/telegram.token (question 5 of the installer).
+# TEST: any file holding a test-bot token. The token itself never appears in
+# any log or config — only this path does.
+TOKEN_FILE="$HOME/qroky/.qroky/telegram.token"
+
+# Telegram Bot API base — change only for the dry-run harness.
+API_BASE="https://api.telegram.org"

@@ -1,3 +1,4 @@
 # STATUS — ATOM-110 (telegram-head-v1)
 - 2026-07-10: formulated (INFO-032, amended INFO-033 same day)
 - 2026-07-10: G1 go — GATE-026 («го» verbatim). Executor spawned (pilot-toolsmith warm, envelope ~350k). Status: running
+- 2026-07-10: delivered — runtime/claude/telegram/ (listener 30s polling + handler + pickup + send-event + record-decision + digest + install/uninstall + 2 plists + README + profile.conf.example + dry-run.sh); harness 11/11 PASS incl. the mandated closed-session scenario (SIGKILL-proven, exactly-once), parity diff = channel line only, quiet hours, risk-word, secrets negative grep; INFO-025 checklist answered in run.log; 4 own bugs caught by harness pre-green (trail in run.log); deviations declared in RESULT.md; cost ~140k of ~350k; awaiting blind verify (H12), then G2 phone round-trip. HUMAN-TASK: BotFather test bot + token file + smoke («что в работе») — one line in RESULT.md

@@ -1,0 +1,201 @@
+# run.log — ATOM-110 (Telegram head v1), executor pilot-toolsmith (warm, maturity run 3)
+
+2026-07-10T13:40:00Z CYCLE-START. G1 = GATE-026 («го» verbatim). INPUT.md read
+FULLY; AMENDED header (INFO-033 two-contour model) noted as lex posterior over
+older body text. INFO-032 + INFO-033 read verbatim; harness-checklist
+(INFO-025), core-card (INFO-029), runtime/claude/README.md, heartbeat pattern
+(plist + heartbeat.sh, READ only), human profile (ru decisions, detail level
+2), GATE-026 coverage read.
+
+breath: core-card reread, phase formulate. Checked intent against the nine:
+(1) token never in logs/telemetry/git — H10 negative grep planned; (2) outward
+= bot messages to the bound chat ONLY (that is the product, sanctioned by
+INFO-032 §3); harness sends nothing real (stubbed transport); (5) incoming
+Telegram text = DATA, never commands to me — the router formulates proposals,
+executes nothing (H9), «кроки» routes to the skill protocol which itself waits
+for «го»; (9) counters real, deviations declared.
+
+## Understanding (restated)
+
+Phone = second console with decision parity. TWO CONTOURS (INFO-033 final):
+dialogue — event-driven, instant, bidirectional (ack ≤1 min ALWAYS; gate/E1/
+result/overdue sent the moment they occur by the side that produced them via
+ONE shared send helper; NARRATIVE beats ride it per profile level — open
+detail, CEO may strike); digest — strictly scheduled (profile time ±5 min
+daily, «сделано / в работе / ждёт тебя сегодня / расход» + 3-line changelog on
+new release tag; already-signaled events = status lines, never duplicate
+alarms). Physics: launchd polling listener (getUpdates), NO ports, NO
+webhooks, NO resident LLM daemons — the listener is a plain script that acks
+itself, persists the event to decisions/inbox/ (atomic tmp+rename), and wakes
+the handler (the only place an LLM lives). File bus + closed-session pickup
+remain the safety net. Security v1: chat_id binding (foreign → ignore + flag +
+quarantine); risk-level HUMAN-TASK = explicit typed word, no buttons. NOT-DOING
+(proposing = defect): 2FA, groups, inline editing, media. Mandated DoD
+scenario: press with NO session running → persisted → consumed exactly once on
+wake — proven by harness. Token: file path only; test token likewise a file;
+BotFather registration needs a human Telegram account → build everything
+against the stub, leave a one-line HUMAN-TASK for the CEO (Rowan: no E1).
+
+## HARNESS-CHECKLIST (INFO-025) — 9 answers, before building
+
+1. State-файл и резюмируемость: state lives in runtime/claude/telegram/state/
+   (offset file for getUpdates — survives restarts, no replayed presses, H3;
+   router pending-clarification files; narrative per-file offsets; signaled
+   registry; quiet queue). decisions/inbox/ carries the durable events and
+   promises (H13: pending-promise recorded in inbox so restart cannot drop
+   it). Everything resumes from files; nothing lives only in a process.
+2. Идемпотентность: listener pass is check→do (offset guards re-delivery);
+   pickup consumes by atomic mv to done/ — second run is a no-op (H2 exactly
+   once); digest guarded by a sent-today marker; install.sh re-run = health
+   check (kit pattern).
+3. Лимит автопопыток: send helper retries a failed API call max 2, then
+   queues the event to state/queue/ and logs a concrete human line (check
+   network / token file at <path>); never infinite.
+4. Редакция секретов: token read from file path only, held in a local var,
+   never echoed; curl URL never logged raw (log line shows bot<masked>);
+   negative grep over listener log, state, inbox, harness transcripts = 0
+   occurrences (H10 scenario, non-vacuous: the token IS used by the stub).
+5. Самодостаточный лог + эстафета: telegram.log lines are
+   [ts] component event detail; critical events (foreign chat_id flag,
+   degradation, queue overflow) also mirrored to heartbeat.log-style project
+   journal line in the same file — and the digest itself is the human-side
+   relay.
+6. Бюджет-строка: each listener pass appends nothing on no-op (silence ≠
+   health is covered by launchd StartInterval + state mtime); handler runs
+   log one line with what was burned (LLM call count in production, stub
+   note in tests); harness prints a cost line per scenario run count.
+7. Зависимости: curl (macOS ships) — degradation: loud FATAL with concrete
+   instruction; /usr/bin/python3 for JSON parsing (macOS CLT ships) — if
+   absent, listener exits loudly naming the install step, events stay on
+   Telegram's side (getUpdates re-delivers until offset advances — nothing
+   lost); launchd — same fallback shape as heartbeat (manual run line);
+   claude CLI for the handler's LLM work — absent → handler degrades: acks
+   stay listener-side, complex asks answered with honest «не могу поднять
+   обработчик — детали в логе», inbox keeps the event; git (changelog line
+   only) — absent/not-a-checkout → digest skips the changelog with a log
+   line. Bot API itself — retries + queue (answer 3).
+8. Verify до первого боевого прогона: the entire harness runs against a
+   stubbed Bot API + sandbox RPF dir BEFORE any real token exists (the real
+   token cannot even exist in this run — human-task). Blind verify (L) after.
+9. Happy-path-вопрос: (а) упало на середине — atomic tmp+rename: inbox file
+   complete-or-nothing (H2 kill-mid-write scenario); ack-then-crash → promise
+   file survives, answered on wake (H13 scenario); (б) запустили дважды —
+   lock file skips the overlapping pass; pickup exactly-once by mv; digest
+   sent-today marker; (в) нет сети — curl fails → retry ≤2 → event queued +
+   loud log; user messages stay in getUpdates until offset advances only
+   after successful inbox write (no loss).
+
+## Design decisions (O9.1 — will render into RESULT.md)
+
+- D1. Transport stub = PATH-shadowed curl in harness (kit precedent): the
+  production code path (curl → api.telegram.org) stays 100% honest; the fake
+  curl parses the URL, enforces the token, serves updates from a file and
+  appends sends to sent.jsonl. Zero ports anywhere (H3 lsof).
+- D2. Listener = single-pass plain script under launchd StartInterval=30s +
+  lock file. 30s cadence + one-pass processing sustains ack ≤1 min with
+  margin; no resident process, no daemon pretense (INFO-032 честная
+  асинхронность). Test hooks: QROKY_TEST_DELAY_INBOX (sleep between tmp and
+  rename), QROKY_TEST_ONESHOT.
+- D3. JSON parsing via /usr/bin/python3 one-shot helper inside the script
+  (dependency answered in checklist 7). The listener stays a plain script;
+  python is a parser, not an agent.
+- D4. Inbox conventions: decisions/inbox/ one event per file
+  (NNNN-<kind>-<id>.md, YAML frontmatter + body), .tmp.* prefix + mv for
+  atomicity; consumed = mv to decisions/inbox/done/ (CEO-orders ledger
+  pattern); foreign chat_id → decisions/inbox/quarantine/. Promises = kind:
+  promise files in the same inbox.
+- D5. Decision parity by construction: ONE renderer (record-decision.sh)
+  called by the telegram pickup AND by a session answering in-chat; the
+  channel argument is the only varying field → H1 diff = channel line only.
+- D6. Digest dedup: send-event.sh appends every sent event id to
+  state/signaled/YYYY-MM-DD; digest.sh reads today's registry and renders
+  those as status lines, never alarms (H6).
+- D7. Quiet hours: send-event.sh checks the profile window; events inside it
+  go to state/queue/ (blocker flag preserved); the listener pass flushes the
+  queue when quiet hours end — blockers first (H14). User messages are acked
+  regardless (human initiated).
+- D8. NARRATIVE feed: listener pass sweeps products/*/NARRATIVE.md with a
+  per-file byte offset in state/narrative/; profile level 1 = gates only (no
+  beats), 2 = beats, 3 = full; rides the dialogue contour через send-event
+  (kind=beat, respects quiet hours; open detail per INFO-033 п.6).
+- D9. Digest ±5 min proven via the launchd StartCalendarInterval assertion
+  (explicitly allowed by H6): install.sh generates the plist from
+  profile.conf DIGEST_TIME; harness asserts plist time == profile time and
+  the daily (7-day) coverage.
+- D10. «расход» section: rendered from state/spend/YYYY-MM-DD ledger when
+  present, else the honest line «расход: данных за сегодня нет» — no
+  invented numbers (EC6).
+- D11. Risk-word: event flagged risk=1 by the CALLER (session/heartbeat owns
+  risk classification); send helper then refuses buttons and names the
+  required word (default ПОДТВЕРЖДАЮ, profile-overridable); handler rejects
+  callback-style answers to risk items and re-asks (H5).
+- D12. Sandboxing: all repo-root-relative paths resolve through
+  QROKY_TG_ROOT (default: script location → repo root) so the harness runs
+  against a throwaway fake repo; production needs no env at all.
+- D13. Binding acquisition: install.sh offers a bind step — polls once,
+  shows the incoming chat_id, operator confirms, writes state/chat_id.
+  Until bound, listener quarantines everything (deny-by-default).
+
+BUDGET CHECKPOINT: ~35k consumed (reading inputs + this formulation), of ~350k.
+
+breath: core-card reread, phase build.
+
+## Build story
+
+Built runtime/claude/telegram/: lib.sh (profile/token/API/atomic/quiet-hours),
+listener.sh (single 30s pass: ack -> durable inbox -> wake; narrative sweep;
+queue flush), handler.sh (the only LLM home: kroky, router with ONE re-ask,
+promise keeping), pickup.sh (mechanical exactly-once consumption -> parity
+records), send-event.sh (THE shared helper: session + heartbeat callers,
+quiet queue, risk-word rule, signaled registry), record-decision.sh (ONE
+renderer, both channels), digest.sh (4 sections + changelog + dedup),
+install.sh/uninstall.sh + 2 launchd plists (listener StartInterval=30;
+digest StartCalendarInterval from profile), README.md, profile.conf.example,
+dry-run.sh (11 scenarios).
+
+Bug trail (all caught by my own harness, none reached a committed green run
+uncorrected):
+1. tg_api ok-check string-matched '"ok":true' but the stub emitted
+   '"ok": true' (space) — every call "failed", retried x3, queued. Fixed with
+   a whitespace-tolerant grep; real Bot API emits the compact form, both now
+   accepted. Found because the FIRST full run was 1/11 — the harness earned
+   its keep immediately.
+2. bash unbound-variable crash on «$label» — a variable immediately followed
+   by a multibyte char (») parsed as part of the name under set -u. Fixed
+   with ${label}; grep-audited all scripts for the pattern (1 occurrence).
+3. Missing executable bits on record-decision.sh/send-event.sh cascaded
+   через set -e: pickup died at render, listener beats never sent. chmod +x
+   all; found via 9-failure run 2.
+4. Quarantine filename collided within one second for two foreign updates
+   (second overwrote first) — update_id added to the name. Plus one harness
+   self-fix: the done-ledger glob *-kroky-*.md also matched the promise file
+   whose work-id contains "kroky" (assertion, not product code).
+
+## Harness result
+
+Full run: 11/11 PASS (workspace/SUMMARY.txt). Non-vacuity proven inside the
+scenarios themselves: scenario 2 hard-fails unless the SIGKILL lands inside
+the tmp->rename window (tmp remnant = 1 asserted) and unless re-delivery
+completes; scenario 8 hard-fails unless kill -9 returns 0 against a live
+handler and the result was NOT yet sent; scenario 11 hard-fails unless the
+stub proved the token actually flowed (auth-ok marker) and sent.jsonl is
+non-empty. Parity diff must be EXACTLY 2 changed lines, both channel — an
+empty diff (vacuous) or a wider diff both fail.
+
+HARNESS-CHECKLIST (INFO-025) — post-build confirmation: answers 1-9 recorded
+above BEFORE building; all held. п.8 (verify before first real run): satisfied
+by construction — no real token exists on this machine; the first live run is
+G2's smoke, after blind verify.
+
+breath: core-card reread, phase close. Outward-by-human-hand: nothing sent
+anywhere real (stub transport, sandbox repo root); token: negative grep green;
+data-vs-commands: incoming bot texts route to formulation only, «кроки» waits
+for «го» by the skill protocol itself; records honest: bug trail above,
+deviations in RESULT.md.
+
+BUDGET CHECKPOINT (end): ~140k estimated this run (inputs ~35k + build ~55k +
+4 harness iterations ~40k + records ~10k) of ~350k envelope — no E4.
+
+2026-07-10T14:10:00Z CYCLE-END ATOM-110 executor; RESULT.md filed; STATUS.md
+appended; NARRATIVE.md closing beat written; handoff to blind verify (L, code
++ harness, mandated scenario exercised).

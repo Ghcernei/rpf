@@ -1,0 +1,9 @@
+Scenario 7 — dialogue-contour events + NARRATIVE feed (H7)
+Generated: 2026-07-10T13:53:29Z
+
+--- assertions ---
+result + blocker events sent the moment they occur (no session, no listener): 2 (must be 2)
+level 2 beat: headline sent: 1 (1), body suppressed: 0 (0)
+no re-send of old beats: 20 -> 20 (must be equal)
+level 3 beat: full reasoning included: 1 (must be >0)
+level 1: beat NOT sent: 0 (must be 0)

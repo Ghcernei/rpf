@@ -1,0 +1,11 @@
+Scenario 2 — the mandated DoD scenario (H2)
+Generated: 2026-07-10T13:53:23Z
+press persisted while NO session runs: 1 file(s) in inbox
+
+--- assertions ---
+record rendered after two wakes: 1 (must be 1 — exactly once)
+inbox residue: 0 (0), consumed ledger: 1 (1), second wake was a no-op: yes
+kill landed inside the tmp->rename window: 1 (must be 1 — otherwise the scenario is vacuous)
+complete-or-nothing: complete files after kill = 0 (0), tmp remnant = 1 (1, proves the window)
+offset NOT advanced by the killed pass: 102 -> 102 (must be equal)
+re-delivery on next pass persisted the press: 1 (must be 1 — no loss)

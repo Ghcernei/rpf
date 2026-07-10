@@ -2,7 +2,7 @@
 atoms:
   ATOM-110:
     folder: 110-telegram-head
-    status: running
+    status: delivered (harness 11/11; awaiting blind verify)
     maturity: —
     opened: 2026-07-10
     gate: GATE-026 (G1 go)

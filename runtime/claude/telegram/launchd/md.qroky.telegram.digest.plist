@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>Label</key>
+    <string>md.qroky.telegram.digest</string>
+
+    <key>ProgramArguments</key>
+    <array>
+        <string>/bin/bash</string>
+        <string>__TG_DIR__/digest.sh</string>
+    </array>
+
+    <!-- Digest contour: fires DAILY at the profile DIGEST_TIME (install.sh
+         bakes hour/minute in from profile.conf — the ±5 min criterion). A
+         dict without Weekday means every day. -->
+    <key>StartCalendarInterval</key>
+    <dict>
+        <key>Hour</key><integer>__HOUR__</integer>
+        <key>Minute</key><integer>__MINUTE__</integer>
+    </dict>
+
+    <key>RunAtLoad</key>
+    <false/>
+
+    <key>KeepAlive</key>
+    <false/>
+
+    <key>EnvironmentVariables</key>
+    <dict>
+        <key>PATH</key>
+        <string>__HOME__/.local/bin:/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin</string>
+        <key>HOME</key>
+        <string>__HOME__</string>
+    </dict>
+
+    <key>StandardOutPath</key>
+    <string>__TG_DIR__/state/launchd.digest.stdout.log</string>
+
+    <key>StandardErrorPath</key>
+    <string>__TG_DIR__/state/launchd.digest.stderr.log</string>
+
+    <key>ProcessType</key>
+    <string>Background</string>
+</dict>
+</plist>
