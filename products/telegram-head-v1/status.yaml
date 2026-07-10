@@ -2,7 +2,7 @@
 atoms:
   ATOM-110:
     folder: 110-telegram-head
-    status: reviewed (verify ACCEPT r1, 0 blocking 6 minor; minor-fix round before G2 smoke)
+    status: reviewed (verify r1 ACCEPT 6 minor -> r2 RETURN R2-1 -> r3 ACCEPT; awaiting G2 phone smoke)
     maturity: —
     opened: 2026-07-10
     gate: GATE-026 (G1 go)

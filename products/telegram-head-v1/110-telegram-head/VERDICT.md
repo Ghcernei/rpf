@@ -1,8 +1,8 @@
 # VERDICT — ATOM-110 (Telegram head v1), independent blind verify (L)
 
-> **FIX ROUND r2 (commit 418970c): RETURN — one NEW BLOCKING regression
-> (R2-1, double-press poison pill in the M1 fix), M2–M6 fixed, M1 core
-> fixed. One-line-class fix. See «Fix round re-check (r2)» at the end.**
+> **FINAL (r3, commit 27844b7): ACCEPT — R2-1 fixed and repro-verified;
+> harness 15/15. History: r1 ACCEPT (6 minors) → r2 RETURN (R2-1 regression)
+> → r3 ACCEPT. See the «Fix round re-check» sections at the end.**
 
 - **Round 1 verdict: ACCEPT** (0 blocking, 6 minor findings)
 - **Verifier:** blind L-tier session, 2026-07-10; no prior contact with the build
@@ -216,3 +216,71 @@ is one line plus one harness scenario. **RETURN (R2-1 only).**
 *Verifier spend estimate r2: ~35k tokens (diff read ~10k, harness re-run +
 delta probes ~20k, verdict update ~5k); cumulative ~125k of the ~180k
 envelope.*
+
+---
+
+## Fix round re-check (r3) — commit 27844b7, single finding R2-1
+
+- **Verdict: ACCEPT** — R2-1 fixed; harness **15/15 PASS** (my own run,
+  exit 0, PASS lines identical to the committed SUMMARY.txt; executor
+  transcripts backed up before my run and restored byte-identical).
+
+### The fix (listener.sh:116–119)
+
+```sh
+label=""
+if [[ "$idx" =~ ^[0-9]+$ && -f "$pfile" ]]; then
+  label="$(sed -n "s/^button$idx: //p" "$pfile" 2>/dev/null | head -1 || true)"
+fi
+```
+
+Exactly the two guards the RETURN asked for: the index is validated numeric
+BEFORE it can reach the sed expression (kills the old-format `/` crash
+class), the file existence is checked, and the pipeline is failure-tolerant
+(`|| true`) — the polite-decline guard at :120 is now genuinely reachable.
+
+### My repro, re-run against the fixed code (independent sandbox)
+
+All four poison cases from my r2 trace, each previously rc=1 with a frozen
+offset and zero replies:
+
+| Case | Result |
+| :---- | :---- |
+| True double-tap after pickup (`.answered` rename asserted real) | rc 0; `bash -x` trace shows the sed lookup survived and the guard was reached; polite «Не нашёл этот вопрос…» sent |
+| Press on a long-answered gate (registry entry gone entirely) | rc 0, polite decline |
+| Sed-breaking old-format callback `GATE-T1\|Да/принять` | rc 0, polite decline (numeric guard, sed never invoked) |
+| Pipe-less junk `junkdata-no-pipe` | rc 0, polite decline |
+
+After the storm: zero new gate-answer records (0 → 0), offset caught up to
+the last update id (105 = 105 — no replay, no loop), and the next pass is
+healthy (`/status` answered with real atoms, rc 0).
+
+### Scenario 15 — discriminating against the pre-fix code
+
+Confirmed by construction against my r2 trace: pre-fix, every leg dies at
+the sed lookup with rc≠0 (`RC_A/RC_B/RC_C` assertions fail), zero polite
+replies are sent (`POLITE_COUNT` 0 ≠ 4), and the offset freezes
+(`OFFSET15 != MAX15`) — three independent assertion groups would each catch
+it. The double-tap setup is real (first press flows through pickup and the
+`.answered` rename is asserted =1), the contour-alive check (`/status` after,
+`STILL_ALIVE > 0`) closes the loop. Non-vacuous.
+
+### Scope and records
+
+Commit touches only `listener.sh` handle_callback (13 lines), `dry-run.sh`
+scenario 15 (+59), and records/transcripts — surgical, as scoped. Scenarios
+1–14: all PASS in my run, assertions unweakened (transcript diffs are
+timestamps/counters only). RESULT.md carries the honest correction — the r2
+claim of the polite reply is explicitly retracted as «FALSE as implemented,
+dead code; I wrote the guard and never exercised its failure leg» — the
+record now matches reality.
+
+### Bottom line (r3)
+
+The poison pill is gone: every owner-normal bad press declines politely,
+advances the offset, and leaves the contour alive. Nothing else moved. With
+r1's six minors closed in r2 and R2-1 closed here, the build stands at
+**ACCEPT** — H12 satisfied; next is G2, the live phone round-trip.
+
+*Verifier spend estimate r3: ~12k tokens (diff ~3k, repro + full harness
+~6k, verdict ~3k); cumulative ~137k of the ~180k envelope.*
