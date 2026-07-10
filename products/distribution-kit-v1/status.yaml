@@ -32,3 +32,10 @@ atoms:
     opened: 2026-07-10
     parent: ATOM-100
     mandate: G2 blocking finding (gesture never shipped) + M1 workdir default
+  ATOM-104:
+    folder: 104-installation-journey
+    status: running
+    maturity: —
+    opened: 2026-07-10
+    gate: GATE-028 (G1 go + 2 follow-up decisions)
+    mandate: GATE-027 G2-return fix (kit v0.2, journey + bot hello + question 9)
