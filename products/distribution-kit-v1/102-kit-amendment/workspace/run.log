@@ -1,0 +1,135 @@
+2026-07-10T09:00:00Z CYCLE-START ATOM-102; executor claude-sonnet-5 as pilot-toolsmith (tier M, warm context from ATOM-101 rounds 1-2); budget ~150k this round; recursion_allowance 0
+
+UNDERSTANDING RESTATEMENT
+Mandated amendment (kit v0.1.1) from INFO-030 p.3/p.4 — the interview's
+closed list is extended BY ITS OWNER (CEO) to EIGHT points. Not an E1
+question: the list owner changed the list; my job is implementation.
+1. New interview point 8 — backup opt-in to the USER'S OWN private GitHub:
+   benefit-framed, recommendation hint = yes, one honest line (goes to
+   YOUR account, nobody else's). "Да" must work for someone who does not
+   know the word GitHub — hand-held gh flow in the BotFather pattern:
+   gh presence check (install hint if missing), gh auth login walkthrough
+   with numbered human steps, create a PRIVATE repo, initial push of the
+   workdir. Secrets NEVER in the backup: gitignore in the user workdir +
+   harness negative grep over the actually-pushed tree (extends H4).
+   Restore = one documented clone command. Opt-out recorded in state, no
+   nagging, enable-later command documented. Same check->do idempotency
+   and failure-ladder rules; gh/network failures degrade with a concrete
+   human action and the install CONTINUES without backup, never dies.
+2. Disclaimer layer: one properly-localized line in all three READMEs AND
+   the finale screen («Система производит черновики и анализ;
+   юридические/финансовые/медицинские решения и подписи — только человек.
+   Not professional advice.»). FAQ line in READMEs: «бэкап уходит в ВАШ
+   аккаунт».
+3. Harness: new backup scenario (stubbed gh: auth, repo create, push —
+   the stub performs a REAL git push to a local bare repo so the negative
+   grep runs over a real pushed payload) + opt-out branch; FULL harness
+   re-run all green, non-vacuous; question inventory = exactly EIGHT
+   points, still zero questions outside the interview.
+4. Records: RESULT.md (101 folder) gets a "v0.1.1 amendment" section; new
+   transcripts + this run.log go to 102-kit-amendment/workspace/ (the 101
+   workspace stays untouched); READMEs' question lists become eight. Same
+   write perimeter, no git.
+
+SOURCES CONSULTED
+- products/distribution-kit-v1/102-kit-amendment/INPUT.md (authoritative)
+- decisions/INFO-030-platform-community-support.md (mandate, p.3 + p.4
+  verbatim; p.1 also checked preventively: the interview must contain NO
+  model/tariff question — confirmed, it never did; subscription stays a
+  login-check)
+- Existing kit state: distribution/install.sh + lang/*.sh + README.*.md +
+  dry-run.sh as delivered by ATOM-101 round 2 (warm context)
+
+DESIGN DECISIONS (O9.1, this round)
+D1. Backup step order: point 8 runs AFTER heartbeat (point 7), last before
+    the finale — the workdir is complete at that moment, so the initial
+    push captures the whole installed state.
+D2. Repo name: fixed "qroky-backup" (private). Restore command printed at
+    success and documented in READMEs: `gh repo clone qroky-backup` (one
+    command; gh resolves the user's own account — no need to know a URL).
+    README adds: after restore, run install.sh once in the clone to
+    reattach the pinned rulebook (submodule).
+D3. Secrets exclusion: a .gitignore is written into the user workdir at
+    opt-in time (check->do: only appended if the marker block is absent),
+    excluding .qroky/telegram.token, *.token, .env*, *.pem, *.key,
+    *secret*, *credential*, and install.log (logs carry the masked-token
+    audit line; excluding them entirely is stricter than needed but
+    cheaper to reason about). The harness proves the exclusion on the
+    PUSHED tree, not the working tree: the gh stub's `repo create --push`
+    performs a real `git push` into a local bare repo, and the scenario
+    greps that bare repo's full history for the raw token AND checks
+    `ls-tree` for the token filename — both must be empty while the tree
+    itself must be non-empty (install-state.json present) so the check
+    cannot pass vacuously.
+D4. gh commit identity: a fresh non-technical machine often has no
+    git user.email; the backup commit falls back to -c user.name/email
+    ("Qroky backup <qroky-backup@local>") only when the user has none —
+    never overriding an existing identity.
+D5. Failure shape per INPUT: gh missing -> plain-language install hint +
+    continue without backup + enable-later command (no ladder — installing
+    software has no automatic remedy, same reasoning as the Claude Code
+    step, ATOM-101 Decision 6). gh auth failure -> human-language message,
+    continue without backup. Mechanical part (add/commit/create/push) runs
+    through run_with_ladder (2 auto-retries — network push is a real
+    transient-failure candidate); final failure = concrete human action +
+    install continues, exit 0.
+D6. New flag `bash install.sh --enable-backup` (mirrors --enable-heartbeat)
+    = the documented enable-later path for opt-outs; reuses the same flow
+    functions, resolve_and_load_state first.
+D7. Transcript destination switched: dry-run.sh's ATOM_WORKSPACE now
+    points at 102-kit-amendment/workspace/ per INPUT §4 — the committed
+    101 transcripts remain untouched as round-2 evidence.
+
+BUDGET CHECKPOINT (start): INPUT + INFO-030 reads ~10k. Proceeding.
+
+BUILD STORY (after design decisions)
+- install.sh: state fields answer_backup_optin / step_backup / backup_repo;
+  _backup_ensure_gitignore (marker-guarded check->do), _backup_push_attempt
+  (identity fallback + gh repo create --private --source --push, ladder-
+  wrapped), _backup_flow (gh presence -> auth walkthrough -> create; every
+  failure degrades to continue-without-backup, exit stays 0), step_backup
+  (IV-POINT:8:backup_optin, recommendation yes), cmd_enable_backup +
+  --enable-backup flag; finale now ends with L_DISCLAIMER; header
+  "seven points" -> "eight".
+- lang/{en,ro,ru}.sh: L_STEP_HEADER 7->8; ten new backup strings + the
+  localized L_DISCLAIMER (each language written as prose, not glued).
+- dry-run.sh: ATOM_WORKSPACE -> 102-kit-amendment/workspace/ (101
+  transcripts preserved as v0.1.0 evidence); gh stub added — auth status
+  fails until auth login writes a marker (walkthrough path genuinely
+  exercised), repo create --push does a REAL git push into a local bare
+  repo under fake-github/; all prior interview feeds gained one trailing
+  "n" (backup opt-out) so v0.1.0 scenario intent is pinned unchanged;
+  question-inventory check strengthened (point 8 REQUIRED present, max
+  point == 8); Scenario 9 added (opt-in + opt-out, assertions below).
+- READMEs (en/ro/ru): eight questions, point-8 entry with the FAQ line
+  («бэкап уходит в ВАШ аккаунт»), enable-backup in "Don't touch my
+  instance", new "Backup and restore" section (gh repo clone qroky-backup
+  + one install.sh run to re-attach the pinned rulebook), closing
+  responsibility note.
+
+HARNESS RESULT
+Full re-run 10/10 PASS (SUMMARY.txt in this folder). Scenario 9 opt-in
+proved on a REAL pushed payload: token grep over full pushed history = 0,
+token filename absent from pushed tree, tree non-empty (install-state.json
+present — non-vacuous), auth walkthrough + restore command shown; opt-out:
+choice recorded, step done, enable-later shown, fake-GitHub repo count
+unchanged. Pushed tree listing committed in the transcript: .gitignore,
+.gitmodules, .qroky/heartbeat.sh, launchd plist, framework (gitlink),
+install-state.json, telemetry/OFF — no token, no log. Question inventory:
+7 tagged prompts across exactly 8 points (points 3+4 are checks, not
+questions), none beyond 8. No new bugs surfaced this round; first full
+run after the amendment was green.
+
+DEVIATIONS (none silent; mirrored in RESULT.md v0.1.1 section)
+- gh-missing / auth-failure degradation branches: code-reviewed, not
+  scenario-exercised (stub gh always present, login always succeeds) —
+  same evidence class as the F8 launchctl note from round 2.
+- install.log excluded from backups wholesale (stricter than mandated;
+  reason in the gitignore block comment and D3 above).
+
+BUDGET CHECKPOINT (end): ~70k this round (edits + full 10-scenario
+harness + records) — inside the ~150k envelope; no E4 projection.
+
+2026-07-10T11:30:00Z CYCLE-END ATOM-102; RESULT.md (101) v0.1.1 section
+appended; STATUS.md files updated (101 appended, 102 created); handoff to
+targeted blind re-check (delta scope) per INPUT frontmatter.

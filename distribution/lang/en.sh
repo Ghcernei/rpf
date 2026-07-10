@@ -12,7 +12,7 @@
 
 L_SETUP_TITLE() { printf '== Qroky setup ==\n'; }
 
-L_STEP_HEADER() { printf 'Step %s of 7 — %s\n' "$1" "$2"; }
+L_STEP_HEADER() { printf 'Step %s of 8 — %s\n' "$1" "$2"; }
 L_STEP_ALREADY_DONE() { printf '  already set up — nothing to do (health check)\n'; }
 
 L_STEP_LANGUAGE_NAME() { printf 'choose your language'; }
@@ -177,3 +177,62 @@ L_UPDATE_CONFLICT() {
 L_UPDATE_ASK_CONFIRM() { printf 'Apply this update now? Type "yes" to confirm, anything else cancels: '; }
 L_UPDATE_APPLIED() { printf '  update applied: %s -> %s. A record was written to: %s\n' "$1" "$2" "$3"; }
 L_UPDATE_CANCELLED() { printf '  update cancelled — nothing changed\n'; }
+
+# --- v0.1.1 amendment (ATOM-102, INFO-030 p.3/p.4): backup + disclaimer ---
+L_STEP_BACKUP_NAME() { printf 'backup to your own GitHub (optional)'; }
+L_BACKUP_ASK_OPTIN() {
+  cat <<'EOF'
+Backup — keep a private, off-computer copy of your workspace, so a lost or
+broken computer never means lost work. One honest line about where it goes:
+the backup is stored in YOUR OWN private GitHub account — nobody else's;
+nobody but you can see it. Recommended: yes.
+EOF
+  printf 'Turn the backup on? Yes/no (y/n), default y: '
+}
+L_BACKUP_GH_MISSING() {
+  printf '  the small helper program "gh" (GitHub'\''s own command line tool) is not\n'
+  printf '  on this machine, so the backup cannot be set up right now. Nothing else\n'
+  printf '  is affected — setup continues without the backup.\n'
+  printf '  To add it later:\n'
+  printf '    1. Install gh: Mac: brew install gh   |   other: https://cli.github.com\n'
+  printf '    2. Run: bash install.sh --enable-backup\n'
+}
+L_BACKUP_AUTH_WALKTHROUGH() {
+  cat <<'EOF'
+  Let's connect your own GitHub account — about 2 minutes, no prior
+  knowledge needed (GitHub is a free service for storing private copies
+  of folders; your copy will be visible only to you):
+    1. A sign-in helper will start right now, in this window.
+    2. If you don't have a GitHub account yet, it will offer to create
+       one — free, only an email address is needed.
+    3. Pick "Login with a web browser" when asked.
+    4. It shows a short one-time code — copy it.
+    5. Your browser opens; paste the code there and approve.
+    6. Come back to this window — setup continues by itself.
+EOF
+}
+L_BACKUP_AUTH_FAILED() {
+  printf '  could not connect the GitHub account this time. Nothing else is\n'
+  printf '  affected — setup continues without the backup.\n'
+  printf '  To try again later: bash install.sh --enable-backup\n'
+}
+L_BACKUP_CREATING() { printf '  creating your private backup copy and sending the first snapshot...\n'; }
+L_BACKUP_DONE() {
+  printf '  backup is ON — a private copy named "%s" now lives in YOUR GitHub account.\n' "$1"
+  printf '  To restore on any computer (one command): gh repo clone %s\n' "$1"
+  printf '  (your secret files — like the Telegram token — are never included in the backup)\n'
+}
+L_BACKUP_FAILED() {
+  printf '  the first backup could not be completed (often a network hiccup).\n'
+  printf '  Nothing else is affected — setup continues without the backup.\n'
+  printf '  To try again later: bash install.sh --enable-backup\n'
+}
+L_BACKUP_SKIPPED() {
+  printf '  backup — off, as you chose. Turn it on any time with:\n'
+  printf '      bash install.sh --enable-backup\n'
+}
+L_DISCLAIMER() {
+  printf 'A note on responsibility: the system produces drafts and analysis; legal,\n'
+  printf 'financial, and medical decisions and signatures are always made by a human.\n'
+  printf 'Not professional advice.\n'
+}

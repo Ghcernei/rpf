@@ -147,3 +147,92 @@ atom's `workspace/` transcripts; no verifier conversation occurs. Tree B
 (ATOM-110) is the next consumer in line: it reads `install-state.json`'s
 `answer_telegram_token_stored` flag and the `.qroky/telegram.token` file
 path as its instance ground state, per the parent's stated dependency.
+
+## v0.1.1 amendment (ATOM-102 — mandated by INFO-030 п.3 + п.4)
+
+The interview's closed list was extended BY ITS OWNER (CEO directive
+INFO-030, 10.07.2026) to EIGHT points; a disclaimer layer was mandated for
+the kit texts. Same executor, same role, warm context. Input:
+`../102-kit-amendment/INPUT.md`. New transcripts:
+`../102-kit-amendment/workspace/` (the round-2 transcripts in this atom's
+own `workspace/` are untouched evidence of v0.1.0).
+
+### What changed
+
+1. **Interview point 8 — backup opt-in** (`# IV-POINT:8:backup_optin`,
+   default/recommendation = yes, runs after the heartbeat point so the
+   first push captures the complete installed workspace). Benefit-framed
+   question in all three locales with one honest line: the copy goes to
+   the USER'S OWN private GitHub account, nobody else's. The "yes" path is
+   the BotFather pattern applied to `gh`: presence check (plain install
+   hint if missing → continue without backup), `gh auth login --web`
+   preceded by a 6-step numbered human walkthrough (account creation
+   covered — "only an email address is needed"), then a ladder-wrapped
+   (≤2 auto-retries) add/commit/`gh repo create qroky-backup --private
+   --source --push`. Every failure (no gh, auth failed, push failed)
+   degrades in plain language WITH the enable-later command and the
+   install continues to the finale — the backup can never kill a setup.
+   Commit identity falls back to a neutral "Qroky backup <qroky-backup@local>"
+   `-c` override ONLY when the machine has no git identity. Opt-out is
+   recorded in `install-state.json` (`answer_backup_optin: no`, step done —
+   never re-asked, no nagging); `bash install.sh --enable-backup` is the
+   documented enable-later path (mirrors `--enable-heartbeat`).
+2. **Secrets never enter the backup (H4 extension)** — opt-in writes a
+   marker-guarded (check→do, idempotent) exclusion block into the
+   workspace `.gitignore`: `.qroky/telegram.token`, `*.token`, `.env`/
+   `.env.*`, `*.pem`, `*.key`, `*secret*`, `*credential*`, and
+   `install.log` (it carries the masked-token audit line; excluding logs
+   wholesale is stricter than strictly needed and cheaper to reason
+   about). Restore = one command, documented in all three READMEs:
+   `gh repo clone qroky-backup`, then one `install.sh` run inside the
+   clone to re-attach the pinned rulebook submodule.
+3. **Disclaimer layer (INFO-030 п.4)** — the finale screen now ends with a
+   properly localized responsibility note (drafts and analysis only;
+   legal/financial/medical decisions and signatures are always human; not
+   professional advice) via a new `L_DISCLAIMER` in all three locales, and
+   the same note closes all three READMEs. READMEs also gained the
+   question-8 entry with the FAQ line («бэкап уходит в ВАШ аккаунт» /
+   "the backup goes to YOUR account" / „copia de siguranță merge în contul
+   TĂU"), the "Backup and restore" section, and "seven questions" → eight
+   throughout.
+4. **Harness (now 10 scenarios)** — new Scenario 9, opt-in + opt-out
+   branches. The gh stub is honest where it matters: `auth status` fails
+   until `auth login` runs (so the walkthrough path is genuinely
+   exercised), and `repo create --push` performs a REAL `git push` into a
+   local bare repo — the negative grep runs over an actually-pushed
+   payload, not a simulation. Opt-in asserts (hard-fail, non-vacuous):
+   state `step_backup: done` + `answer_backup_optin: yes`; the numbered
+   auth walkthrough shown; raw token (GOODTOKEN789, stored via the
+   Telegram step in the same run) grep over the pushed repo's FULL history
+   = 0; token FILENAME absent from the pushed tree; pushed tree non-empty
+   (`install-state.json` present — the grep cannot pass vacuously);
+   restore command printed. Opt-out asserts: choice recorded in state,
+   step done, enable-later command printed, and the fake-GitHub repo count
+   unchanged (nothing pushed). The pushed tree listing is committed in the
+   transcript: `.gitignore`, `.gitmodules`, `.qroky/heartbeat.sh`, the
+   launchd plist, `framework` (gitlink), `install-state.json`,
+   `telemetry/OFF` — no token file, no log. Question-inventory check
+   strengthened: point 8 must be PRESENT and the maximum point must be
+   exactly 8 (7 tagged prompts across 8 points — points 3 and 4 are
+   checks, not questions, as before).
+
+### Harness status
+
+Full re-run 10/10 PASS (`../102-kit-amendment/workspace/SUMMARY.txt`), all
+prior scenarios untouched in intent — their feeds gained one trailing `n`
+(backup opt-out) so v0.1.0 behavior stays pinned. Question inventory:
+exactly 8 points, none beyond, zero prompts outside the interview.
+
+### Added cost (this amendment round)
+
+~70k tokens (install.sh + 3 locales + 3 READMEs + harness scenario +
+full 10-scenario re-run + records), inside the ~150k round budget; no E4.
+
+### Deviations (this round, none silent)
+
+- The gh-missing and auth-failure degradation branches are code-reviewed
+  but not scenario-exercised (the stub gh always exists and its login
+  always succeeds) — same evidence class as the F8 launchctl note above.
+- `install.log` is excluded from backups wholesale (see above) — a
+  deliberate stricter-than-mandated choice, documented here and in the
+  gitignore block's own comment line.

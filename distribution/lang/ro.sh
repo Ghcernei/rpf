@@ -7,7 +7,7 @@
 
 L_SETUP_TITLE() { printf '== Instalare Qroky ==\n'; }
 
-L_STEP_HEADER() { printf 'Pasul %s din 7 — %s\n' "$1" "$2"; }
+L_STEP_HEADER() { printf 'Pasul %s din 8 — %s\n' "$1" "$2"; }
 L_STEP_ALREADY_DONE() { printf '  deja configurat — nimic de făcut (verificare de sănătate)\n'; }
 
 L_STEP_LANGUAGE_NAME() { printf 'alege limba'; }
@@ -173,3 +173,63 @@ L_UPDATE_CONFLICT() {
 L_UPDATE_ASK_CONFIRM() { printf 'Aplici această actualizare acum? Scrie "da" pentru confirmare, orice altceva anulează: '; }
 L_UPDATE_APPLIED() { printf '  actualizare aplicată: %s -> %s. O înregistrare a fost scrisă la: %s\n' "$1" "$2" "$3"; }
 L_UPDATE_CANCELLED() { printf '  actualizare anulată — nimic nu s-a schimbat\n'; }
+
+# --- amendament v0.1.1 (ATOM-102, INFO-030 p.3/p.4): backup + disclaimer ---
+L_STEP_BACKUP_NAME() { printf 'copie de rezervă în GitHub-ul tău (opțional)'; }
+L_BACKUP_ASK_OPTIN() {
+  cat <<'EOF'
+Copia de rezervă — păstrează o copie privată, în afara calculatorului, a
+spațiului tău de lucru: un calculator pierdut sau stricat nu mai înseamnă
+muncă pierdută. O linie sinceră despre unde merge: copia se păstrează în
+PROPRIUL TĂU cont privat de GitHub — al nimănui altcuiva; doar tu o poți
+vedea. Recomandat: da.
+EOF
+  printf 'Activezi copia de rezervă? Da/nu (y/n), implicit y: '
+}
+L_BACKUP_GH_MISSING() {
+  printf '  micul program ajutător "gh" (unealta oficială GitHub pentru terminal) nu\n'
+  printf '  este pe acest calculator, deci copia de rezervă nu poate fi pregătită acum.\n'
+  printf '  Nimic altceva nu este afectat — instalarea continuă fără copia de rezervă.\n'
+  printf '  Ca să o adaugi mai târziu:\n'
+  printf '    1. Instalează gh: Mac: brew install gh   |   altfel: https://cli.github.com\n'
+  printf '    2. Rulează: bash install.sh --enable-backup\n'
+}
+L_BACKUP_AUTH_WALKTHROUGH() {
+  cat <<'EOF'
+  Hai să conectăm propriul tău cont GitHub — aproximativ 2 minute, fără
+  cunoștințe prealabile (GitHub e un serviciu gratuit pentru păstrarea
+  copiilor private ale folderelor; copia ta va fi vizibilă doar ție):
+    1. Un asistent de conectare pornește chiar acum, în această fereastră.
+    2. Dacă nu ai încă un cont GitHub, îți va oferi să creezi unul —
+       gratuit, e nevoie doar de o adresă de email.
+    3. Alege "Login with a web browser" când ești întrebat.
+    4. Îți arată un cod scurt de unică folosință — copiază-l.
+    5. Browserul se deschide; lipește codul acolo și aprobă.
+    6. Revino în această fereastră — instalarea continuă singură.
+EOF
+}
+L_BACKUP_AUTH_FAILED() {
+  printf '  contul GitHub nu a putut fi conectat de data aceasta. Nimic altceva nu\n'
+  printf '  este afectat — instalarea continuă fără copia de rezervă.\n'
+  printf '  Ca să încerci din nou mai târziu: bash install.sh --enable-backup\n'
+}
+L_BACKUP_CREATING() { printf '  creez copia ta privată de rezervă și trimit primul instantaneu...\n'; }
+L_BACKUP_DONE() {
+  printf '  copia de rezervă e PORNITĂ — o copie privată numită "%s" există acum în contul TĂU GitHub.\n' "$1"
+  printf '  Ca să restaurezi pe orice calculator (o singură comandă): gh repo clone %s\n' "$1"
+  printf '  (fișierele tale secrete — precum token-ul Telegram — nu sunt niciodată incluse în copie)\n'
+}
+L_BACKUP_FAILED() {
+  printf '  prima copie de rezervă nu a putut fi finalizată (adesea o problemă de rețea).\n'
+  printf '  Nimic altceva nu este afectat — instalarea continuă fără copia de rezervă.\n'
+  printf '  Ca să încerci din nou mai târziu: bash install.sh --enable-backup\n'
+}
+L_BACKUP_SKIPPED() {
+  printf '  copia de rezervă — oprită, cum ai ales. O pornești oricând cu:\n'
+  printf '      bash install.sh --enable-backup\n'
+}
+L_DISCLAIMER() {
+  printf 'O notă despre responsabilitate: sistemul produce ciorne și analize;\n'
+  printf 'deciziile și semnăturile juridice, financiare și medicale aparțin\n'
+  printf 'întotdeauna omului. Nu constituie consultanță profesională.\n'
+}

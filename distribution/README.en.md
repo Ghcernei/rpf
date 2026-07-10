@@ -3,10 +3,10 @@
 ## What this installer does
 
 One script, `install.sh`, takes a clean computer to a working assistant in
-under 15 minutes. It asks you exactly **seven questions** (listed below),
+under 15 minutes. It asks you exactly **eight questions** (listed below),
 sets up a private folder on your own computer, and ends with the words you
 say to start your first conversation. It never asks anything beyond those
-seven questions — every other line it prints is either progress, a check
+eight questions — every other line it prints is either progress, a check
 result, or (on a real problem) a plain-language fix instruction naming the
 exact next step.
 
@@ -22,7 +22,7 @@ tells you exactly what to install and how — then you run the same command
 again, and it continues from exactly where it stopped. Nothing is repeated,
 nothing you already answered is asked twice.
 
-## The seven questions
+## The eight questions
 
 1. **Language** — English, Română, or Русский. Everything after this point
    is shown in the language you pick.
@@ -44,6 +44,13 @@ nothing you already answered is asked twice.
 7. **Morning digest (optional)** — a short daily message: what got done,
    what's waiting for you. Recommended: yes. You can change your mind any
    time (see "Don't touch my instance" below).
+8. **Backup (optional, recommended)** — keep a private safety copy of your
+   Qroky folder in **your own** GitHub account. You don't need to know what
+   GitHub is: if you say yes, the installer walks you through connecting
+   (or creating, for free) your account step by step, the same hand-held
+   way as the Telegram bot. **The backup goes to YOUR account** — a private
+   copy visible only to you, never to us or anyone else. Your secret files
+   (like the Telegram token) are excluded from every backup, automatically.
 
 ## What leaves this computer
 
@@ -80,6 +87,8 @@ optional piece it turns on can be turned off just as easily:
   installed-but-off in that case, with the exact enable command printed
   for you.
 - **Enable the morning digest later:** `bash install.sh --enable-heartbeat`
+- **Enable the backup later** (if you said no at question 8):
+  `bash install.sh --enable-backup`
 - **Check for a framework update (read-only, changes nothing):**
   `bash install.sh --check-update`
 - **See more detail on a pending update:**
@@ -99,3 +108,26 @@ killed partway through (power loss, closed terminal, anything), running it
 again resumes exactly where it left off — the answers you already gave are
 remembered in `install-state.json` inside your workspace, a plain text file
 you're welcome to read.
+
+## Backup and restore
+
+If you turned the backup on (question 8), a private copy of your Qroky
+folder named `qroky-backup` lives in **your own** GitHub account — nobody
+else's, and nobody else can see it. Restoring on any computer is one
+command:
+
+```
+gh repo clone qroky-backup
+```
+
+Then run `bash install.sh` once inside the restored folder — it re-attaches
+the pinned rulebook and re-checks everything, asking nothing you already
+answered. Your secret files (the Telegram token and anything secret-shaped)
+are excluded from every backup by a `.gitignore` the installer writes for
+you — they never leave this machine.
+
+## A note on responsibility
+
+The system produces drafts and analysis; legal, financial, and medical
+decisions and signatures are always made by a human. Not professional
+advice.

@@ -34,7 +34,7 @@
 #                     real founder's https default; see 071's dry-run.sh)
 #
 # Nine transcripts are written next to this comment's sibling folder:
-#   products/distribution-kit-v1/101-distribution-installer/workspace/
+#   products/distribution-kit-v1/102-kit-amendment/workspace/
 #   scenario-1-full-clean-run.txt
 #   scenario-2-kill-mid-install.txt
 #   scenario-3-healthy-rerun.txt
@@ -49,7 +49,7 @@
 set -uo pipefail   # NOT -e: scenarios intentionally capture non-zero exits
 
 HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-ATOM_WORKSPACE="$(cd "$HERE/../products/distribution-kit-v1/101-distribution-installer/workspace" && pwd)"
+ATOM_WORKSPACE="$(cd "$HERE/../products/distribution-kit-v1/102-kit-amendment/workspace" && pwd)"
 SANDBOX="$(mktemp -d /private/tmp/qroky-install-dry-run.XXXXXX)"
 cleanup() { rm -rf "$SANDBOX"; }
 trap cleanup EXIT
@@ -116,6 +116,56 @@ esac
 EOF
 chmod +x "$BIN/launchctl"
 
+# --- stub gh (v0.1.1, ATOM-102): GitHub's CLI, faked for the backup step.
+# `auth status` fails until `auth login` writes an auth marker (so the
+# walkthrough path is genuinely exercised); `repo create --source --push`
+# creates a REAL local bare repo under fake-github/ and performs a REAL
+# `git push` into it — the backup scenario's negative grep therefore runs
+# over an actually-pushed payload, not a simulation. --------------------
+FAKE_GH_STATE="$SANDBOX/fake-gh"
+FAKE_GITHUB="$SANDBOX/fake-github"
+mkdir -p "$FAKE_GH_STATE" "$FAKE_GITHUB"
+cat > "$BIN/gh" <<EOF
+#!/usr/bin/env bash
+STATE_DIR="$FAKE_GH_STATE"
+GITHUB_DIR="$FAKE_GITHUB"
+case "\$1 \$2" in
+  "auth status")
+    [[ -f "\$STATE_DIR/authed" ]] || { echo "You are not logged into any GitHub hosts." >&2; exit 1; }
+    exit 0 ;;
+  "auth login")
+    touch "\$STATE_DIR/authed"
+    echo "fake-gh: logged in (dry-run stub)"
+    exit 0 ;;
+  "repo create")
+    name="\$3"; shift 3
+    src=""; remote_name="origin"; want_push=0
+    while [[ \$# -gt 0 ]]; do
+      case "\$1" in
+        --source) src="\$2"; shift 2 ;;
+        --remote) remote_name="\$2"; shift 2 ;;
+        --push) want_push=1; shift ;;
+        --private) shift ;;
+        *) shift ;;
+      esac
+    done
+    bare="\$GITHUB_DIR/\$name.git"
+    [[ -d "\$bare" ]] || git init -q --bare "\$bare"
+    if [[ -n "\$src" ]]; then
+      git -C "\$src" remote add "\$remote_name" "\$bare" 2>/dev/null \\
+        || git -C "\$src" remote set-url "\$remote_name" "\$bare"
+      if [[ \$want_push -eq 1 ]]; then
+        git -C "\$src" push -q "\$remote_name" HEAD || exit 1
+      fi
+    fi
+    echo "https://github.com/dry-run-user/\$name (fake)"
+    exit 0 ;;
+esac
+echo "fake gh (dry-run stub): unsupported args: \$*" >&2
+exit 1
+EOF
+chmod +x "$BIN/gh"
+
 # --- offline framework origin, real git repo, with a real release tag -----
 FAKE_FW="$SANDBOX/fake-framework-origin"
 mkdir -p "$FAKE_FW"
@@ -167,7 +217,7 @@ W1="$SANDBOX/w1"
   echo ""
 } > "$T1"
 START1=$(date +%s)
-OUT1="$(run_install "$W1" $'en\n\ny\nGOODTOKEN123\nn\ny\n')"
+OUT1="$(run_install "$W1" $'en\n\ny\nGOODTOKEN123\nn\ny\nn\n')"
 STATUS1=$?
 END1=$(date +%s)
 ELAPSED1=$((END1 - START1))
@@ -183,27 +233,32 @@ else
   record "1-full-clean-run" FAIL "exit $STATUS1, elapsed ${ELAPSED1}s"
 fi
 
-# Question inventory (H2): every interactive read in the seven step
-# functions is tagged; count call sites vs tags — must match exactly. The
-# --apply-update confirmation (cmd_apply_update) is deliberately outside
-# this count: it is a separate, explicitly-invoked maintenance command the
-# founder runs later, not part of the seven-point interview (main_interview).
+# Question inventory (H2, v0.1.1: EIGHT points): every interactive read in
+# the eight step functions is tagged; count call sites vs tags — must match
+# exactly, AND point 8 must actually be present (the amendment's own check
+# cannot pass on the old seven-point build). The --apply-update
+# confirmation (cmd_apply_update) is deliberately outside this count: it is
+# a separate, explicitly-invoked maintenance command the founder runs
+# later, not part of the eight-point interview (main_interview).
 {
   echo ""
-  echo "--- Question inventory check (H2: zero questions outside the interview) ---"
+  echo "--- Question inventory check (H2: zero questions outside the interview; v0.1.1 = exactly 8 points) ---"
   STEP_BLOCK="$(awk '/^step_language\(\)/,/^cmd_enable_heartbeat\(\)/' "$INSTALL")"
   READ_SITES=$(printf '%s' "$STEP_BLOCK" | grep -cE 'read_answer' || true)
   TAGGED_SITES=$(printf '%s' "$STEP_BLOCK" | grep -cE '# IV-POINT:' || true)
-  echo "read_answer call sites inside the seven step_* functions: $READ_SITES"
+  echo "read_answer call sites inside the eight step_* functions: $READ_SITES"
   echo "of those, tagged with # IV-POINT\\:<n>\\:<name>: $TAGGED_SITES"
   DISTINCT_POINTS="$(printf '%s' "$STEP_BLOCK" | grep -oE 'IV-POINT:[0-9]+' | sort -u | tr '\n' ' ')"
-  echo "distinct interview points referenced: $DISTINCT_POINTS(closed list is 1..7)"
-  if [[ "$READ_SITES" -eq "$TAGGED_SITES" ]]; then
-    echo "PASS — every interactive prompt in the interview is accounted for in the closed list of 7."
-    record "1-question-inventory" PASS "$READ_SITES/$READ_SITES prompts tagged, all within points 1-7"
+  echo "distinct interview points referenced: $DISTINCT_POINTS(closed list is 1..8)"
+  HAS_POINT8=$(printf '%s' "$STEP_BLOCK" | grep -c 'IV-POINT:8:backup_optin' || true)
+  MAX_POINT="$(printf '%s' "$STEP_BLOCK" | grep -oE 'IV-POINT:[0-9]+' | sed 's/IV-POINT://' | sort -n | tail -1)"
+  echo "point 8 (backup) present: $([[ "$HAS_POINT8" -gt 0 ]] && echo yes || echo no); highest point referenced: $MAX_POINT (must be 8, never 9+)"
+  if [[ "$READ_SITES" -eq "$TAGGED_SITES" && "$HAS_POINT8" -gt 0 && "$MAX_POINT" == "8" ]]; then
+    echo "PASS — every interactive prompt in the interview is accounted for in the closed list of 8 (v0.1.1)."
+    record "1-question-inventory" PASS "$READ_SITES/$READ_SITES prompts tagged, all within points 1-8, point 8 = backup present, none beyond 8"
   else
-    echo "FAIL — an untagged prompt exists (would be a question outside the closed list)."
-    record "1-question-inventory" FAIL "$TAGGED_SITES/$READ_SITES prompts tagged"
+    echo "FAIL — an untagged prompt exists, point 8 is missing, or a point beyond 8 was found."
+    record "1-question-inventory" FAIL "$TAGGED_SITES/$READ_SITES prompts tagged, point8=$HAS_POINT8, max=$MAX_POINT"
   fi
 } >> "$T1"
 
@@ -231,7 +286,7 @@ W2="$SANDBOX/w2"
   export QROKY_WORKSPACE_DIR="$W2"
   export QROKY_TEST_DELAY_STEP="telegram"
   export QROKY_TEST_DELAY_SECONDS="15"
-  printf 'en\n\ny\nGOODTOKEN456\nn\ny\n' | "$INSTALL" >> "$T2" 2>&1 &
+  printf 'en\n\ny\nGOODTOKEN456\nn\ny\nn\n' | "$INSTALL" >> "$T2" 2>&1 &
   echo $! > "$SANDBOX/killpid"
 )
 sleep 4
@@ -262,7 +317,7 @@ WORKDIR_DONE_AT_KILL=$(printf '%s' "$STATE_AFTER_KILL" | grep -c '"step_workdir"
   echo ""
   echo "--- RUN B (rerun; language/workdir must NOT be re-asked — telegram, cut down mid-flight, is asked again) ---"
 } >> "$T2"
-OUT2B="$(run_install "$W2" $'n\nn\ny\n')"
+OUT2B="$(run_install "$W2" $'n\nn\ny\nn\n')"
 STATUS2B=$?
 {
   echo "$OUT2B"
@@ -316,7 +371,7 @@ HEALTH_LINES=$(printf '%s' "$OUT3" | grep -c "already set up\|already your Qroky
   echo "--- state diff (excluding the generated_at timestamp, which always updates on commit) ---"
   diff <(printf '%s' "$BEFORE_STATE_NO_TS") <(printf '%s' "$AFTER_STATE_NO_TS") && echo "(no differences — every field identical)"
   echo ""
-  echo "'already done' health-check lines printed: $HEALTH_LINES (expect 7, one per step)"
+  echo "'already done' health-check lines printed: $HEALTH_LINES (expect 8, one per step)"
 } >> "$T3"
 TREE_DIFF="$(diff <(printf '%s' "$BEFORE_TREE") <(printf '%s' "$AFTER_TREE"))"
 STATE_DIFF="$(diff <(printf '%s' "$BEFORE_STATE_NO_TS") <(printf '%s' "$AFTER_STATE_NO_TS"))"
@@ -396,7 +451,7 @@ W5="$SANDBOX/w5"
   echo ""
   echo "--- RUN 1 ---"
 } > "$T5"
-OUT5A="$(run_install "$W5" $'en\n\nn\nn\ny\n')"; STATUS5A=$?
+OUT5A="$(run_install "$W5" $'en\n\nn\nn\ny\nn\n')"; STATUS5A=$?
 LIST5A="$(find "$W5" -type f | sed "s|$W5/||" | sort)"
 STATE5A="$(grep -v generated_at "$W5/install-state.json")"
 {
@@ -405,7 +460,7 @@ STATE5A="$(grep -v generated_at "$W5/install-state.json")"
   echo ""
   echo "--- RUN 2 (identical answers) ---"
 } >> "$T5"
-OUT5B="$(run_install "$W5" $'en\n\nn\nn\ny\n')"; STATUS5B=$?
+OUT5B="$(run_install "$W5" $'en\n\nn\nn\ny\nn\n')"; STATUS5B=$?
 LIST5B="$(find "$W5" -type f | sed "s|$W5/||" | sort)"
 STATE5B="$(grep -v generated_at "$W5/install-state.json")"
 {
@@ -583,7 +638,7 @@ W8NO="$SANDBOX/w8no"
   echo "--- fresh install answering 'y' at the heartbeat question ---"
 } > "$T8"
 : > "$LAUNCHCTL_STATE"
-OUT8Y="$(run_install "$W8YES" $'en\n\nn\nn\ny\n')"
+OUT8Y="$(run_install "$W8YES" $'en\n\nn\nn\ny\nn\n')"
 echo "$OUT8Y" >> "$T8"
 LABEL8Y="$(basename "$(ls "$W8YES"/.qroky/launchd/*.plist 2>/dev/null | head -1)" .plist)"
 BOOTSTRAPPED_Y=$(grep -c "bootstrap.*$LABEL8Y" "$LAUNCHCTL_STATE" 2>/dev/null || true)
@@ -595,7 +650,7 @@ BOOTSTRAPPED_Y=$(grep -c "bootstrap.*$LABEL8Y" "$LAUNCHCTL_STATE" 2>/dev/null ||
   echo "--- fresh install answering 'n' at the heartbeat question ---"
 } >> "$T8"
 : > "$LAUNCHCTL_STATE"
-OUT8N="$(run_install "$W8NO" $'en\n\nn\nn\nn\n')"
+OUT8N="$(run_install "$W8NO" $'en\n\nn\nn\nn\nn\n')"
 echo "$OUT8N" >> "$T8"
 LABEL8N="$(basename "$(ls "$W8NO"/.qroky/launchd/*.plist 2>/dev/null | head -1)" .plist)"
 BOOTSTRAPPED_N=$(grep -c "bootstrap" "$LAUNCHCTL_STATE" 2>/dev/null || true)
@@ -610,6 +665,96 @@ if [[ -n "$LABEL8Y" && "$BOOTSTRAPPED_Y" -gt 0 && -n "$LABEL8N" && "$BOOTSTRAPPE
   record "8-heartbeat-both-branches" PASS "yes branch bootstraps + enables, no branch installs disabled with a one-command enable instruction, no agent registered"
 else
   record "8-heartbeat-both-branches" FAIL "label_y=$LABEL8Y bootstrapped_y=$BOOTSTRAPPED_Y label_n=$LABEL8N bootstrapped_n=$BOOTSTRAPPED_N enable_instr=$HAS_ENABLE_INSTR"
+fi
+
+# ---------------------------------------------------------------------------
+# SCENARIO 9 — backup opt-in + opt-out (v0.1.1, ATOM-102, INFO-030 p.3).
+# Opt-in branch: fresh install WITH a Telegram token in the workspace (so
+# the secrets-exclusion proof cannot pass vacuously), backup = yes; the gh
+# stub walks auth (status fails until login), creates a real local bare
+# repo and REALLY pushes into it. Assertions: state step done + optin yes,
+# negative grep for the raw token over the pushed history EMPTY, the token
+# FILENAME absent from the pushed tree, the pushed tree non-empty
+# (install-state.json present), the restore command printed, and the auth
+# walkthrough actually shown.
+# Opt-out branch: state records the choice, the enable-later command is
+# printed, and NO new repo appears on the fake GitHub.
+# ---------------------------------------------------------------------------
+T9="$ATOM_WORKSPACE/scenario-9-backup-optin-optout.txt"
+W9A="$SANDBOX/w9a"
+W9B="$SANDBOX/w9b"
+BACKUP_TOKEN="GOODTOKEN789"
+rm -f "$FAKE_GH_STATE/authed"   # start un-authed so the walkthrough path runs
+{
+  echo "Scenario 9 — backup opt-in + opt-out (v0.1.1, interview point 8)"
+  echo "Generated: $(date -u +%Y-%m-%dT%H:%M:%SZ)"
+  echo "gh stub: auth status fails until auth login; repo create --push does a"
+  echo "REAL git push into a local bare repo (fake-github/) — the negative grep"
+  echo "below runs over an actually-pushed payload."
+  echo ""
+  echo "--- OPT-IN branch: fresh install, Telegram token $BACKUP_TOKEN stored, backup = yes ---"
+} > "$T9"
+OUT9A="$(run_install "$W9A" $'en\n\ny\nGOODTOKEN789\nn\nn\ny\n')"
+STATUS9A=$?
+echo "$OUT9A" >> "$T9"
+STATE9A="$(cat "$W9A/install-state.json" 2>/dev/null || echo MISSING)"
+BACKUP_DONE9=$(printf '%s' "$STATE9A" | grep -c '"step_backup": "done"' || true)
+BACKUP_OPTIN9=$(printf '%s' "$STATE9A" | grep -c '"answer_backup_optin": "yes"' || true)
+WALKTHROUGH_SHOWN9=$(printf '%s' "$OUT9A" | grep -c "Login with a web browser" || true)
+RESTORE_SHOWN9=$(printf '%s' "$OUT9A" | grep -c "gh repo clone qroky-backup" || true)
+BARE9="$FAKE_GITHUB/qroky-backup.git"
+PUSHED_LEAK9=1; PUSHED_TOKENFILE9=1; PUSHED_NONEMPTY9=0
+if [[ -d "$BARE9" ]]; then
+  PUSHED_LEAK9=$(git -C "$BARE9" grep -c "$BACKUP_TOKEN" $(git -C "$BARE9" rev-list --all 2>/dev/null) 2>/dev/null | awk -F: '{s+=$NF} END{print s+0}')
+  PUSHED_TOKENFILE9=$(git -C "$BARE9" ls-tree -r --name-only HEAD 2>/dev/null | grep -c "telegram.token" || true)
+  PUSHED_NONEMPTY9=$(git -C "$BARE9" ls-tree -r --name-only HEAD 2>/dev/null | grep -c "install-state.json" || true)
+fi
+{
+  echo ""
+  echo "--- opt-in assertions ---"
+  echo "exit code: $STATUS9A"
+  echo "state: step_backup done: $([[ $BACKUP_DONE9 -gt 0 ]] && echo yes || echo no); answer_backup_optin=yes: $([[ $BACKUP_OPTIN9 -gt 0 ]] && echo yes || echo no)"
+  echo "gh auth walkthrough shown (numbered steps): $([[ $WALKTHROUGH_SHOWN9 -gt 0 ]] && echo yes || echo no)"
+  echo "restore command printed (gh repo clone qroky-backup): $([[ $RESTORE_SHOWN9 -gt 0 ]] && echo yes || echo no)"
+  echo "pushed bare repo exists: $([[ -d "$BARE9" ]] && echo yes || echo no)"
+  echo "raw token grep over PUSHED history (must be 0): $PUSHED_LEAK9"
+  echo "token FILENAME in pushed tree (must be 0): $PUSHED_TOKENFILE9"
+  echo "pushed tree non-empty (install-state.json present — the grep cannot pass vacuously): $([[ $PUSHED_NONEMPTY9 -gt 0 ]] && echo yes || echo no)"
+  echo ""
+  echo "--- pushed tree listing (for the record) ---"
+  git -C "$BARE9" ls-tree -r --name-only HEAD 2>/dev/null || echo "(missing)"
+} >> "$T9"
+
+{
+  echo ""
+  echo "--- OPT-OUT branch: fresh install, backup = no ---"
+} >> "$T9"
+REPOS_BEFORE9B=$(ls -d "$FAKE_GITHUB"/*.git 2>/dev/null | wc -l | tr -d ' ')
+OUT9B="$(run_install "$W9B" $'en\n\nn\nn\nn\nn\n')"
+STATUS9B=$?
+echo "$OUT9B" >> "$T9"
+REPOS_AFTER9B=$(ls -d "$FAKE_GITHUB"/*.git 2>/dev/null | wc -l | tr -d ' ')
+STATE9B="$(cat "$W9B/install-state.json" 2>/dev/null || echo MISSING)"
+OPTOUT_RECORDED9=$(printf '%s' "$STATE9B" | grep -c '"answer_backup_optin": "no"' || true)
+OPTOUT_STEP_DONE9=$(printf '%s' "$STATE9B" | grep -c '"step_backup": "done"' || true)
+ENABLE_LATER_SHOWN9=$(printf '%s' "$OUT9B" | grep -c -- "--enable-backup" || true)
+{
+  echo ""
+  echo "--- opt-out assertions ---"
+  echo "exit code: $STATUS9B"
+  echo "state: answer_backup_optin=no recorded: $([[ $OPTOUT_RECORDED9 -gt 0 ]] && echo yes || echo no); step done (never re-asked): $([[ $OPTOUT_STEP_DONE9 -gt 0 ]] && echo yes || echo no)"
+  echo "enable-later command printed: $([[ $ENABLE_LATER_SHOWN9 -gt 0 ]] && echo yes || echo no)"
+  echo "repos on fake GitHub before/after opt-out run: $REPOS_BEFORE9B/$REPOS_AFTER9B (must be equal — nothing pushed)"
+} >> "$T9"
+
+if [[ $STATUS9A -eq 0 && $BACKUP_DONE9 -gt 0 && $BACKUP_OPTIN9 -gt 0 \
+      && $WALKTHROUGH_SHOWN9 -gt 0 && $RESTORE_SHOWN9 -gt 0 \
+      && -d "$BARE9" && "$PUSHED_LEAK9" -eq 0 && "$PUSHED_TOKENFILE9" -eq 0 && "$PUSHED_NONEMPTY9" -gt 0 \
+      && $STATUS9B -eq 0 && $OPTOUT_RECORDED9 -gt 0 && $OPTOUT_STEP_DONE9 -gt 0 \
+      && $ENABLE_LATER_SHOWN9 -gt 0 && "$REPOS_BEFORE9B" == "$REPOS_AFTER9B" ]]; then
+  record "9-backup-optin-optout" PASS "opt-in: auth walkthrough shown, real push, zero token leaks in pushed history, token file excluded, tree non-empty, restore command printed; opt-out: choice recorded, enable-later shown, nothing pushed"
+else
+  record "9-backup-optin-optout" FAIL "a_exit=$STATUS9A done=$BACKUP_DONE9 optin=$BACKUP_OPTIN9 walk=$WALKTHROUGH_SHOWN9 restore=$RESTORE_SHOWN9 bare=$([[ -d "$BARE9" ]] && echo 1 || echo 0) leak=$PUSHED_LEAK9 tokenfile=$PUSHED_TOKENFILE9 nonempty=$PUSHED_NONEMPTY9 b_exit=$STATUS9B recorded=$OPTOUT_RECORDED9 stepdone=$OPTOUT_STEP_DONE9 enable=$ENABLE_LATER_SHOWN9 repos=$REPOS_BEFORE9B/$REPOS_AFTER9B"
 fi
 
 # ---------------------------------------------------------------------------

@@ -5,10 +5,11 @@
 # Depends only on: bash, POSIX tools (mkdir/cat/grep/sed/date/chmod/mv...),
 # curl, git. Checks for each and says in plain words what is missing (H1).
 #
-# WHAT THIS SCRIPT DOES: interviews you at exactly seven points (language,
+# WHAT THIS SCRIPT DOES: interviews you at exactly eight points (language,
 # working folder, Claude Code check, subscription check, Telegram opt-in,
-# daily-support-sharing opt-in, morning-digest opt-in), sets up a private
-# workspace with the assistant's rulebook vendored into it, and ends with
+# daily-support-sharing opt-in, morning-digest opt-in, backup opt-in to
+# your OWN private GitHub — v0.1.1), sets up a private workspace with the
+# assistant's rulebook vendored into it, and ends with
 # how to say "qroky start". Every step is safe to re-run: it checks what is
 # already done before doing anything, so re-running never repeats work or
 # re-asks a question you already answered — the answers live in
@@ -43,6 +44,7 @@
 #   bash install.sh --show-update-details   more detail on a pending update
 #   bash install.sh --apply-update     apply a pending update (asks to confirm)
 #   bash install.sh --enable-heartbeat turn the morning digest on later
+#   bash install.sh --enable-backup    turn the GitHub backup on later (v0.1.1)
 
 set -euo pipefail
 
@@ -139,6 +141,7 @@ state_load() {
   ANSWER_TELEGRAM_TOKEN_STORED="$(state_get answer_telegram_token_stored || true)"
   ANSWER_TELEMETRY_OPTIN="$(state_get answer_telemetry_optin || true)"
   ANSWER_HEARTBEAT_OPTIN="$(state_get answer_heartbeat_optin || true)"
+  ANSWER_BACKUP_OPTIN="$(state_get answer_backup_optin || true)"
   STEP_LANGUAGE="$(state_get step_language || true)"
   STEP_WORKDIR="$(state_get step_workdir || true)"
   STEP_FRAMEWORK="$(state_get step_framework || true)"
@@ -147,6 +150,8 @@ state_load() {
   STEP_TELEGRAM="$(state_get step_telegram || true)"
   STEP_TELEMETRY="$(state_get step_telemetry || true)"
   STEP_HEARTBEAT="$(state_get step_heartbeat || true)"
+  STEP_BACKUP="$(state_get step_backup || true)"
+  BACKUP_REPO="$(state_get backup_repo || true)"
   FRAMEWORK_SOURCE="$(state_get framework_source || true)"
   FRAMEWORK_REF="$(state_get framework_ref || true)"
   FRAMEWORK_TAG="$(state_get framework_tag || true)"
@@ -166,6 +171,7 @@ state_commit() {
     printf '  "answer_telegram_token_stored": "%s",\n' "$(json_escape "${ANSWER_TELEGRAM_TOKEN_STORED:-no}")"
     printf '  "answer_telemetry_optin": "%s",\n' "$(json_escape "${ANSWER_TELEMETRY_OPTIN:-}")"
     printf '  "answer_heartbeat_optin": "%s",\n' "$(json_escape "${ANSWER_HEARTBEAT_OPTIN:-}")"
+    printf '  "answer_backup_optin": "%s",\n' "$(json_escape "${ANSWER_BACKUP_OPTIN:-}")"
     printf '  "step_language": "%s",\n' "$(json_escape "${STEP_LANGUAGE:-pending}")"
     printf '  "step_workdir": "%s",\n' "$(json_escape "${STEP_WORKDIR:-pending}")"
     printf '  "step_framework": "%s",\n' "$(json_escape "${STEP_FRAMEWORK:-pending}")"
@@ -174,6 +180,8 @@ state_commit() {
     printf '  "step_telegram": "%s",\n' "$(json_escape "${STEP_TELEGRAM:-pending}")"
     printf '  "step_telemetry": "%s",\n' "$(json_escape "${STEP_TELEMETRY:-pending}")"
     printf '  "step_heartbeat": "%s",\n' "$(json_escape "${STEP_HEARTBEAT:-pending}")"
+    printf '  "step_backup": "%s",\n' "$(json_escape "${STEP_BACKUP:-pending}")"
+    printf '  "backup_repo": "%s",\n' "$(json_escape "${BACKUP_REPO:-}")"
     printf '  "framework_source": "%s",\n' "$(json_escape "${FRAMEWORK_SOURCE:-}")"
     printf '  "framework_ref": "%s",\n' "$(json_escape "${FRAMEWORK_REF:-}")"
     printf '  "framework_tag": "%s"\n' "$(json_escape "${FRAMEWORK_TAG:-}")"
@@ -593,13 +601,121 @@ step_heartbeat() {
   log "heartbeat DONE optin=$ANSWER_HEARTBEAT_OPTIN"
 }
 
+# ---------------------------------------------------------------------------
+# Step 8 — backup opt-in to the USER'S OWN private GitHub
+# (IV-POINT:8:backup_optin — v0.1.1 amendment, INFO-030 p.3: the interview's
+# closed list was extended to eight points by its owner). Hand-held gh flow
+# in the BotFather pattern; secrets never enter the backup (.gitignore
+# written below + harness negative grep over the pushed tree); gh/network
+# failures degrade with a concrete human action and the install CONTINUES
+# without backup, never dies (INPUT §1).
+# ---------------------------------------------------------------------------
+BACKUP_REPO_NAME="qroky-backup"
+
+_backup_ensure_gitignore() {
+  # check->do: append the exclusion block only if its marker is absent.
+  # Secrets never leave this machine: the token file and any secret-shaped
+  # path are excluded from every backup; install.log too (it is a local
+  # audit trail, not user work).
+  local marker="# qroky-backup exclusions"
+  if ! grep -qF "$marker" "$WORKSPACE_DIR/.gitignore" 2>/dev/null; then
+    cat >> "$WORKSPACE_DIR/.gitignore" <<EOF
+$marker — secrets and local logs never leave this machine
+.qroky/telegram.token
+*.token
+.env
+.env.*
+*.pem
+*.key
+*secret*
+*credential*
+install.log
+EOF
+  fi
+}
+
+_backup_push_attempt() {
+  # add + commit + create private repo + initial push. Identity fallback:
+  # a non-technical founder's machine often has no git user.email — fall
+  # back to a neutral backup identity WITHOUT overriding an existing one.
+  if git -C "$WORKSPACE_DIR" config user.email >/dev/null 2>&1; then
+    git -C "$WORKSPACE_DIR" add -A 2>>"${LOG_FILE:-/dev/null}" || return 1
+    git -C "$WORKSPACE_DIR" diff --cached --quiet 2>/dev/null \
+      || git -C "$WORKSPACE_DIR" commit -q -m "Qroky backup $(date -u +%Y-%m-%d)" 2>>"${LOG_FILE:-/dev/null}" || return 1
+  else
+    git -C "$WORKSPACE_DIR" add -A 2>>"${LOG_FILE:-/dev/null}" || return 1
+    git -C "$WORKSPACE_DIR" diff --cached --quiet 2>/dev/null \
+      || git -C "$WORKSPACE_DIR" -c user.name="Qroky backup" -c user.email="qroky-backup@local" \
+           commit -q -m "Qroky backup $(date -u +%Y-%m-%d)" 2>>"${LOG_FILE:-/dev/null}" || return 1
+  fi
+  if git -C "$WORKSPACE_DIR" remote get-url qroky-backup >/dev/null 2>&1; then
+    git -C "$WORKSPACE_DIR" push -q qroky-backup HEAD 2>>"${LOG_FILE:-/dev/null}" || return 1
+  else
+    gh repo create "$BACKUP_REPO_NAME" --private \
+      --source "$WORKSPACE_DIR" --remote qroky-backup --push \
+      >>"${LOG_FILE:-/dev/null}" 2>&1 || return 1
+  fi
+  return 0
+}
+
+_backup_flow() {
+  # Returns 0 with ANSWER_BACKUP_OPTIN=yes on success; returns 0 with
+  # ANSWER_BACKUP_OPTIN=no on every degradation path (the install always
+  # continues — INPUT §1).
+  if ! command -v gh >/dev/null 2>&1; then
+    L_BACKUP_GH_MISSING
+    ANSWER_BACKUP_OPTIN="no"
+    log "backup DEGRADED gh-missing (install continues; enable-later shown)"
+    return 0
+  fi
+  _backup_ensure_gitignore
+  if ! gh auth status >/dev/null 2>&1; then
+    L_BACKUP_AUTH_WALKTHROUGH
+    if ! gh auth login --web --git-protocol https 2>>"${LOG_FILE:-/dev/null}"; then
+      L_BACKUP_AUTH_FAILED
+      ANSWER_BACKUP_OPTIN="no"
+      log "backup DEGRADED auth-failed (install continues; enable-later shown)"
+      return 0
+    fi
+  fi
+  L_BACKUP_CREATING
+  if run_with_ladder backup _backup_push_attempt; then
+    BACKUP_REPO="$BACKUP_REPO_NAME"
+    L_BACKUP_DONE "$BACKUP_REPO_NAME"
+    ANSWER_BACKUP_OPTIN="yes"
+    log "backup DONE repo=$BACKUP_REPO_NAME (private, user's own account)"
+  else
+    L_BACKUP_FAILED
+    ANSWER_BACKUP_OPTIN="no"
+    log "backup FAILED-TO-HUMAN after ladder (install continues; enable-later shown)"
+  fi
+  return 0
+}
+
+step_backup() {
+  L_STEP_HEADER 8 "$(L_STEP_BACKUP_NAME)"
+  if [[ "${STEP_BACKUP:-}" == "done" ]]; then L_STEP_ALREADY_DONE; return 0; fi
+  L_BACKUP_ASK_OPTIN
+  local ans; ans="$(read_answer "y")"   # IV-POINT:8:backup_optin, recommended yes
+  if is_affirmative "$ans" || [[ -z "$ans" ]]; then
+    _backup_flow
+  else
+    L_BACKUP_SKIPPED
+    ANSWER_BACKUP_OPTIN="no"
+    log "backup DONE optin=no (choice recorded, no nagging)"
+  fi
+  STEP_BACKUP="done"
+  state_commit
+  log "backup DONE optin=$ANSWER_BACKUP_OPTIN"
+}
+
 # Shared by every flag-driven command (--check-update, --show-update-details,
-# --apply-update, --enable-heartbeat): resolves the same workdir the
-# interview would (env override, else the pointer file, else ./qroky), THEN
-# loads state from it. Must resolve STATE_FILE before calling state_load —
-# state_load only reads $STATE_FILE, it never computes it (caught by
-# actually running the self-update scenario against a real sandbox; see
-# run.log).
+# --apply-update, --enable-heartbeat, --enable-backup): resolves the same
+# workdir the interview would (env override, else the pointer file, else
+# ./qroky), THEN loads state from it. Must resolve STATE_FILE before calling
+# state_load — state_load only reads $STATE_FILE, it never computes it
+# (caught by actually running the self-update scenario against a real
+# sandbox; see run.log).
 resolve_and_load_state() {
   local candidate; candidate="$(resolve_candidate_workdir)"
   if [[ ! -f "$candidate/install-state.json" ]]; then
@@ -634,11 +750,20 @@ cmd_enable_heartbeat() {
   state_commit
 }
 
+# The documented enable-later path for a backup opt-out (v0.1.1, INPUT §1).
+cmd_enable_backup() {
+  resolve_and_load_state
+  _backup_flow
+  STEP_BACKUP="done"
+  state_commit
+  [[ "$ANSWER_BACKUP_OPTIN" == "yes" ]] || exit 1
+}
+
 # ---------------------------------------------------------------------------
 # Finale (H5) — printed at the end of every successful run, fresh install
 # or healthy rerun alike.
 # ---------------------------------------------------------------------------
-finale() { L_FINALE "$WORKSPACE_DIR"; log "FINALE-SHOWN"; }
+finale() { L_FINALE "$WORKSPACE_DIR"; say ""; L_DISCLAIMER; log "FINALE-SHOWN"; }
 
 # ---------------------------------------------------------------------------
 # Self-update (H11). Release tags only, never main. Digest -> да/позже/
@@ -784,6 +909,7 @@ main_interview() {
   step_telegram;   say ""
   step_telemetry;  say ""
   step_heartbeat;  say ""
+  step_backup;     say ""
 
   finale
   say ""
@@ -795,6 +921,7 @@ case "${1:-}" in
   --show-update-details) cmd_show_update_details ;;
   --apply-update) cmd_apply_update ;;
   --enable-heartbeat) cmd_enable_heartbeat ;;
+  --enable-backup) cmd_enable_backup ;;
   "") main_interview ;;
-  *) say "Unknown option: $1"; say "Usage: install.sh [--check-update|--show-update-details|--apply-update|--enable-heartbeat]"; exit 2 ;;
+  *) say "Unknown option: $1"; say "Usage: install.sh [--check-update|--show-update-details|--apply-update|--enable-heartbeat|--enable-backup]"; exit 2 ;;
 esac
