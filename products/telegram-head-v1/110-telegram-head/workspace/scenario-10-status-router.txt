@@ -1,7 +1,7 @@
 Scenario 10 — /status (H8) + free-input router (H9)
-Generated: 2026-07-11T07:05:43Z
+Generated: 2026-07-11T09:28:43Z
 
 --- assertions ---
 /status and «что в работе» answered with real atoms: 2 (must be 2), one message each: 2 (must be 2, <=1 per command)
 free text -> exactly ONE clarifying question: 1 (must be 1); after the reply NO second re-ask: 0 (must be 0)
-task-proposal file after the reply: /var/folders/pd/mlvnqxbj7tj0h1qb5qv78_l00000gn/T/qroky-tg-dry.xQ6VRQ/root/decisions/inbox/1783753544-56681-24204-task-proposal-1783753544.md valid=1; owner told: 1 (must be 1)
+task-proposal file after the reply: /var/folders/pd/mlvnqxbj7tj0h1qb5qv78_l00000gn/T/qroky-tg-dry.6ejLNV/root/decisions/inbox/1783762124-3047-6569-task-proposal-1783762124.md valid=1; owner told: 1 (must be 1)

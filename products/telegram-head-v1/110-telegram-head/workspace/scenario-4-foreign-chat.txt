@@ -1,5 +1,5 @@
 Scenario 4 — chat_id binding (H4)
-Generated: 2026-07-11T07:05:38Z
+Generated: 2026-07-11T09:28:39Z
 
 --- assertions ---
 replies sent to the foreign chat: 0 (must be 0 — no action)

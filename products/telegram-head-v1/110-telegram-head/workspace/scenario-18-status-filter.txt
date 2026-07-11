@@ -1,5 +1,5 @@
 Scenario 18 — /status across projects + name filter (H3)
-Generated: 2026-07-11T07:05:49Z
+Generated: 2026-07-11T09:29:04Z
 
 --- assertions ---
 /status covers both projects with labels and real atoms: 1 (1), in ONE message: 1 (1)

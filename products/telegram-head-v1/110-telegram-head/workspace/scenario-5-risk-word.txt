@@ -1,5 +1,5 @@
 Scenario 5 — risk-word rule (H5)
-Generated: 2026-07-11T07:05:38Z
+Generated: 2026-07-11T09:28:39Z
 
 --- assertions ---
 risk message carries buttons: 0 (must be 0) and names the word: 1 (must be >0)

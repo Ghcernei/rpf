@@ -1,6 +1,6 @@
 Scenario 3 — listener physics (H3) + schedule assertions (H6/H13)
-Generated: 2026-07-11T07:05:34Z
-plists rendered to /var/folders/pd/mlvnqxbj7tj0h1qb5qv78_l00000gn/T/qroky-tg-dry.xQ6VRQ/plists (digest at 21:00)
+Generated: 2026-07-11T09:28:35Z
+plists rendered to /var/folders/pd/mlvnqxbj7tj0h1qb5qv78_l00000gn/T/qroky-tg-dry.6ejLNV/plists (digest at 21:00)
 
 --- assertions ---
 listener alive when sampled: 1 (must be 1 — otherwise lsof proves nothing)

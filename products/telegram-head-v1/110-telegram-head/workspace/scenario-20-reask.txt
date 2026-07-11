@@ -1,5 +1,5 @@
 Scenario 20 — project re-ask (H4)
-Generated: 2026-07-11T07:05:51Z
+Generated: 2026-07-11T09:29:05Z
 
 --- assertions ---
 ONE re-ask with buttons: 1/1 (1/1); text NOT double-filed as user-message: 0 -> 0 (equal)

@@ -1,5 +1,5 @@
 Scenario 12 — long-label gate (verify M1)
-Generated: 2026-07-11T07:05:44Z
+Generated: 2026-07-11T09:28:44Z
 
 --- assertions ---
 old label-in-callback_data scheme would need 141 bytes (must be >64 — the scenario genuinely discriminates)

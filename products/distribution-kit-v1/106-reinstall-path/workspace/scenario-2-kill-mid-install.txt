@@ -1,5 +1,5 @@
 Scenario 2 — kill the install mid-way, rerun completes to the end
-Generated: 2026-07-11T09:19:42Z
+Generated: 2026-07-11T09:28:32Z
 Mechanism (round-2 fix, verify F1): RUN A opts INTO Telegram (y +
 GOODTOKEN456) so the QROKY_TEST_DELAY_STEP=telegram hook — which sits
 AFTER the token is stored but BEFORE the telegram step's state commit
@@ -28,8 +28,8 @@ a single Enter. Nothing installs behind your back.
 Step 2 of 8 — choose your working folder
 Where should your private Qroky folder live?
 Press Enter to use the suggested folder, or type a different path.
-Suggested: /private/tmp/qroky-install-dry-run.OPVL5l/w2
->   working folder: /private/tmp/qroky-install-dry-run.OPVL5l/w2
+Suggested: /private/tmp/qroky-install-dry-run.GDJ5Vn/w2
+>   working folder: /private/tmp/qroky-install-dry-run.GDJ5Vn/w2
 
 Step 3 of 8 — check the Claude Code assistant
   Claude Code — found (claude-code 0.0.0-dry-run-stub)
@@ -62,14 +62,14 @@ Paste the token here (or type "skip" to skip this step):   checking the token wi
   connecting the bot to this computer (checks every 30 seconds; daily digest at 09:05)...
   first listener pass — healthy
   Telegram assistant — ON (listener every 30 s, digest daily at 09:05; its files live in .qroky/telegram/ inside your workspace)
-(process 65933 SIGKILLed mid-step, as intended)
+(process 94277 SIGKILLed mid-step, as intended)
 
 --- state file immediately after the kill ---
 {
   "version": 1,
-  "generated_at": "2026-07-11T09:19:42Z",
+  "generated_at": "2026-07-11T09:28:32Z",
   "answer_language": "en",
-  "answer_workdir": "/private/tmp/qroky-install-dry-run.OPVL5l/w2",
+  "answer_workdir": "/private/tmp/qroky-install-dry-run.GDJ5Vn/w2",
   "answer_telegram_optin": "",
   "answer_telegram_token_stored": "no",
   "answer_telegram_bound": "no",
@@ -89,8 +89,8 @@ Paste the token here (or type "skip" to skip this step):   checking the token wi
   "step_backup": "pending",
   "step_machinewide": "pending",
   "backup_repo": "",
-  "framework_source": "/private/tmp/qroky-install-dry-run.OPVL5l/fake-framework-origin",
-  "framework_ref": "c9a6bbcf9c937e055fbeba33f436dea79213f7df",
+  "framework_source": "/private/tmp/qroky-install-dry-run.GDJ5Vn/fake-framework-origin",
+  "framework_ref": "484013f1a1db510d5f47a64b00da3583faedb7f8",
   "framework_tag": "v1.0.0"
 }
 
@@ -169,13 +169,13 @@ Turn the backup on? Yes/no (y/n), default y:   backup — off, as you chose. Tur
 
 Copy-paste this into your terminal:
 
-    cd /private/tmp/qroky-install-dry-run.OPVL5l/w2 && claude
+    cd /private/tmp/qroky-install-dry-run.GDJ5Vn/w2 && claude
 
 then say:
 
     qroky start
 
-(In VS Code instead: File → Open Folder → /private/tmp/qroky-install-dry-run.OPVL5l/w2 → start a new chat — same phrase.)
+(In VS Code instead: File → Open Folder → /private/tmp/qroky-install-dry-run.GDJ5Vn/w2 → start a new chat — same phrase.)
 
 One honest note: the FIRST time claude starts, it asks a couple of its own
 questions (color theme, login) — that is normal; answer them and continue.
@@ -200,9 +200,9 @@ Not professional advice.
 --- final state file ---
 {
   "version": 1,
-  "generated_at": "2026-07-11T09:19:46Z",
+  "generated_at": "2026-07-11T09:28:36Z",
   "answer_language": "en",
-  "answer_workdir": "/private/tmp/qroky-install-dry-run.OPVL5l/w2",
+  "answer_workdir": "/private/tmp/qroky-install-dry-run.GDJ5Vn/w2",
   "answer_telegram_optin": "no",
   "answer_telegram_token_stored": "no",
   "answer_telegram_bound": "no",
@@ -222,8 +222,8 @@ Not professional advice.
   "step_backup": "done",
   "step_machinewide": "done",
   "backup_repo": "",
-  "framework_source": "/private/tmp/qroky-install-dry-run.OPVL5l/fake-framework-origin",
-  "framework_ref": "c9a6bbcf9c937e055fbeba33f436dea79213f7df",
+  "framework_source": "/private/tmp/qroky-install-dry-run.GDJ5Vn/fake-framework-origin",
+  "framework_ref": "484013f1a1db510d5f47a64b00da3583faedb7f8",
   "framework_tag": "v1.0.0"
 }
 

@@ -1,5 +1,5 @@
 Scenario 13 — digest safety net (verify M4) + section coherence (M6)
-Generated: 2026-07-11T07:05:45Z
+Generated: 2026-07-11T09:28:44Z
 
 --- assertions ---
 pass BEFORE digest time fired nothing: 0 sends (0), marker: 0 (0)

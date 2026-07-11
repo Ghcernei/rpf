@@ -1,5 +1,5 @@
 Scenario 17 — recovery of a broken framework/ after an interrupted self-update
-Generated: 2026-07-11T09:20:10Z
+Generated: 2026-07-11T09:29:18Z
 
 --- full install first ---
 == Qroky setup ==
@@ -19,8 +19,8 @@ a single Enter. Nothing installs behind your back.
 Step 2 of 8 — choose your working folder
 Where should your private Qroky folder live?
 Press Enter to use the suggested folder, or type a different path.
-Suggested: /private/tmp/qroky-install-dry-run.OPVL5l/w17
->   working folder: /private/tmp/qroky-install-dry-run.OPVL5l/w17
+Suggested: /private/tmp/qroky-install-dry-run.GDJ5Vn/w17
+>   working folder: /private/tmp/qroky-install-dry-run.GDJ5Vn/w17
 
 Step 3 of 8 — check the Claude Code assistant
   Claude Code — found (claude-code 0.0.0-dry-run-stub)
@@ -85,13 +85,13 @@ Turn the backup on? Yes/no (y/n), default y:   backup — off, as you chose. Tur
 
 Copy-paste this into your terminal:
 
-    cd /private/tmp/qroky-install-dry-run.OPVL5l/w17 && claude
+    cd /private/tmp/qroky-install-dry-run.GDJ5Vn/w17 && claude
 
 then say:
 
     qroky start
 
-(In VS Code instead: File → Open Folder → /private/tmp/qroky-install-dry-run.OPVL5l/w17 → start a new chat — same phrase.)
+(In VS Code instead: File → Open Folder → /private/tmp/qroky-install-dry-run.GDJ5Vn/w17 → start a new chat — same phrase.)
 
 One honest note: the FIRST time claude starts, it asks a couple of its own
 questions (color theme, login) — that is normal; answer them and continue.
@@ -109,7 +109,7 @@ A note on responsibility: the system produces drafts and analysis; legal,
 financial, and medical decisions and signatures are always made by a human.
 Not professional advice.
 
-(total elapsed: 1s)
+(total elapsed: 0s)
 
 --- broken: framework/ deleted, .git/modules/framework left (present) ---
 
@@ -119,7 +119,7 @@ Not professional advice.
 Step 1 of 8 — choose your language
   language set: en
 This folder already carries a Qroky install: framework/ plus your data next to it.
-  /private/tmp/qroky-install-dry-run.OPVL5l/w17
+  /private/tmp/qroky-install-dry-run.GDJ5Vn/w17
 Reinstall: your data stays untouched, framework/ is recreated fresh.
 What do we do? [1 reinstall / 2 update / 3 cancel] (Enter = cancel): Recreating framework/ — your data is not touched.
 
@@ -153,13 +153,13 @@ Step 8 of 8 — backup to your own GitHub (optional)
 
 Copy-paste this into your terminal:
 
-    cd /private/tmp/qroky-install-dry-run.OPVL5l/w17 && claude
+    cd /private/tmp/qroky-install-dry-run.GDJ5Vn/w17 && claude
 
 then say:
 
     qroky start
 
-(In VS Code instead: File → Open Folder → /private/tmp/qroky-install-dry-run.OPVL5l/w17 → start a new chat — same phrase.)
+(In VS Code instead: File → Open Folder → /private/tmp/qroky-install-dry-run.GDJ5Vn/w17 → start a new chat — same phrase.)
 
 One honest note: the FIRST time claude starts, it asks a couple of its own
 questions (color theme, login) — that is normal; answer them and continue.
@@ -177,7 +177,7 @@ A note on responsibility: the system produces drafts and analysis; legal,
 financial, and medical decisions and signatures are always made by a human.
 Not professional advice.
 
-(total elapsed: 0s)
+(total elapsed: 1s)
 
 --- --check-update after recovery ---
   no update available — you are on the latest release
@@ -188,7 +188,7 @@ Not professional advice.
 Шаг 1 из 8 — выбор языка
   язык установлен: ru
 В этой папке уже есть установка Qroky: framework/ и ваши данные рядом.
-  /private/tmp/qroky-install-dry-run.OPVL5l/w14
+  /private/tmp/qroky-install-dry-run.GDJ5Vn/w14
 Переустановка: данные не трону, framework/ пересоздам заново.
 Что делаем? [1 переустановить / 2 обновить / 3 отмена] (Enter = отмена): Отменено. Ничего не изменено.
 

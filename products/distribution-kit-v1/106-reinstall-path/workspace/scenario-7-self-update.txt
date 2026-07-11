@@ -1,6 +1,6 @@
 Scenario 7 — self-update channel, against Scenario-1's workspace
 (already installed and pinned to v1.0.0)
-Generated: 2026-07-11T09:19:51Z
+Generated: 2026-07-11T09:28:42Z
 
 --- check-update (read-only) ---
 A new version of the framework your assistant follows is available: v1.0.0 -> v1.1.0
@@ -26,14 +26,14 @@ cancel check: confirm prompt reached: yes; cancelled message shown: yes; framewo
 Your own copy has local changes that the update would touch. Nothing was
 overwritten. Here is exactly what differs:
  M README.md
-Apply this update now? Type "yes" to confirm, anything else cancels:   update applied: v1.0.0 -> v1.1.0. A record was written to: /private/tmp/qroky-install-dry-run.OPVL5l/w1/decisions/UPDATE-2026-07-11-v1.1.0.md
+Apply this update now? Type "yes" to confirm, anything else cancels:   update applied: v1.0.0 -> v1.1.0. A record was written to: /private/tmp/qroky-install-dry-run.GDJ5Vn/w1/decisions/UPDATE-2026-07-11-v1.1.0.md
 
 --- state after apply ---
 {
   "version": 1,
-  "generated_at": "2026-07-11T09:19:51Z",
+  "generated_at": "2026-07-11T09:28:43Z",
   "answer_language": "en",
-  "answer_workdir": "/private/tmp/qroky-install-dry-run.OPVL5l/w1",
+  "answer_workdir": "/private/tmp/qroky-install-dry-run.GDJ5Vn/w1",
   "answer_telegram_optin": "yes",
   "answer_telegram_token_stored": "yes",
   "answer_telegram_bound": "yes",
@@ -53,17 +53,17 @@ Apply this update now? Type "yes" to confirm, anything else cancels:   update ap
   "step_backup": "done",
   "step_machinewide": "done",
   "backup_repo": "",
-  "framework_source": "/private/tmp/qroky-install-dry-run.OPVL5l/fake-framework-origin",
-  "framework_ref": "ed5096db4c3413d66e5f986ba7f2e589189a5961",
+  "framework_source": "/private/tmp/qroky-install-dry-run.GDJ5Vn/fake-framework-origin",
+  "framework_ref": "a50b567912a18865ba9e93abff9630ba19a5b6bc",
   "framework_tag": "v1.1.0"
 }
 
 --- decisions record ---
 # Framework update applied
 
-- From: v1.0.0 (c9a6bbcf9c937e055fbeba33f436dea79213f7df)
-- To: v1.1.0 (ed5096db4c3413d66e5f986ba7f2e589189a5961)
-- Confirmed by: you (explicit yes), 2026-07-11T09:19:51Z
+- From: v1.0.0 (484013f1a1db510d5f47a64b00da3583faedb7f8)
+- To: v1.1.0 (a50b567912a18865ba9e93abff9630ba19a5b6bc)
+- Confirmed by: you (explicit yes), 2026-07-11T09:28:43Z
 - Local edits: local edits re-applied cleanly after the update
 
 v1.1.0
