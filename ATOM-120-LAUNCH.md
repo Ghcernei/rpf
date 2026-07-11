@@ -166,6 +166,18 @@ leads to `git clone`. Activation (clone → first closed atom) is metric №1.
   WELCOMED; trademark line: the code is Apache-free, the name Qroky is
   protected — forks rename. Multi-platform ports go through forks/bindings
   per `runtime/INTERFACE.md`, not through core edits.
+- H11. (INFO-036 block 2 — Codex user-path microscopy; a QUALITY CHECKLIST
+  for README/kit texts, not new rules.) Verify checks each: (a) README order
+  is «what I get in 15 minutes» FIRST, philosophy after; (b) distribution
+  README carries no internals before the install command; (c) every
+  install.sh output line the user sees reads as action / status / exact fix
+  (audit of existing strings — kit CODE changes are out of this tree's
+  scope: any install.sh edit resets the INFO-035 clean-run and belongs to
+  block-3/4 atoms); (d) the installer's final screen is EXACTLY 2–3
+  commands, no scatter; (e) «qroky start» works precisely where the
+  installer's texts promise it. Plus (INFO-039 candidate 26): README/pitch
+  vocabulary line «agent harness / harness engineering» + one line naming
+  the OpenAI-convergence validation.
 
 **Soft (judge — CEO at G2):**
 - S1. 30-second stranger test on README: hero + first screen answer «what is it
