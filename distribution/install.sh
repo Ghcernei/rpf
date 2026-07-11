@@ -401,6 +401,11 @@ resolve_candidate_workdir() {
     printf '%s' "$QROKY_WORKSPACE_DIR"
   elif [[ -f "$WORKDIR_POINTER" ]]; then
     cat "$WORKDIR_POINTER"
+  elif [[ -f "$HOME/.qroky/workdir" ]]; then
+    # ATOM-130 machine trace: the install is findable WITHOUT knowing the
+    # clone path (the CEO's «нормальная команда uninstall» carry-over) —
+    # a fresh clone, or qroky.sh run from anywhere, resolves through here.
+    cat "$HOME/.qroky/workdir"
   else
     # v0.1.2 (M1): suggest a folder OUTSIDE this kit clone — the old
     # "./qroky" default landed the workspace inside distribution/.
@@ -448,6 +453,11 @@ step_workdir() {
   TOKEN_FILE="$WORKSPACE_DIR/.qroky/telegram.token"
   mkdir -p "$DECISIONS_DIR" "$WORKSPACE_DIR/.qroky" "$WORKSPACE_DIR/mission" "$WORKSPACE_DIR/atoms"
   printf '%s' "$WORKSPACE_DIR" > "$WORKDIR_POINTER"
+  # ATOM-130 machine trace: a second, machine-level pointer under ~/.qroky —
+  # so `qroky.sh uninstall|update` (and any fresh clone) can find this
+  # install from anywhere, without knowing the clone path. Best-effort:
+  # a read-only ~ must never kill the install over a convenience pointer.
+  { mkdir -p "$HOME/.qroky" && printf '%s' "$WORKSPACE_DIR" > "$HOME/.qroky/workdir"; } 2>/dev/null || true
   L_WORKDIR_SET "$WORKSPACE_DIR"
   STEP_WORKDIR="done"
   state_commit
@@ -460,6 +470,44 @@ step_workdir() {
 # (PROVENANCE.md: source + commit + date). Self-update (H11) reads
 # framework_tag/framework_ref back out of state to compare later.
 # ---------------------------------------------------------------------------
+# Sparse vendoring (ATOM-130, GATE-031): the working copy materializes ONLY
+# the paths whitelisted in the tree's own distribution/dist-manifest — the
+# user gets the PRODUCT, never the factory's working history. Implemented
+# as git sparse-checkout (non-cone: the manifest names root FILES too, and
+# cone mode force-materializes every root file) so the vendored copy stays
+# a real tag-pinned git checkout — the self-update channel (fetch/checkout/
+# status/stash) is untouched. A tree WITHOUT a manifest (v0.3.x tags and
+# older) vendors whole, exactly as before — old releases lose nothing.
+# Re-applied after every self-update checkout: a newer tag's manifest wins,
+# and a FULL v0.3.x instance silently shrinks to the product on its first
+# v0.4 update (untracked user files inside hidden dirs are left alone —
+# sparse-checkout never deletes what git does not track).
+# ---------------------------------------------------------------------------
+_framework_apply_manifest() {
+  local mf_ref="HEAD:distribution/dist-manifest" line patterns=()
+  if ! git -C "$FRAMEWORK_DIR" cat-file -e "$mf_ref" 2>>"${LOG_FILE:-/dev/null}"; then
+    log "framework MANIFEST-ABSENT (pre-v0.4 tree) — full vendoring, unchanged behavior"
+    return 0
+  fi
+  while IFS= read -r line; do
+    line="${line%%#*}"
+    line="$(printf '%s' "$line" | tr -d '[:space:]')"
+    [[ -n "$line" ]] && patterns+=("/$line")
+  done < <(git -C "$FRAMEWORK_DIR" show "$mf_ref" 2>>"${LOG_FILE:-/dev/null}")
+  if [[ ${#patterns[@]} -eq 0 ]]; then
+    log "framework MANIFEST-EMPTY — full vendoring kept (a broken manifest must not brick the copy)"
+    return 0
+  fi
+  if git -C "$FRAMEWORK_DIR" sparse-checkout set --no-cone "${patterns[@]}" 2>>"${LOG_FILE:-/dev/null}"; then
+    log "framework SPARSE-APPLIED ${#patterns[@]} manifest paths"
+  else
+    # a git too old for sparse-checkout: degrade to the full copy, honestly
+    # in the log — never a broken install over a cosmetic feature
+    log "framework SPARSE-UNSUPPORTED (git too old?) — full vendoring fallback"
+  fi
+  return 0
+}
+
 _framework_vendor_attempt() {
   # Raw git noise (fatal:, Cloning into..., etc.) goes to install.log, not
   # the founder's screen — the founder sees the human-language messages of
@@ -480,6 +528,7 @@ _framework_vendor_attempt() {
     ref="$(git -C "$FRAMEWORK_DIR" rev-parse HEAD)"
   fi
   git -C "$FRAMEWORK_DIR" checkout --quiet "$ref" 2>>"${LOG_FILE:-/dev/null}" || return 1
+  _framework_apply_manifest
   FRAMEWORK_REF="$(git -C "$FRAMEWORK_DIR" rev-parse HEAD)"
   FRAMEWORK_TAG="$tag"
   cat > "$FRAMEWORK_DIR/PROVENANCE.md" <<EOF
@@ -1489,6 +1538,11 @@ cmd_apply_update() {
   fi
   local old_tag="${FRAMEWORK_TAG:-"(unversioned)"}" old_ref="${FRAMEWORK_REF:-}"
   git -C "$FRAMEWORK_DIR" checkout --quiet "$latest"
+  # ATOM-130: the new tag's dist-manifest governs the working copy — a FULL
+  # v0.3.x instance silently sheds the factory's history right here, with
+  # zero questions and zero touch to anything outside framework/ (silent
+  # migration, same doctrine as the v0.3 router fold).
+  _framework_apply_manifest
   FRAMEWORK_REF="$(git -C "$FRAMEWORK_DIR" rev-parse HEAD)"
   FRAMEWORK_TAG="$latest"
   local pop_note="no local edits to reconcile"
@@ -1612,6 +1666,14 @@ cmd_uninstall() {
       L_UNINSTALL_STEP "$QROKY_REGISTRY"
       rm -f "$QROKY_REGISTRY"
       _un_note "$QROKY_REGISTRY"
+    fi
+    # the ATOM-130 machine pointer — removed ONLY when it points at the
+    # install being removed (same rule as the clone-local pointer)
+    if [[ $have_state -eq 1 && -f "$HOME/.qroky/workdir" ]] \
+       && [[ "$(cat "$HOME/.qroky/workdir" 2>/dev/null)" == "$WORKSPACE_DIR" ]]; then
+      L_UNINSTALL_STEP "$HOME/.qroky/workdir"
+      rm -f "$HOME/.qroky/workdir"
+      _un_note "$HOME/.qroky/workdir"
     fi
   elif [[ -d "$HOME/.qroky" ]]; then
     L_UNINSTALL_STEP "$HOME/.qroky"

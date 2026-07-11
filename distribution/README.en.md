@@ -14,10 +14,15 @@ road: 8 questions, ~3 minutes, two lines at the end.
 ## The one-liner
 
 ```
-bash install.sh
+bash qroky.sh install
 ```
 
-Run it from the folder where you unpacked/cloned this kit. If something is
+Run it from anywhere — `qroky.sh` (at the top of this repository) keeps its
+own kit copy under `~/.qroky/kit` and starts the interview. The same command
+family covers the whole journey: `bash qroky.sh update` and
+`bash qroky.sh uninstall` work from any folder — you never need to remember
+where a clone lives. (Running `bash install.sh` from this folder still works
+exactly as before.) If something is
 missing (git, curl, the Claude Code assistant itself), the script stops and
 tells you exactly what to install and how — then you run the same command
 again, and it continues from exactly where it stopped. Nothing is repeated,

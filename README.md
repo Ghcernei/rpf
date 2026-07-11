@@ -13,7 +13,7 @@ Qroky is an operating system for building products with a workforce of agents. E
 
 1. Read the constitution, in order: [ATOM-SPEC](framework/ATOM-SPEC.md) → [FEV-PROTOCOL](framework/FEV-PROTOCOL.md) → [REPO-STRUCTURE](framework/REPO-STRUCTURE.md) → [ORCHESTRATION](framework/ORCHESTRATION.md).
 2. To run atoms on the reference runtime, follow [runtime/claude/README.md](runtime/claude/README.md) — session start, tier mapping, human sign-off, headless mode.
-3. Watch a real cycle: any atom folder under [products/framework-v1/](products/framework-v1/) shows the full record — `INPUT.md` → product → blind `VERDICT.md` → human acceptance in [decisions/](decisions/).
+3. Watch a real cycle: any atom folder in the public factory, [qroky/lab](https://github.com/qroky/lab), shows the full record — `INPUT.md` → product → blind `VERDICT.md` → human acceptance in its `decisions/`.
 
 **Repository map:**
 
@@ -21,11 +21,16 @@ Qroky is an operating system for building products with a workforce of agents. E
 | :---- | :---- |
 | [MANIFEST.md](MANIFEST.md) | The manifesto — why Qroky exists, who it is for, what is open |
 | [framework/](framework/) | The constitution: four normative documents binding every atom |
-| [roles/](roles/) | Executor role specs; human-participant profiles in `roles/humans/` |
-| [products/](products/) | One folder per product; one folder per atom — the permanent work record |
-| [decisions/](decisions/) | The decision journal: gates, risk acceptances, information, verbatim |
 | [knowledge/](knowledge/) | The knowledge layer: domain, organizational, procedural, precedent |
 | [runtime/](runtime/) | Runtime bindings — how atoms run on a concrete platform |
-| [LICENSE](LICENSE) | Apache License 2.0 — the open boundary is recorded in [decisions/RISK-002](decisions/RISK-002-open-core-boundary.md) |
+| [distribution/](distribution/) | The installer kit: `install.sh`, the dist-manifest, the freeze check |
+| [qroky.sh](qroky.sh) | The one-command entry: `bash qroky.sh install \| update \| uninstall` |
+| [LICENSE](LICENSE) | Apache License 2.0 — the open boundary is recorded in the decision journal (RISK-002, in the lab) |
+
+This repository is the PRODUCT — what every instance receives, whole
+(see [distribution/dist-manifest](distribution/dist-manifest) and
+[docs/separation.md](docs/separation.md)). The full self-construction
+journal — every product folder, every decision, every gate, verbatim —
+lives in the public factory: **[qroky/lab](https://github.com/qroky/lab)**.
 
 Licensed under [Apache-2.0](LICENSE). **Qroky** is the product's brand name; the methodology it implements is the **Recursive Product Framework**.

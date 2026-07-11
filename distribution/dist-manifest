@@ -1,0 +1,23 @@
+# dist-manifest — the distribution whitelist (ATOM-130, GATE-031, INFO-043).
+#
+# Principle: a path ships ONLY if it is universal for every instance —
+# «универсально целиком или не едет». Everything else (the factory: its
+# products/, decisions/, TASKS, launch files, working roles) lives in
+# qroky/lab and never reaches a user's machine.
+#
+# Format: one path per line, relative to the repo root. Directories end
+# with «/» and ship whole. Lines starting with # and blank lines are
+# ignored. This file drives BOTH the installer's sparse vendoring
+# (install.sh) and the freeze check (verify.sh): the two can never
+# disagree about what the product is.
+framework/
+runtime/
+distribution/
+docs/
+knowledge/
+qroky.sh
+CHANGELOG.md
+README.md
+LICENSE
+MANIFEST.md
+.gitignore

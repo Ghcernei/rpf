@@ -15,10 +15,15 @@ două linii la final.
 ## Comanda unică
 
 ```
-bash install.sh
+bash qroky.sh install
 ```
 
-Rulează-o din folderul unde ai dezarhivat/clonat acest kit. Dacă lipsește
+Rulează de oriunde — `qroky.sh` (în rădăcina acestui repository) își ține
+propria copie a kitului în `~/.qroky/kit` și pornește interviul. Aceeași
+familie de comenzi acoperă tot drumul: `bash qroky.sh update` și
+`bash qroky.sh uninstall` funcționează din orice folder — nu trebuie să ții
+minte unde stă o clonă. (Comanda `bash install.sh` din acest folder
+funcționează ca înainte.) Dacă lipsește
 ceva (git, curl, chiar asistentul Claude Code), scriptul se oprește și îți
 spune exact ce să instalezi și cum — apoi rulezi din nou aceeași comandă,
 și continuă chiar de unde s-a oprit. Nimic nu se repetă, nimic la care ai

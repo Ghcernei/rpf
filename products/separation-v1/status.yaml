@@ -1,0 +1,8 @@
+# status registry — separation-v1 (INFO-036 block 4, order INFO-043)
+atoms:
+  ATOM-130:
+    folder: 130-separation
+    status: delivered (awaiting verify — mutation, INFO-037; then CEO re-run №2 per INFO-035)
+    maturity: —
+    opened: 2026-07-11
+    gate: GATE-031 (G1 go)

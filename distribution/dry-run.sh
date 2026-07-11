@@ -63,7 +63,7 @@
 set -uo pipefail   # NOT -e: scenarios intentionally capture non-zero exits
 
 HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-ATOM_WORKSPACE="$(cd "$HERE/../products/distribution-kit-v1/106-reinstall-path/workspace" && pwd)"
+ATOM_WORKSPACE="$(cd "$HERE/../products/separation-v1/130-separation/workspace" && pwd)"
 SANDBOX="$(mktemp -d /private/tmp/qroky-install-dry-run.XXXXXX)"
 cleanup() { rm -rf "$SANDBOX"; }
 trap cleanup EXIT
@@ -240,6 +240,17 @@ cp "$VENDORED_SKILL" "$FAKE_FW/runtime/claude/skill/qroky/SKILL.md"
 # genuine head, byte-identical, against the stubbed Bot API.
 cp -R "$HERE/../runtime/claude/telegram" "$FAKE_FW/runtime/claude/telegram"
 rm -rf "$FAKE_FW/runtime/claude/telegram/state" "$FAKE_FW/runtime/claude/telegram/telegram.log" 2>/dev/null || true
+# v0.4 (ATOM-130): the fake origin carries BOTH the real dist-manifest (so
+# every install in this harness exercises sparse vendoring) AND the
+# factory's junk it must never ship — the sparse/freeze negative asserts
+# in scenario 19 are therefore non-vacuous by construction.
+mkdir -p "$FAKE_FW/distribution" "$FAKE_FW/products/some-product" "$FAKE_FW/decisions"
+cp "$HERE/dist-manifest" "$FAKE_FW/distribution/dist-manifest"
+cp "$HERE/verify.sh" "$FAKE_FW/distribution/verify.sh"
+echo "factory history — must NEVER reach an instance" > "$FAKE_FW/products/some-product/RESULT.md"
+echo "factory decision — must NEVER reach an instance" > "$FAKE_FW/decisions/GATE-000-stub.md"
+echo "factory backlog — must NEVER reach an instance" > "$FAKE_FW/TASKS.md"
+echo "factory launch file — must NEVER reach an instance" > "$FAKE_FW/ATOM-999-LAUNCH.md"
 git -C "$FAKE_FW" -c user.email=dryrun@qroky.local -c user.name="Qroky dry run" add -A
 git -C "$FAKE_FW" -c user.email=dryrun@qroky.local -c user.name="Qroky dry run" commit -q -m "stub commit 1"
 git -C "$FAKE_FW" -c user.email=dryrun@qroky.local -c user.name="Qroky dry run" \
@@ -1166,6 +1177,9 @@ MW_SKILL="$HOME_C/.claude/skills/qroky/SKILL.md"
 MW_CLAUDEMD="$HOME_C/.claude/CLAUDE.md"
 FILES_UNDER_CLAUDE_A=$(find "$HOME_C/.claude" -type f 2>/dev/null | wc -l | tr -d ' ')
 FILES_UNDER_HOME_A=$(find "$HOME_C" -type f 2>/dev/null | wc -l | tr -d ' ')
+# v0.4 (ATOM-130): the machine trace ~/.qroky/workdir is a NEW sanctioned
+# ~-write — the exhaustive listing expects exactly it and nothing else new
+MW_POINTER_OK=0; [[ "$(cat "$HOME_C/.qroky/workdir" 2>/dev/null)" == "$W12A" ]] && MW_POINTER_OK=1
 MARKERS_A1=$(grep -cF '<!-- qroky-machinewide:start -->' "$MW_CLAUDEMD" 2>/dev/null || true)
 SKILL_DIFF12="$(diff "$VENDORED_SKILL" "$MW_SKILL" 2>&1)"
 I3_EXCEPTION12=$(grep -c "GATE-028" "$MW_SKILL" 2>/dev/null || true)
@@ -1191,7 +1205,7 @@ SKILL_MD5_A2="$( (md5 -q "$MW_SKILL" 2>/dev/null || md5sum "$MW_SKILL" 2>/dev/nu
   echo "exit codes: run1=$STATUS12A rerun=$STATUS12A2"
   echo "q9 question asked (must be 0 — INFO-042 removed it): $Q9_ASKED12"
   echo "files under fake-HOME/.claude after run 1 (must be EXACTLY 2): $FILES_UNDER_CLAUDE_A"
-  echo "total files under fake HOME (must be 3: .gitconfig + the two): $FILES_UNDER_HOME_A"
+  echo "total files under fake HOME (must be 4: .gitconfig + the two + the ATOM-130 machine pointer ~/.qroky/workdir): $FILES_UNDER_HOME_A; pointer content correct: $MW_POINTER_OK (1)"
   echo "full listing of every file under the fake HOME:"
   find "$HOME_C" -type f | sed "s|$HOME_C|~|"
   echo "marker blocks in ~/.claude/CLAUDE.md after run 1 (must be 1): $MARKERS_A1; after re-run (must still be 1): $MARKERS_A2"
@@ -1224,7 +1238,7 @@ TRACE_README_RO=$(grep -c "este eliminată complet de această singură comandă
   echo "README uninstall doc carries the machine-wide trace: en=$TRACE_README_EN ru=$TRACE_README_RU ro=$TRACE_README_RO (each >=1)"
 } >> "$T12"
 if [[ $STATUS12A -eq 0 && $STATUS12A2 -eq 0 && "$Q9_ASKED12" -eq 0 \
-      && "$FILES_UNDER_CLAUDE_A" == "2" && "$FILES_UNDER_HOME_A" == "3" \
+      && "$FILES_UNDER_CLAUDE_A" == "2" && "$FILES_UNDER_HOME_A" == "4" && $MW_POINTER_OK -eq 1 \
       && "$MARKERS_A1" -eq 1 && "$MARKERS_A2" -eq 1 && "$FILES_UNDER_CLAUDE_A2" == "2" \
       && -z "$SKILL_DIFF12" && "$I3_EXCEPTION12" -gt 0 && "$I3_AMENDED12" -gt 0 && "$REMOVAL_NAMED12" -gt 0 \
       && "$TRACE_FINALE12" -ge 1 && "$TRACE_UNINSTALL_CMD12" -ge 1 \
@@ -1737,6 +1751,219 @@ if [[ "$FIN_EN" -ge 1 && "$FIN_RU" -ge 1 && "$HELLO_EN_ROUTE" -ge 1 && "$HELLO_R
   record "18-fresh-gesture-visibility" PASS "the new-session note is at all three touch points (finale en+ru, hello with the literal route + real path en+ru, marker blocks in BOTH copies incl. inside the uninstall fences)"
 else
   record "18-fresh-gesture-visibility" FAIL "finale=$FIN_EN/$FIN_RU hello=$HELLO_EN_ROUTE/$HELLO_RU_ROUTE marker=$MARK_WORKDIR/$MARK_MACHINE/fence$MARK_IN_FENCE/ru$MARK_RU trace_ru=$TRACE_RU"
+fi
+
+# ---------------------------------------------------------------------------
+# SCENARIO 19 — ATOM-130 sparse vendoring + freeze check: a fresh install's
+# framework/ materializes ONLY dist-manifest paths — the factory's junk
+# (products/, decisions/, TASKS.md, launch files) is IN the origin's tree
+# (proven, non-vacuous) but NEVER in the instance. verify.sh passes on the
+# clean tree and fails loudly on one planted non-manifest file. On the
+# pre-130 build there is no manifest, no sparse, no verify.sh — every
+# assert here fails (mutation-ready, INFO-037).
+# ---------------------------------------------------------------------------
+T19="$ATOM_WORKSPACE/scenario-19-sparse-and-freeze.txt"
+{
+  echo "Scenario 19 — sparse vendoring + freeze check, against Scenario-1's instance"
+  echo "Generated: $(date -u +%Y-%m-%dT%H:%M:%SZ)"
+  echo ""
+} > "$T19"
+# non-vacuity: the junk IS in the checked-out tag's TREE...
+TREE_HAS_JUNK=$(git -C "$W1/framework" ls-tree -r HEAD --name-only 2>/dev/null | grep -c "^products/\|^decisions/\|^TASKS.md\|^ATOM-999" || true)
+# ...but NOT in the worktree
+WT_JUNK=$(find "$W1/framework" \( -path '*/products/*' -o -path '*/decisions/*' -o -name 'TASKS.md' -o -name 'ATOM-999-LAUNCH.md' \) -type f ! -path '*/.git/*' 2>/dev/null | wc -l | tr -d ' ')
+WT_RUNTIME=0; [[ -f "$W1/framework/runtime/claude/telegram/listener.sh" ]] && WT_RUNTIME=1
+WT_MANIFEST=0; [[ -f "$W1/framework/distribution/dist-manifest" ]] && WT_MANIFEST=1
+SPARSE_ON=$(git -C "$W1/framework" sparse-checkout list 2>/dev/null | wc -l | tr -d ' ')
+{
+  echo "junk paths in the checked-out TREE (must be >0 — non-vacuous): $TREE_HAS_JUNK"
+  echo "junk files in the WORKTREE (must be 0 — sparse): $WT_JUNK"
+  echo "runtime materialized: $WT_RUNTIME (1); manifest materialized: $WT_MANIFEST (1); sparse patterns active: $SPARSE_ON (>0)"
+  echo ""
+  echo "--- freeze check on the clean tree ---"
+} >> "$T19"
+OUT19V="$(bash "$HERE/verify.sh" "$W1/framework" 2>&1)"; STATUS19V=$?
+echo "$OUT19V" >> "$T19"
+{ echo ""; echo "--- freeze check with ONE planted non-manifest file (must FAIL) ---"; } >> "$T19"
+mkdir -p "$W1/framework/products"
+echo "smuggled" > "$W1/framework/products/evil.md"
+OUT19F="$(bash "$HERE/verify.sh" "$W1/framework" 2>&1)"; STATUS19F=$?
+echo "$OUT19F" >> "$T19"
+NAMED_OFFENDER=$(printf '%s' "$OUT19F" | grep -c "NOT IN MANIFEST: products/evil.md" || true)
+rm -f "$W1/framework/products/evil.md"; rmdir "$W1/framework/products" 2>/dev/null || true
+{
+  echo ""
+  echo "--- assertions ---"
+  echo "clean tree: verify exit $STATUS19V (0); planted file: verify exit $STATUS19F (1), offender named: $NAMED_OFFENDER (1)"
+} >> "$T19"
+if [[ "$TREE_HAS_JUNK" -gt 0 && "$WT_JUNK" -eq 0 && $WT_RUNTIME -eq 1 && $WT_MANIFEST -eq 1 && "$SPARSE_ON" -gt 0 \
+      && $STATUS19V -eq 0 && $STATUS19F -eq 1 && "$NAMED_OFFENDER" -eq 1 ]]; then
+  record "19-sparse-and-freeze" PASS "origin tree carries factory junk (non-vacuous) yet the instance worktree has none; runtime/manifest materialized; verify.sh green on clean, red with the offender NAMED on one planted file"
+else
+  record "19-sparse-and-freeze" FAIL "tree_junk=$TREE_HAS_JUNK wt_junk=$WT_JUNK runtime=$WT_RUNTIME manifest=$WT_MANIFEST sparse=$SPARSE_ON verify=$STATUS19V/$STATUS19F/$NAMED_OFFENDER"
+fi
+
+# ---------------------------------------------------------------------------
+# SCENARIO 20 — ATOM-130 silent migration of a LIVE v0.3.x instance: an old
+# origin WITHOUT dist-manifest vendors whole (the faithful fat instance,
+# proven), then the next tag brings the manifest — --apply-update sheds the
+# factory history silently: zero extra questions, telegram binding/profile/
+# token byte-intact, runtime alive, freeze check green afterwards.
+# ---------------------------------------------------------------------------
+T20="$ATOM_WORKSPACE/scenario-20-silent-migration.txt"
+W20="$SANDBOX/w20"
+OLDFW="$SANDBOX/old-framework-origin"
+mkdir -p "$OLDFW/runtime/claude"
+echo "# old stub framework" > "$OLDFW/README.md"
+mkdir -p "$OLDFW/runtime/claude/skill/qroky"
+cp "$VENDORED_SKILL" "$OLDFW/runtime/claude/skill/qroky/SKILL.md"
+cp -R "$HERE/../runtime/claude/telegram" "$OLDFW/runtime/claude/telegram"
+rm -rf "$OLDFW/runtime/claude/telegram/state" "$OLDFW/runtime/claude/telegram/telegram.log" 2>/dev/null || true
+mkdir -p "$OLDFW/products/old-product"
+echo "old factory junk" > "$OLDFW/products/old-product/RESULT.md"
+echo "old factory backlog" > "$OLDFW/TASKS.md"
+git -C "$OLDFW" init -q
+git -C "$OLDFW" -c user.email=dryrun@qroky.local -c user.name="Qroky dry run" add -A
+git -C "$OLDFW" -c user.email=dryrun@qroky.local -c user.name="Qroky dry run" commit -q -m "pre-manifest era"
+git -C "$OLDFW" -c user.email=dryrun@qroky.local -c user.name="Qroky dry run" tag -a v0.3.9 -m $'v0.3.9\n\nold fat release'
+{
+  echo "Scenario 20 — live v0.3.x instance updates to a manifest release SILENTLY"
+  echo "Generated: $(date -u +%Y-%m-%dT%H:%M:%SZ)"
+  echo ""
+  echo "--- install against the OLD (manifest-less) origin, telegram on ---"
+} > "$T20"
+OUT20A="$( ( export QROKY_FRAMEWORK_SOURCE="$OLDFW"; run_install "$W20" $'en\n\ny\nGOODTOKEN123\nn\nn\nn\n' ) )"
+STATUS20A=$?
+echo "$OUT20A" >> "$T20"
+FAT_BEFORE=0; [[ -f "$W20/framework/TASKS.md" && -f "$W20/framework/products/old-product/RESULT.md" ]] && FAT_BEFORE=1
+CHAT20_BEFORE="$(cat "$W20/.qroky/telegram/state/chat_id" 2>/dev/null || true)"
+PROFILE20_BEFORE="$( (md5 -q "$W20/.qroky/telegram/profile.conf" 2>/dev/null || md5sum "$W20/.qroky/telegram/profile.conf" 2>/dev/null | cut -d' ' -f1) || true)"
+TOKEN20_MTIME_BEFORE="$(stat -f %m "$W20/.qroky/telegram.token" 2>/dev/null || stat -c %Y "$W20/.qroky/telegram.token" 2>/dev/null)"
+
+{ echo ""; echo "--- the next tag brings dist-manifest; --apply-update («да») ---"; } >> "$T20"
+mkdir -p "$OLDFW/distribution"
+cp "$HERE/dist-manifest" "$OLDFW/distribution/dist-manifest"
+cp "$HERE/verify.sh" "$OLDFW/distribution/verify.sh"
+git -C "$OLDFW" -c user.email=dryrun@qroky.local -c user.name="Qroky dry run" add -A
+git -C "$OLDFW" -c user.email=dryrun@qroky.local -c user.name="Qroky dry run" commit -q -m "the manifest era begins"
+git -C "$OLDFW" -c user.email=dryrun@qroky.local -c user.name="Qroky dry run" tag -a v0.4.0 -m $'v0.4.0\n\nsparse era\nfactory history stops shipping\nnothing else changes'
+SENT_BEFORE_20=$(wc -l < "$TG_SENT_LOG" | tr -d ' ')
+OUT20U="$(run_install "$W20" $'да\n' --apply-update)"
+STATUS20U=$?
+echo "$OUT20U" >> "$T20"
+SENT_AFTER_20=$(wc -l < "$TG_SENT_LOG" | tr -d ' ')
+TAG20=$(grep -c '"framework_tag": "v0.4.0"' "$W20/install-state.json" || true)
+FAT_AFTER=$(find "$W20/framework" \( -name 'TASKS.md' -o -path '*/products/*' \) -type f ! -path '*/.git/*' 2>/dev/null | wc -l | tr -d ' ')
+RUNTIME20=0; [[ -f "$W20/framework/runtime/claude/telegram/listener.sh" ]] && RUNTIME20=1
+CHAT20_AFTER="$(cat "$W20/.qroky/telegram/state/chat_id" 2>/dev/null || true)"
+PROFILE20_AFTER="$( (md5 -q "$W20/.qroky/telegram/profile.conf" 2>/dev/null || md5sum "$W20/.qroky/telegram/profile.conf" 2>/dev/null | cut -d' ' -f1) || true)"
+TOKEN20_MTIME_AFTER="$(stat -f %m "$W20/.qroky/telegram.token" 2>/dev/null || stat -c %Y "$W20/.qroky/telegram.token" 2>/dev/null)"
+REASKED20=$(printf '%s' "$OUT20U" | grep -c "Which language do you want to use?\|Step . of" || true)
+OUT20V="$(bash "$HERE/verify.sh" "$W20/framework" 2>&1)"; STATUS20V=$?
+{ echo ""; echo "--- freeze check after migration ---"; echo "$OUT20V"; } >> "$T20"
+{
+  echo ""
+  echo "--- assertions ---"
+  echo "old install: exit $STATUS20A (0); fat instance proven (junk vendored, non-vacuous): $FAT_BEFORE (1); bound chat: ${CHAT20_BEFORE:-none}"
+  echo "update: exit $STATUS20U (0), tag now v0.4.0: $TAG20 (1); junk left in framework after update (must be 0): $FAT_AFTER; runtime alive: $RUNTIME20 (1)"
+  echo "binding intact: chat $([[ -n "$CHAT20_BEFORE" && "$CHAT20_BEFORE" == "$CHAT20_AFTER" ]] && echo stable || echo BROKEN); profile md5 $([[ -n "$PROFILE20_BEFORE" && "$PROFILE20_BEFORE" == "$PROFILE20_AFTER" ]] && echo stable || echo BROKEN); token mtime $([[ -n "$TOKEN20_MTIME_BEFORE" && "$TOKEN20_MTIME_BEFORE" == "$TOKEN20_MTIME_AFTER" ]] && echo stable || echo BROKEN)"
+  echo "silent: interview lines in the update output (must be 0): $REASKED20; extra telegram sends during update (must be 0): $((SENT_AFTER_20 - SENT_BEFORE_20))"
+  echo "freeze check after migration: exit $STATUS20V (0)"
+} >> "$T20"
+if [[ $STATUS20A -eq 0 && $FAT_BEFORE -eq 1 && -n "$CHAT20_BEFORE" \
+      && $STATUS20U -eq 0 && "$TAG20" -eq 1 && "$FAT_AFTER" -eq 0 && $RUNTIME20 -eq 1 \
+      && "$CHAT20_BEFORE" == "$CHAT20_AFTER" && "$PROFILE20_BEFORE" == "$PROFILE20_AFTER" \
+      && "$TOKEN20_MTIME_BEFORE" == "$TOKEN20_MTIME_AFTER" \
+      && "$REASKED20" -eq 0 && $((SENT_AFTER_20 - SENT_BEFORE_20)) -eq 0 && $STATUS20V -eq 0 ]]; then
+  record "20-silent-migration" PASS "fat v0.3.x instance (junk vendored, non-vacuous) updated to the manifest release with one «да»: factory history shed, runtime alive, chat binding + profile + token byte-stable, zero interview lines, zero extra sends, freeze check green"
+else
+  record "20-silent-migration" FAIL "inst=$STATUS20A fat=$FAT_BEFORE chat=$CHAT20_BEFORE upd=$STATUS20U tag=$TAG20 fat_after=$FAT_AFTER runtime=$RUNTIME20 chat_stable=$([[ "$CHAT20_BEFORE" == "$CHAT20_AFTER" ]] && echo y || echo N) profile=$([[ "$PROFILE20_BEFORE" == "$PROFILE20_AFTER" ]] && echo y || echo N) token=$([[ "$TOKEN20_MTIME_BEFORE" == "$TOKEN20_MTIME_AFTER" ]] && echo y || echo N) reask=$REASKED20 sends=$((SENT_AFTER_20 - SENT_BEFORE_20)) freeze=$STATUS20V"
+fi
+
+# ---------------------------------------------------------------------------
+# SCENARIO 21 — ATOM-130 bootstrap: qroky.sh install | update | uninstall,
+# each run from a DIFFERENT arbitrary folder, never from a clone. Install
+# keeps its own kit copy under ~/.qroky/kit; uninstall finds the install by
+# the MACHINE TRACE (~/.qroky/workdir), with no env hint and no clone path.
+# Own fake HOME (uninstall removes ~/.qroky wholesale). Pre-130: qroky.sh
+# does not exist — the whole scenario fails.
+# ---------------------------------------------------------------------------
+T21="$ATOM_WORKSPACE/scenario-21-bootstrap.txt"
+W21="$SANDBOX/w21"
+HOME_G="$SANDBOX/home-g"; mkdir -p "$HOME_G"
+cp "$FAKE_HOME/.gitconfig" "$HOME_G/" 2>/dev/null || true
+KITFW="$SANDBOX/fake-kit-origin"
+mkdir -p "$KITFW/distribution"
+cp "$HERE/../qroky.sh" "$KITFW/qroky.sh"
+cp "$HERE/install.sh" "$HERE/dist-manifest" "$HERE/verify.sh" "$KITFW/distribution/"
+cp -R "$HERE/lang" "$KITFW/distribution/lang"
+git -C "$KITFW" init -q
+git -C "$KITFW" -c user.email=dryrun@qroky.local -c user.name="Qroky dry run" add -A
+git -C "$KITFW" -c user.email=dryrun@qroky.local -c user.name="Qroky dry run" commit -q -m "kit stub"
+git -C "$KITFW" -c user.email=dryrun@qroky.local -c user.name="Qroky dry run" tag -a v0.4.0 -m "kit v0.4.0"
+DOWNLOADED="$SANDBOX/downloads/qroky.sh"
+mkdir -p "$SANDBOX/downloads" "$SANDBOX/neutral-a" "$SANDBOX/neutral-b" "$SANDBOX/neutral-c"
+cp "$HERE/../qroky.sh" "$DOWNLOADED"   # simulates «curl -O qroky.sh»
+{
+  echo "Scenario 21 — bootstrap qroky.sh: install/update/uninstall from anywhere"
+  echo "Generated: $(date -u +%Y-%m-%dT%H:%M:%SZ)"
+  echo ""
+  echo "--- install (run from a neutral folder, script only «downloaded») ---"
+} > "$T21"
+OUT21A="$( ( cd "$SANDBOX/neutral-a" && export HOME="$HOME_G" QROKY_KIT_SOURCE="$KITFW" QROKY_WORKSPACE_DIR="$W21"; \
+  printf 'en\n\nn\nn\nn\nn\n' | bash "$DOWNLOADED" install ) 2>&1)"
+STATUS21A=$?
+echo "$OUT21A" >> "$T21"
+KIT_CLONED=0; [[ -f "$HOME_G/.qroky/kit/distribution/install.sh" ]] && KIT_CLONED=1
+KIT_AT_TAG="$(git -C "$HOME_G/.qroky/kit" describe --tags 2>/dev/null || true)"
+STATE21=$(grep -c '"step_machinewide": "done"' "$W21/install-state.json" 2>/dev/null || true)
+TRACE21="$(cat "$HOME_G/.qroky/workdir" 2>/dev/null || true)"
+SPARSE21=$(find "$W21/framework" \( -name 'TASKS.md' -o -path '*/products/*' \) -type f ! -path '*/.git/*' 2>/dev/null | wc -l | tr -d ' ')
+
+{ echo ""; echo "--- update (new framework tag; run from a second neutral folder, NO workdir env) ---"; } >> "$T21"
+git -C "$FAKE_FW" -c user.email=dryrun@qroky.local -c user.name="Qroky dry run" commit -q --allow-empty -m "stub commit 7"
+git -C "$FAKE_FW" -c user.email=dryrun@qroky.local -c user.name="Qroky dry run" tag -a v1.6.0 -m $'v1.6.0\n\nbootstrap-era stub\nsecond line\nthird line'
+OUT21U="$( ( cd "$SANDBOX/neutral-b" && export HOME="$HOME_G" QROKY_KIT_SOURCE="$KITFW"; \
+  printf 'да\n' | bash "$DOWNLOADED" update ) 2>&1)"
+STATUS21U=$?
+echo "$OUT21U" >> "$T21"
+TAG21=$(grep -c '"framework_tag": "v1.6.0"' "$W21/install-state.json" 2>/dev/null || true)
+
+{ echo ""; echo "--- uninstall (third neutral folder, machine trace ONLY — no env, no clone path) ---"; } >> "$T21"
+# force the machine-trace path: kill the kit clone's own pointer first, as
+# if the kit copy were fresh — resolution MUST go through ~/.qroky/workdir
+rm -f "$HOME_G/.qroky/kit/distribution/.qroky-workdir-pointer"
+OUT21X="$( ( cd "$SANDBOX/neutral-c" && export HOME="$HOME_G" QROKY_KIT_SOURCE="$KITFW"; \
+  bash "$DOWNLOADED" uninstall ) 2>&1)"
+STATUS21X=$?
+echo "$OUT21X" >> "$T21"
+STATE21_GONE=0; [[ -f "$W21/install-state.json" ]] || STATE21_GONE=1
+QROKY_DIR_GONE=0; [[ -d "$HOME_G/.qroky" ]] || QROKY_DIR_GONE=1
+WORKDIR_KEPT21=0; [[ -d "$W21/decisions" ]] && WORKDIR_KEPT21=1
+UNSUMMARY21=$(printf '%s' "$OUT21X" | grep -c "Done. Removed:" || true)
+
+{ echo ""; echo "--- uninstall again on the clean machine (polite no-op) ---"; } >> "$T21"
+OUT21N="$( ( cd "$SANDBOX/neutral-c" && export HOME="$HOME_G" QROKY_KIT_SOURCE="$KITFW"; \
+  bash "$DOWNLOADED" uninstall ) 2>&1)"
+STATUS21N=$?
+echo "$OUT21N" >> "$T21"
+NOOP21=$(printf '%s' "$OUT21N" | grep -c "Nothing to remove" || true)
+{
+  echo ""
+  echo "--- assertions ---"
+  echo "install: exit $STATUS21A (0); kit copy cloned: $KIT_CLONED (1) at tag: ${KIT_AT_TAG:-none} (v0.4.0); install complete: $STATE21 (1); machine trace -> $TRACE21 (== $W21); sparse (junk files): $SPARSE21 (0)"
+  echo "update: exit $STATUS21U (0); framework now v1.6.0: $TAG21 (1)"
+  echo "uninstall: exit $STATUS21X (0); state gone: $STATE21_GONE (1); ~/.qroky gone: $QROKY_DIR_GONE (1); workdir kept: $WORKDIR_KEPT21 (1); summary shown: $UNSUMMARY21 (1)"
+  echo "clean-machine uninstall: exit $STATUS21N (0), polite: $NOOP21 (1)"
+} >> "$T21"
+if [[ $STATUS21A -eq 0 && $KIT_CLONED -eq 1 && "$KIT_AT_TAG" == "v0.4.0" && "$STATE21" -eq 1 \
+      && "$TRACE21" == "$W21" && "$SPARSE21" -eq 0 \
+      && $STATUS21U -eq 0 && "$TAG21" -eq 1 \
+      && $STATUS21X -eq 0 && $STATE21_GONE -eq 1 && $QROKY_DIR_GONE -eq 1 && $WORKDIR_KEPT21 -eq 1 && "$UNSUMMARY21" -eq 1 \
+      && $STATUS21N -eq 0 && "$NOOP21" -eq 1 ]]; then
+  record "21-bootstrap" PASS "qroky.sh from arbitrary folders: install cloned the kit to ~/.qroky/kit at the release tag and completed sparse; update applied the new tag with no workdir hint; uninstall found the install by the machine trace alone, removed the machine side, kept the workdir; second uninstall = polite no-op"
+else
+  record "21-bootstrap" FAIL "inst=$STATUS21A/$KIT_CLONED/$KIT_AT_TAG/$STATE21 trace=$TRACE21 sparse=$SPARSE21 upd=$STATUS21U/$TAG21 un=$STATUS21X/$STATE21_GONE/$QROKY_DIR_GONE/$WORKDIR_KEPT21/$UNSUMMARY21 noop=$STATUS21N/$NOOP21"
 fi
 
 # ---------------------------------------------------------------------------

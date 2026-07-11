@@ -1,0 +1,107 @@
+# run.log — ATOM-130 (SEPARATION, kit v0.4)
+
+Executor: pilot-toolsmith (warm). G1 = GATE-031. Mandate: /ATOM-130-LAUNCH.md.
+
+## Chronology
+
+1. Read mandate + GATE-031 + INFO-043; re-read INFO-037 (mutation verify),
+   INFO-035 (CEO re-run), INFO-019 (envelope honesty). Confirmed hard
+   constraints: no history rewrite, no framework commits, no decisions edits.
+2. Designed dist-manifest (see justification A) → distribution/dist-manifest.
+3. Wrote distribution/verify.sh (freeze seed, INFO-043).
+4. install.sh: _framework_apply_manifest() (sparse, see justification B);
+   hooked into _framework_vendor_attempt AND cmd_apply_update (silent
+   migration); machine trace ~/.qroky/workdir written at step_workdir,
+   consumed by resolve_candidate_workdir fallback, cleaned by cmd_uninstall
+   (guarded: only if it points at the install being removed).
+5. qroky.sh bootstrap (see justification C).
+6. docs/separation.md + root README rewrite (map without factory rows, lab
+   link) + distribution/README ×3 (one-command entry recommended).
+7. Lab repo: /Users/ghcernei/Work/qroky-lab, verbatim copy, README, commit
+   842446d. NOT pushed (see justification D).
+8. Harness: dry-run.sh — fake origin now carries junk + real manifest
+   (every install in the harness is sparse and every old check re-proves
+   itself against that); new scenarios 19 (sparse+freeze), 20 (silent
+   migration v0.3.x→v0.4), 21 (bootstrap from three neutral folders,
+   uninstall via machine trace only). Final: 23/23 PASS. Transcripts in
+   this workspace (scenario-*.txt, SUMMARY.txt).
+9. CHANGELOG v0.4 entry; status.yaml; RESULT.md.
+
+## Justification A — dist-manifest composition
+
+Principle applied literally: «универсально целиком или не едет». A path
+ships only if EVERY instance needs ALL of it. framework/, runtime/,
+distribution/, docs/, knowledge/ are universal by construction; qroky.sh,
+CHANGELOG, README, LICENSE, MANIFEST, .gitignore are the product's face
+and entry. Everything else is factory (products/, decisions/, TASKS.md,
+launch files, roles/, RELEASE-v0.1.md) — it moves to lab, not to users.
+Directories ship WHOLE (no sub-path carve-outs) — a manifest of
+exceptions would rot; content curation inside shipped dirs is CEO's
+parallel HUMAN-TASK, flagged in RESULT (advisor review file, heartbeat
+logs).
+
+## Justification B — sparse-checkout over manifest-filtered copy
+
+Mandate offered the choice; chose git sparse-checkout (non-cone):
+- The vendored framework stays a REAL tag-pinned git checkout, so the
+  entire existing self-update channel (fetch, tag checkout, status/stash
+  dirty-check, PROVENANCE) is untouched — a filtered copy would have
+  forced a parallel update mechanism and duplicated ATOM-106 logic.
+- The SAME manifest read from the checked-out tree (HEAD:distribution/
+  dist-manifest via git show) drives fresh vendor AND post-update
+  re-application — fresh installs and migrated installs cannot diverge.
+- Non-cone mode because the manifest names root FILES; cone mode
+  force-materializes ALL root files (would drag TASKS.md back in).
+- Manifest-less trees (published tags v0.3.x and older) vendor whole —
+  published releases keep working byte-identically (DoD «история не
+  переписывается» has a runtime corollary: old tags must stay
+  installable). Old git without sparse support degrades to full checkout
+  with an honest log line — degraded, never broken.
+
+## Justification C — qroky.sh owns entry only, install.sh owns logic
+
+Reinstall/orphan/recovery logic from ATOM-106 is NOT duplicated: qroky.sh
+maintains the kit copy (~/.qroky/kit on the latest release tag; occupied
+non-git folder = honest message, not git fatal) and execs install.sh.
+Uninstall installer resolution chain: kit copy → the instance's own
+vendored framework/distribution/install.sh (ships by manifest — works
+offline) → polite no-op. Install location resolution for uninstall/update
+uses the machine trace, never the clone path (DoD 5 verbatim; scenario 21
+kills the clone pointer to prove it).
+
+## Justification D — lab publication path
+
+Mandate offered two paths; chose «prepare locally bare-ready, coordinator
+pushes»:
+- CEO's sensitivity review of decisions/ is an explicitly PARALLEL
+  human-task (constraint 6). A public push of ~580 history files BEFORE
+  that review completes is an irreversible action taken while its
+  precondition is still open — strictly worse than a one-command delay.
+- gh auth exists and was within gate scope; not using it here is a
+  deliberate sequencing choice, not an E1 block.
+- Local repo is push-ready: single commit 842446d, README with two-houses
+  + workflow + history note, .gitignore. Refresh-at-cut documented in
+  RESULT (my own 130 records postdate the snapshot).
+
+## Harness catches this run
+
+- Scenario 12 red on first 23-run: fake HOME had 4 files, assert said 3 —
+  the machine trace ~/.qroky/workdir is a NEW sanctioned ~-write. Fix =
+  assert exactly 4 AND verify pointer content equals the workdir
+  (turned the surprise into a named, checked invariant). Re-run 23/23.
+- No other reds; scenarios 19–21 were written falsifiable-first (junk
+  presence in the tag tree asserted BEFORE asserting its worktree
+  absence; planted file must be NAMED in verify.sh output).
+
+## Mutation readiness (INFO-037)
+
+On pre-130 code: dist-manifest, verify.sh, qroky.sh do not exist; junk
+reaches every worktree → scenarios 19, 20, 21 fail entirely; scenario 12's
+pointer assert fails. Reverting only _framework_apply_manifest kills 19/20
+while 21's install step also fails freeze — no single-file revert survives.
+
+## Envelope
+
+~165k of ~180k executor budget. In envelope; E4 not needed (INFO-019).
+No network, no real tokens, no git operations against real repos, no
+framework commits, no gh usage.

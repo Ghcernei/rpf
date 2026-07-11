@@ -5,6 +5,27 @@ better for you). Rendered from the release's verified records — nothing here
 is composed from memory. Rule (INFO-024): a release without a changelog
 entry is not published.
 
+## v0.4 — 2026-07-11
+
+- Your instance now receives the PRODUCT and nothing else. Until now the
+  rulebook copy arrived with the project's entire working history —
+  hundreds of files of other people's records inside your workspace. From
+  this release the installer materializes only the published whitelist
+  (`distribution/dist-manifest`): the constitution, the runtime, the kit,
+  the docs. Existing installs shed that history silently on their next
+  update — one «да», your data, bot link, and answers untouched.
+- One command to remember, from any folder: `bash qroky.sh install`,
+  `bash qroky.sh update`, `bash qroky.sh uninstall`. You never need to
+  know where a clone lives — install keeps its own kit copy under
+  `~/.qroky/kit`, and uninstall/update find your install by a machine
+  trace, not by path.
+- The freeze is checkable: `distribution/verify.sh <tree>` fails loudly on
+  any file that is not on the whitelist — the same manifest drives the
+  installer and the check, so they can never disagree.
+- The full history of how this framework built itself did not disappear —
+  it moved to its own public home, **qroky/lab**, linked from the README.
+  Published releases and their tags are untouched.
+
 ## v0.3.2 — 2026-07-11
 
 - Installing over an existing folder is now a first-class path, not an
