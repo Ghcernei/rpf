@@ -106,9 +106,19 @@ leads to `git clone`. Activation (clone → first closed atom) is metric №1.
 ## 4. Definition of Done
 
 **Hard (machine-checkable):**
-- H1. `README.md` rewritten EN-only: autonomy hero line → 60-second «how it
-  works» on live artifacts → three-line install (`git clone && bash install.sh`)
-  matching the REAL kit → «what you do / what the system does» (the three human
+- H1. (Amended INFO-043.) `README.md` rewritten EN-only. Hero carries the
+  positioning formula VERBATIM: «Qroky turns agent work into governed,
+  verified, auditable product work» — governed work system, NOT a coding
+  harness; the «accountability contour» (who formulated / who executed /
+  who blind-verified / where the human risk acceptance / what was spent /
+  what was delivered) is THE canonical value description. First screen =
+  the Codex five points in order: (1) what you get in 15 minutes, (2) how
+  to install, (3) what appears after «qroky start», (4) what stays local /
+  what never leaves the machine, (5) only then «how it works».
+  NOT-DOING (INFO-043): «framework for everyone» positioning — rejected;
+  focus founders/regulated for year one. Within that: autonomy hero line →
+  60-second «how it works» on live artifacts → three-line install
+  (`git clone && bash install.sh`) matching the REAL kit → «what you do / what the system does» (the three human
   products as honesty) → skeptic FAQ (whose keys and data; what leaves the
   machine — nothing without opt-in; real monthly cost from cost blocks; vs bare
   Claude; known v1 limits) including the verbatim language line of §3.3. The
