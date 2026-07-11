@@ -3,13 +3,13 @@
 ## Ce face acest instalator
 
 Un singur script, `install.sh`, duce un calculator curat la un asistent
-funcțional în mai puțin de 15 minute. Îți pune exact **nouă întrebări**
+funcțional în mai puțin de 15 minute. Îți pune exact **opt întrebări**
 (listate mai jos), îți pregătește un folder privat pe propriul calculator,
 și se termină cu un bloc gata de copiat și lipit pentru prima conversație.
-Nu întreabă niciodată nimic în afara acestor nouă întrebări — orice altă
+Nu întreabă niciodată nimic în afara acestor opt întrebări — orice altă
 linie afișată este fie progres, fie rezultatul unei verificări, fie (la o
 problemă reală) o instrucțiune clară de rezolvare, cu pasul exact următor.
-Chiar primul ecran este o hartă a întregului drum: 9 întrebări, ~3 minute,
+Chiar primul ecran este o hartă a întregului drum: 8 întrebări, ~3 minute,
 două linii la final.
 
 ## Comanda unică
@@ -52,11 +52,12 @@ relatare vie, pe limbă omenească, despre ce se face și de ce. Sarcinile și
 stările lor se adună în același folder — totul e text simplu, pe care îl
 poți deschide și citi.
 
-O notă sinceră: fraza de pornire trăiește **în folderul de lucru**
-(întrebarea 2); dacă ai spus da la întrebarea 9, funcționează în orice
-conversație pe acest calculator.
+O notă sinceră: fraza de pornire funcționează **în orice conversație
+Claude Code pe acest calculator** — instalatorul configurează asta singur
+(exact două fișiere în `~/.claude`; ecranul final le numește, iar
+`bash install.sh --uninstall` elimină totul complet).
 
-## Cele nouă întrebări
+## Cele opt întrebări
 
 1. **Limba** — English, Română, sau Русский. Tot ce urmează după acest
    punct este afișat în limba aleasă.
@@ -96,14 +97,14 @@ conversație pe acest calculator.
    în contul TĂU** — o copie privată, vizibilă doar pentru tine, niciodată
    pentru noi sau altcineva. Fișierele tale secrete (cum ar fi token-ul
    Telegram) sunt excluse automat din orice copie de siguranță.
-9. **Fraza de pornire pe tot calculatorul (opțional, recomandat)** — fă ca
-   „qroky start" să funcționeze în ORICE conversație pe acest calculator,
-   nu doar în folderul de lucru. O linie sinceră: un „da" scrie exact
-   **două fișiere** în `~/.claude` — o copie a paginii de reguli a frazei
-   (`~/.claude/skills/qroky/SKILL.md`) și un bloc-declanșator marcat în
-   `~/.claude/CLAUDE.md`. Nimic altceva, niciodată. Ambele sunt ușor de
-   șters (vezi „Nu-mi atinge instanța" mai jos). E nevoie de un „y"
-   explicit — Enter înseamnă „nu, doar folderul de lucru".
+Aici era înainte a noua întrebare — „fraza pe tot calculatorul?" — dar
+cerea o înțelegere pe care un utilizator nou nu o poate avea, așa că
+instalatorul o face acum pur și simplu singur (exact **două fișiere** în
+`~/.claude`: o copie a paginii de reguli la `~/.claude/skills/qroky/SKILL.md`
+și un bloc-declanșator marcat în `~/.claude/CLAUDE.md` — nimic altceva,
+niciodată). Urma înlocuiește întrebarea: asistentul răspunde la «qroky» în
+ORICE sesiune Claude Code pe acest calculator, iar o singură comandă
+elimină totul complet: `bash install.sh --uninstall`.
 
 ## Ce pleacă de pe acest calculator
 
@@ -151,8 +152,8 @@ opțională pe care o pornește poate fi oprită la fel de ușor:
   `md.qroky.telegram.listener.plist` și `md.qroky.telegram.digest.plist`
   din `~/Library/LaunchAgents/` (fișierele lui de lucru stau în
   `.qroky/telegram/` din spațiul tău de lucru și nu fac nimic singure).
-- **Elimină fraza de pornire „pe tot calculatorul"** (dacă ai spus da la
-  întrebarea 9): șterge exact cele două fișiere care au fost scrise —
+- **Elimină fraza de pornire „pe tot calculatorul"**: șterge exact cele
+  două fișiere care au fost scrise —
   fișierul `~/.claude/skills/qroky/SKILL.md` și blocul marcat dintre
   marcajele `qroky-machinewide` din `~/.claude/CLAUDE.md`. Instalatorul nu
   a scris nimic altceva în `~`.
@@ -214,3 +215,8 @@ Fiecare pas se tipărește înainte de execuție, iar la final — lista celor
 șterse. Dosarul tău de lucru NU este atins — calea lui se tipărește, ca să
 îl poți șterge singur dacă vrei zero complet. Pe o mașină fără instalare
 comanda este un no-op politicos.
+
+Ce anulează, printre altele: asistentul răspunde la «qroky» în orice
+sesiune Claude Code pe acest calculator — această configurare machine-wide
+este eliminată complet de această singură comandă. Pentru reinstalare,
+pornește pur și simplu instalatorul din nou — datele rămân.

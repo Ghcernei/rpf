@@ -5,6 +5,35 @@ better for you). Rendered from the release's verified records — nothing here
 is composed from memory. Rule (INFO-024): a release without a changelog
 entry is not published.
 
+## v0.3.2 — 2026-07-11
+
+- Installing over an existing folder is now a first-class path, not an
+  error. Run the installer where Qroky already lives and it asks what you
+  want — reinstall (your data stays untouched, only the assistant's
+  rulebook copy is recreated fresh), update, or cancel — in your language,
+  with «да/da/yes» accepted everywhere. No more raw
+  «fatal: destination path 'framework' already exists».
+- The same door is your repair kit: if the rulebook copy ever breaks (an
+  interrupted update, a half-finished download), running the installer
+  again rebuilds it to a working state — your answers, token, and files
+  are not touched and nothing is asked twice.
+- A leftover rulebook clone with no data next to it is recognized as an
+  orphan: the installer offers to recreate it and start clean, or leaves
+  everything exactly as it was if you say no.
+- After `--uninstall`, the final screen now says the simple truth: to
+  reinstall, just run the installer again — your data will stay.
+- New honest note at the finish line, in the bot's hello, and in the
+  assistant's own instructions: only NEW Claude Code chats see what was
+  just installed. A window opened before the install does not know the
+  starting phrase yet — open a fresh chat (the assistant will suggest
+  exactly that instead of a bare "not found").
+- One question fewer: the installer no longer asks whether the starting
+  phrase should work machine-wide — it just makes it work, everywhere
+  («qroky» answers in any Claude Code session on this machine). It is
+  still exactly two small files, the finish screen names them, and one
+  command removes everything entirely: `bash install.sh --uninstall`.
+  Eight questions now, same three minutes.
+
 ## v0.3.1 — 2026-07-11
 
 - Your language now truly follows you to the very end. The answer to

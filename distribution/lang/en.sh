@@ -12,13 +12,13 @@
 
 L_SETUP_TITLE() { printf '== Qroky setup ==\n'; }
 
-L_STEP_HEADER() { printf 'Step %s of 9 — %s\n' "$1" "$2"; }
+L_STEP_HEADER() { printf 'Step %s of 8 — %s\n' "$1" "$2"; }
 L_STEP_ALREADY_DONE() { printf '  already set up — nothing to do (health check)\n'; }
 
 # v0.2 (GATE-027): the whole road in one paragraph, up front.
 L_JOURNEY_MAP() {
   cat <<'EOF'
-Here is the whole road: 9 questions, about 3 minutes of setup, and at the
+Here is the whole road: 8 questions, about 3 minutes of setup, and at the
 end you get two ready lines to copy-paste for your first conversation.
 Every question says which number it is; optional ones can be skipped with
 a single Enter. Nothing installs behind your back.
@@ -32,7 +32,6 @@ L_STEP_SUBSCRIPTION_NAME() { printf 'check your subscription'; }
 L_STEP_TELEGRAM_NAME() { printf 'connect Telegram (optional)'; }
 L_STEP_TELEMETRY_NAME() { printf 'daily support sharing (optional)'; }
 L_STEP_HEARTBEAT_NAME() { printf 'morning digest (optional)'; }
-L_STEP_MACHINEWIDE_NAME() { printf 'starting phrase everywhere on this machine (optional)'; }
 
 L_ASK_LANGUAGE() {
   printf 'Which language do you want to use?\n'
@@ -109,7 +108,7 @@ L_TELEGRAM_PRESS_START() {
   printf '  (or send it any message). I am waiting for it here, up to %s seconds...\n' "$2"
 }
 L_TELEGRAM_BOUND() { printf '  got you — your Telegram is now linked to this assistant (only YOUR chat will ever be served)\n'; }
-L_TG_HELLO_TEXT() { printf 'I am connected. Tomorrow morning I will send your first digest. — Qroky'; }
+L_TG_HELLO_TEXT() { printf 'I am connected. Tomorrow morning I will send your first digest. Important: only NEW chats see what was just installed — open a new Claude Code chat in %s and say «qroky start». — Qroky' "$1"; }
 L_TELEGRAM_HELLO_SENT() { printf '  the bot just wrote back to you — check your phone\n'; }
 L_TELEGRAM_HELLO_FAILED() {
   printf '  the link is set, but the hello message could not be sent right now (often a\n'
@@ -303,23 +302,16 @@ L_DISCLAIMER() {
 }
 
 # --- v0.2 (ATOM-104, GATE-028): question 9 — machine-wide starting phrase ---
-L_MACHINEWIDE_ASK_OPTIN() {
-  cat <<'EOF'
-Make "qroky start" work in ANY chat on this machine, not only in your
-working folder? [we recommend: yes] One honest line about what that means:
-we would write exactly two files into ~/.claude (a copy of the phrase's
-rulebook page and a short trigger note) — nothing else, and both are named
-to you and easy to remove.
-EOF
-  printf 'Type y for machine-wide; Enter = no, working folder only: '
-}
+# INFO-042 (2026-07-11): question 9 removed — the machine-wide phrase is
+# set up at every install, with a trace instead of a question.
+L_MACHINEWIDE_WIRING() { printf '  teaching this whole machine the starting phrase (exactly two files in ~/.claude; the finish screen names them and the one-command removal)...\n'; }
+L_MACHINEWIDE_ALREADY() { printf '  the machine-wide starting phrase is already in place — nothing to do (health check)\n'; }
 L_MACHINEWIDE_DONE() {
   printf '  done — "qroky start" now works in any chat on this machine.\n'
   printf '  Exactly two files were written (to remove, delete them):\n'
   printf '    ~/.claude/skills/qroky/SKILL.md\n'
   printf '    the marked block in ~/.claude/CLAUDE.md (between the qroky-machinewide markers)\n'
 }
-L_MACHINEWIDE_SKIPPED() { printf '  as you chose: the phrase works in your working folder only. Nothing was written outside it.\n'; }
 L_MACHINEWIDE_FAILED() {
   printf '  NOTICE: the machine-wide setup did not succeed (most often: the rulebook\n'
   printf '  version predates this installer, or ~/.claude is not writable). Nothing\n'
@@ -362,3 +354,47 @@ L_UNINSTALL_KEEP_WORKDIR() {
   printf 'Delete that folder yourself if you want a complete zero.\n'
 }
 L_UNINSTALL_NOOP() { printf 'Nothing to remove — this machine has no Qroky install. All clean already.\n'; }
+
+# --- reinstall path (ATOM-106, INFO-040) -----------------------------------
+L_REINSTALL_FOUND() {
+  printf 'This folder already carries a Qroky install: framework/ plus your data next to it.\n'
+  printf '  %s\n' "$1"
+}
+L_REINSTALL_ASK() {
+  printf 'Reinstall: your data stays untouched, framework/ is recreated fresh.\n'
+  printf 'What do we do? [1 reinstall / 2 update / 3 cancel] (Enter = cancel): '
+}
+L_REINSTALL_START() { printf 'Recreating framework/ — your data is not touched.\n'; }
+L_REINSTALL_UPDATE_ROUTE() { printf 'Routing to the update path...\n'; }
+L_REINSTALL_UPDATE_NEEDS_STATE() {
+  printf 'There is no install record here, so there is nothing to update — choose reinstall or cancel.\n'
+}
+L_REINSTALL_CANCELLED() { printf 'Cancelled. Nothing was changed.\n'; }
+L_ORPHAN_FOUND() {
+  printf 'This folder holds a framework/ copy with no data next to it — looks like an orphaned clone:\n'
+  printf '  %s\n' "$1"
+}
+L_ORPHAN_ASK() { printf 'Recreate it and install fresh? [yes/no] (Enter = no): '; }
+L_ORPHAN_DECLINED() { printf 'Okay — leaving everything as it is.\n'; }
+L_UNINSTALL_REINSTALL_HINT() {
+  printf 'To reinstall, just run this installer again — your data will stay.\n'
+}
+
+# --- fresh-gesture visibility (ATOM-106 DoD 6, INFO-041) --------------------
+L_FINALE_NEW_SESSION_NOTE() {
+  printf 'Important: only NEW Claude Code chats see what was just installed — a window\n'
+  printf 'opened BEFORE this install does not know the phrase yet. Open a new chat.\n'
+}
+L_MARKER_SESSION_NOTE() {
+  printf 'Note for the assistant: the environment reads context at session START. If\n'
+  printf 'qroky/«кроки» is mentioned but the skill file above is not accessible, it was\n'
+  printf 'likely installed AFTER this session started — suggest opening a NEW chat\n'
+  printf 'instead of answering with a bare "not found".\n'
+}
+
+# --- machine-wide trace instead of a question (INFO-042) --------------------
+L_FINALE_MACHINEWIDE_TRACE() {
+  printf 'Set up without a question (so it just works): the assistant answers to\n'
+  printf '«qroky» in ANY Claude Code session on this machine — exactly two files in\n'
+  printf '~/.claude. Remove everything entirely with one command: bash install.sh --uninstall\n'
+}

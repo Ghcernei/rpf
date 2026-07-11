@@ -63,7 +63,7 @@
 set -uo pipefail   # NOT -e: scenarios intentionally capture non-zero exits
 
 HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-ATOM_WORKSPACE="$(cd "$HERE/../products/distribution-kit-v1/105-clean-run-readiness/workspace" && pwd)"
+ATOM_WORKSPACE="$(cd "$HERE/../products/distribution-kit-v1/106-reinstall-path/workspace" && pwd)"
 SANDBOX="$(mktemp -d /private/tmp/qroky-install-dry-run.XXXXXX)"
 cleanup() { rm -rf "$SANDBOX"; }
 trap cleanup EXIT
@@ -292,17 +292,18 @@ run_install() {
 T1="$ATOM_WORKSPACE/scenario-1-full-clean-run.txt"
 W1="$SANDBOX/w1"
 {
-  echo "Scenario 1 — full clean run (H6 baseline, H2 question inventory; v0.2 = 9 answers)"
+  echo "Scenario 1 — full clean run (H6 baseline, H2 question inventory; v0.3.2 = 8 answers, INFO-042)"
   echo "Generated: $(date -u +%Y-%m-%dT%H:%M:%SZ)"
   echo "Command a founder actually types: bash install.sh   (no arguments)"
   echo "Answers fed (stdin, in order): en / <accept suggested folder> / y (telegram) /"
-  echo "GOODTOKEN123 / n (sharing) / y (digest) / n (backup) / n (machine-wide);"
+  echo "GOODTOKEN123 / n (sharing) / y (digest) / n (backup); the machine-wide"
+  echo "phrase is set up WITHOUT a question since INFO-042 — the trace replaces it;"
   echo "the fake owner presses Start (QROKY_STUB_TG_START=1), so this run also"
   echo "walks the full bind+hello+deploy path inside question 5."
   echo ""
 } > "$T1"
 START1=$(date +%s)
-OUT1="$(run_install "$W1" $'en\n\ny\nGOODTOKEN123\nn\ny\nn\nn\n')"
+OUT1="$(run_install "$W1" $'en\n\ny\nGOODTOKEN123\nn\ny\nn\n')"
 STATUS1=$?
 END1=$(date +%s)
 ELAPSED1=$((END1 - START1))
@@ -323,10 +324,10 @@ fi
 # substituted (not a placeholder). Each greps the actual founder-facing
 # output; each fails on the v0.1.2 build by construction. ------------------
 MAP_SHOWN1=$(printf '%s' "$OUT1" | grep -c "Here is the whole road" || true)
-MAP_SAYS_9=$(printf '%s' "$OUT1" | grep -c "9 questions" || true)
-HDR_5OF9=$(printf '%s' "$OUT1" | grep -c "Step 5 of 9" || true)
-HDR_9OF9=$(printf '%s' "$OUT1" | grep -c "Step 9 of 9" || true)
-HDR_OF8_LEFTOVER=$(printf '%s' "$OUT1" | grep -c "of 8 —" || true)
+MAP_SAYS_9=$(printf '%s' "$OUT1" | grep -c "8 questions" || true)
+HDR_5OF9=$(printf '%s' "$OUT1" | grep -c "Step 5 of 8" || true)
+HDR_9OF9=$(printf '%s' "$OUT1" | grep -c "Step 8 of 8" || true)
+HDR_OF8_LEFTOVER=$(printf '%s' "$OUT1" | grep -c "of 9 —" || true)
 FINALE_CMD1=$(printf '%s' "$OUT1" | grep -cF "cd $W1 && claude" || true)
 FINALE_PHRASE1=$(printf '%s' "$OUT1" | grep -c "qroky start" || true)
 FINALE_VSCODE1=$(printf '%s' "$OUT1" | grep -c "Open Folder" || true)
@@ -335,8 +336,8 @@ FINALE_FIRSTRUN1=$(printf '%s' "$OUT1" | grep -c "color theme" || true)
   echo ""
   echo "--- v0.2 journey checks ---"
   echo "journey map shown on the fresh install: $([[ "$MAP_SHOWN1" -gt 0 ]] && echo yes || echo NO-DEFECT)"
-  echo "map names 9 questions: $([[ "$MAP_SAYS_9" -gt 0 ]] && echo yes || echo NO-DEFECT)"
-  echo "headers say 'of 9' (step 5 seen: $HDR_5OF9, step 9 seen: $HDR_9OF9); leftover 'of 8' headers (must be 0): $HDR_OF8_LEFTOVER"
+  echo "map names 8 questions (INFO-042): $([[ "$MAP_SAYS_9" -gt 0 ]] && echo yes || echo NO-DEFECT)"
+  echo "headers say 'of 8' (step 5 seen: $HDR_5OF9, step 8 seen: $HDR_9OF9); leftover 'of 9' headers (must be 0): $HDR_OF8_LEFTOVER"
   echo "finale copy-paste block carries the REAL workdir path (cd $W1 && claude): $([[ "$FINALE_CMD1" -gt 0 ]] && echo yes || echo NO-DEFECT)"
   echo "finale says the phrase (qroky start): $([[ "$FINALE_PHRASE1" -gt 0 ]] && echo yes || echo NO-DEFECT)"
   echo "finale carries the VS Code line: $([[ "$FINALE_VSCODE1" -gt 0 ]] && echo yes || echo NO-DEFECT)"
@@ -345,7 +346,7 @@ FINALE_FIRSTRUN1=$(printf '%s' "$OUT1" | grep -c "color theme" || true)
 if [[ "$MAP_SHOWN1" -gt 0 && "$MAP_SAYS_9" -gt 0 && "$HDR_5OF9" -gt 0 && "$HDR_9OF9" -gt 0 \
       && "$HDR_OF8_LEFTOVER" -eq 0 && "$FINALE_CMD1" -gt 0 && "$FINALE_PHRASE1" -gt 0 \
       && "$FINALE_VSCODE1" -gt 0 && "$FINALE_FIRSTRUN1" -gt 0 ]]; then
-  record "1-journey-map-and-finale" PASS "map up front, 'N of 9' headers, finale = real-path copy-paste block + VS Code + first-run honesty"
+  record "1-journey-map-and-finale" PASS "map up front, 'N of 8' headers (no 'of 9' leftovers), finale = real-path copy-paste block + VS Code + first-run honesty"
 else
   record "1-journey-map-and-finale" FAIL "map=$MAP_SHOWN1 says9=$MAP_SAYS_9 hdr5=$HDR_5OF9 hdr9=$HDR_9OF9 of8=$HDR_OF8_LEFTOVER cmd=$FINALE_CMD1 phrase=$FINALE_PHRASE1 vscode=$FINALE_VSCODE1 firstrun=$FINALE_FIRSTRUN1"
 fi
@@ -359,23 +360,24 @@ fi
 # later, not part of the eight-point interview (main_interview).
 {
   echo ""
-  echo "--- Question inventory check (H2: zero questions outside the interview; v0.2 = exactly 9 points, NEVER 10+) ---"
+  echo "--- Question inventory check (H2: zero questions outside the interview; v0.3.2 = exactly 8 points — q9 REMOVED by INFO-042, NEVER 9+) ---"
   STEP_BLOCK="$(awk '/^step_language\(\)/,/^cmd_enable_heartbeat\(\)/' "$INSTALL")"
   READ_SITES=$(printf '%s' "$STEP_BLOCK" | grep -cE 'read_answer' || true)
   TAGGED_SITES=$(printf '%s' "$STEP_BLOCK" | grep -cE '# IV-POINT:' || true)
   echo "read_answer call sites inside the interview step functions (incl. the shared telegram connect flow): $READ_SITES"
   echo "of those, tagged with # IV-POINT\\:<n>\\:<name>: $TAGGED_SITES"
   DISTINCT_POINTS="$(printf '%s' "$STEP_BLOCK" | grep -oE 'IV-POINT:[0-9]+' | sort -u | tr '\n' ' ')"
-  echo "distinct interview points referenced: $DISTINCT_POINTS(closed list is 1..9)"
-  HAS_POINT9=$(printf '%s' "$STEP_BLOCK" | grep -c 'IV-POINT:9:machinewide_optin' || true)
+  echo "distinct interview points referenced: $DISTINCT_POINTS(closed list is 1..8)"
+  HAS_POINT8=$(printf '%s' "$STEP_BLOCK" | grep -c 'IV-POINT:8:backup_optin' || true)
+  HAS_POINT9=$(printf '%s' "$STEP_BLOCK" | grep -c 'IV-POINT:9' || true)
   MAX_POINT="$(printf '%s' "$STEP_BLOCK" | grep -oE 'IV-POINT:[0-9]+' | sed 's/IV-POINT://' | sort -n | tail -1)"
-  echo "point 9 (machine-wide) present: $([[ "$HAS_POINT9" -gt 0 ]] && echo yes || echo no); highest point referenced: $MAX_POINT (must be 9, never 10+)"
-  if [[ "$READ_SITES" -eq "$TAGGED_SITES" && "$HAS_POINT9" -gt 0 && "$MAX_POINT" == "9" ]]; then
-    echo "PASS — every interactive prompt in the interview is accounted for in the closed list of 9 (v0.2)."
-    record "1-question-inventory" PASS "$READ_SITES/$READ_SITES prompts tagged, all within points 1-9, point 9 = machine-wide present, none beyond 9"
+  echo "point 8 (backup) present: $([[ "$HAS_POINT8" -gt 0 ]] && echo yes || echo no); point 9 remnants (must be 0 — INFO-042): $HAS_POINT9; highest point referenced: $MAX_POINT (must be 8, never 9+)"
+  if [[ "$READ_SITES" -eq "$TAGGED_SITES" && "$HAS_POINT8" -gt 0 && "$HAS_POINT9" -eq 0 && "$MAX_POINT" == "8" ]]; then
+    echo "PASS — every interactive prompt in the interview is accounted for in the closed list of 8 (INFO-042)."
+    record "1-question-inventory" PASS "$READ_SITES/$READ_SITES prompts tagged, all within points 1-8, point 8 = backup present, q9 gone, none beyond 8"
   else
-    echo "FAIL — an untagged prompt exists, point 9 is missing, or a point beyond 9 was found."
-    record "1-question-inventory" FAIL "$TAGGED_SITES/$READ_SITES prompts tagged, point9=$HAS_POINT9, max=$MAX_POINT"
+    echo "FAIL — an untagged prompt exists, point 8 is missing, a q9 remnant survives, or a point beyond 8 was found."
+    record "1-question-inventory" FAIL "$TAGGED_SITES/$READ_SITES prompts tagged, point8=$HAS_POINT8, point9_remnant=$HAS_POINT9, max=$MAX_POINT"
   fi
 } >> "$T1"
 
@@ -403,7 +405,7 @@ W2="$SANDBOX/w2"
   export QROKY_WORKSPACE_DIR="$W2"
   export QROKY_TEST_DELAY_STEP="telegram"
   export QROKY_TEST_DELAY_SECONDS="15"
-  printf 'en\n\ny\nGOODTOKEN456\nn\ny\nn\nn\n' | "$INSTALL" >> "$T2" 2>&1 &
+  printf 'en\n\ny\nGOODTOKEN456\nn\ny\nn\n' | "$INSTALL" >> "$T2" 2>&1 &
   echo $! > "$SANDBOX/killpid"
 )
 sleep 4
@@ -434,7 +436,7 @@ WORKDIR_DONE_AT_KILL=$(printf '%s' "$STATE_AFTER_KILL" | grep -c '"step_workdir"
   echo ""
   echo "--- RUN B (rerun; language/workdir must NOT be re-asked — telegram, cut down mid-flight, is asked again) ---"
 } >> "$T2"
-OUT2B="$(run_install "$W2" $'n\nn\ny\nn\nn\n')"
+OUT2B="$(run_install "$W2" $'n\nn\ny\nn\n')"
 STATUS2B=$?
 {
   echo "$OUT2B"
@@ -459,46 +461,79 @@ else
 fi
 
 # ---------------------------------------------------------------------------
-# SCENARIO 3 — healthy rerun = free health-check, changes nothing (H3, H6b)
+# SCENARIO 3 — rerun over a COMPLETE install = the reinstall dialog, case (a)
+# of ATOM-106 (INFO-040): framework/ + live data -> [reinstall/update/cancel].
+# All three answers exercised against Scenario-1's workspace. Before ATOM-106
+# this was the silent healthy-rerun walkthrough; the dialog IS the new
+# contract, so every assert here fails on the pre-fix build by construction
+# (mutation-ready, INFO-037).
 # ---------------------------------------------------------------------------
-T3="$ATOM_WORKSPACE/scenario-3-healthy-rerun.txt"
-BEFORE_TREE="$(find "$W1" -type f ! -name 'install.log' -exec sh -c 'echo "$1  $(md5 -q "$1" 2>/dev/null || md5sum "$1" | cut -d" " -f1)"' _ {} \; | sort)"
+T3="$ATOM_WORKSPACE/scenario-3-reinstall-dialog.txt"
+BEFORE_TREE="$(find "$W1" -type f ! -name 'install.log' ! -path '*/.git/*' -exec sh -c 'echo "$1  $(md5 -q "$1" 2>/dev/null || md5sum "$1" | cut -d" " -f1)"' _ {} \; | sort)"
 BEFORE_STATE_NO_TS="$(grep -v generated_at "$W1/install-state.json")"
 {
-  echo "Scenario 3 — rerun on the already-healthy Scenario-1 workspace"
+  echo "Scenario 3 — rerun over the complete Scenario-1 install: the (a) dialog"
   echo "Generated: $(date -u +%Y-%m-%dT%H:%M:%SZ)"
-  echo "No answers should be needed — every step is already 'done'."
   echo ""
+  echo "--- answer 'cancel': leaves without a trace ---"
 } > "$T3"
-OUT3="$(run_install "$W1" '')"
-STATUS3=$?
+OUT3C="$(run_install "$W1" $'cancel\n')"
+STATUS3C=$?
+echo "$OUT3C" >> "$T3"
+AFTER_TREE_C="$(find "$W1" -type f ! -name 'install.log' ! -path '*/.git/*' -exec sh -c 'echo "$1  $(md5 -q "$1" 2>/dev/null || md5sum "$1" | cut -d" " -f1)"' _ {} \; | sort)"
+AFTER_STATE_C="$(grep -v generated_at "$W1/install-state.json")"
+TREE_DIFF_C="$(diff <(printf '%s' "$BEFORE_TREE") <(printf '%s' "$AFTER_TREE_C"))"
+STATE_DIFF_C="$(diff <(printf '%s' "$BEFORE_STATE_NO_TS") <(printf '%s' "$AFTER_STATE_C"))"
+DIALOG_C=$(printf '%s' "$OUT3C" | grep -c "already carries a Qroky install" || true)
+CANCEL_SAID=$(printf '%s' "$OUT3C" | grep -c "Cancelled. Nothing was changed." || true)
+MAP_ON_RERUN3=$(printf '%s' "$OUT3C" | grep -c "Here is the whole road" || true)
+
+{ echo ""; echo "--- answer 'update': routes to the self-update path (still at the newest tag here) ---"; } >> "$T3"
+OUT3U="$(run_install "$W1" $'update\n')"
+STATUS3U=$?
+echo "$OUT3U" >> "$T3"
+ROUTE_SAID=$(printf '%s' "$OUT3U" | grep -c "Routing to the update path" || true)
+UPDATE_REACHED=$(printf '%s' "$OUT3U" | grep -c "no update available\|Apply this update now" || true)
+
+{ echo ""; echo "--- answer 'reinstall' (as '1'): framework recreated fresh, live data untouched ---"; } >> "$T3"
+echo "old copy — must vanish on reinstall" > "$W1/framework/OLD-COPY-MARKER"
+TOKEN_MTIME_BEFORE="$(stat -f %m "$W1/.qroky/telegram.token" 2>/dev/null || stat -c %Y "$W1/.qroky/telegram.token" 2>/dev/null)"
+PROFILE_MD5_BEFORE="$( (md5 -q "$W1/.qroky/telegram/profile.conf" 2>/dev/null || md5sum "$W1/.qroky/telegram/profile.conf" 2>/dev/null | cut -d' ' -f1) || true)"
+OUT3R="$(run_install "$W1" $'1\n')"
+STATUS3R=$?
+echo "$OUT3R" >> "$T3"
+TOKEN_MTIME_AFTER="$(stat -f %m "$W1/.qroky/telegram.token" 2>/dev/null || stat -c %Y "$W1/.qroky/telegram.token" 2>/dev/null)"
+PROFILE_MD5_AFTER="$( (md5 -q "$W1/.qroky/telegram/profile.conf" 2>/dev/null || md5sum "$W1/.qroky/telegram/profile.conf" 2>/dev/null | cut -d' ' -f1) || true)"
+AFTER_STATE_R="$(grep -v generated_at "$W1/install-state.json")"
+STATE_DIFF_R="$(diff <(printf '%s' "$BEFORE_STATE_NO_TS") <(printf '%s' "$AFTER_STATE_R"))"
+DIALOG_R=$(printf '%s' "$OUT3R" | grep -c "already carries a Qroky install" || true)
+START_SAID=$(printf '%s' "$OUT3R" | grep -c "Recreating framework/" || true)
+MARKER_GONE=1; [[ -f "$W1/framework/OLD-COPY-MARKER" ]] && MARKER_GONE=0
+PROV_FRESH=0; [[ -f "$W1/framework/PROVENANCE.md" ]] && PROV_FRESH=1
+FW_GIT_OK=0; [[ -e "$W1/framework/.git" ]] && FW_GIT_OK=1
+REASKED3=$(printf '%s' "$OUT3R" | grep -c "Which language do you want to use?" || true)
+FINALE3=$(printf '%s' "$OUT3R" | grep -c "qroky start" || true)
+RAW_FATAL3=$(printf '%s' "$OUT3R" | grep -c "fatal:" || true)
 {
-  echo "$OUT3"
   echo ""
-  echo "--- exit code: $STATUS3 ---"
+  echo "--- assertions ---"
+  echo "cancel: exit $STATUS3C (0), dialog shown: $DIALOG_C (>=1), cancel line: $CANCEL_SAID (1), tree diff empty: $([[ -z "$TREE_DIFF_C" ]] && echo yes || echo NO-DEFECT), state diff empty: $([[ -z "$STATE_DIFF_C" ]] && echo yes || echo NO-DEFECT), map on rerun: $MAP_ON_RERUN3 (0)"
+  echo "update: exit $STATUS3U (0), route line: $ROUTE_SAID (1), update path reached: $UPDATE_REACHED (>=1)"
+  echo "reinstall: exit $STATUS3R (0), dialog: $DIALOG_R (>=1), start line: $START_SAID (1), planted marker gone (fresh clone): $MARKER_GONE (1), PROVENANCE present: $PROV_FRESH (1), framework/.git present: $FW_GIT_OK (1)"
+  echo "live data untouched: token mtime stable: $([[ -n "$TOKEN_MTIME_BEFORE" && "$TOKEN_MTIME_BEFORE" == "$TOKEN_MTIME_AFTER" ]] && echo yes || echo NO-DEFECT), profile md5 stable: $([[ -n "$PROFILE_MD5_BEFORE" && "$PROFILE_MD5_BEFORE" == "$PROFILE_MD5_AFTER" ]] && echo yes || echo NO-DEFECT)"
+  echo "state answers preserved byte-for-byte (excl. generated_at): $([[ -z "$STATE_DIFF_R" ]] && echo yes || echo NO-DEFECT)"
+  [[ -n "$STATE_DIFF_R" ]] && { echo "--- state diff ---"; echo "$STATE_DIFF_R"; }
+  echo "zero questions re-asked: $REASKED3 (0); finale shown again: $FINALE3 (>=1); raw git fatal on screen: $RAW_FATAL3 (0)"
 } >> "$T3"
-AFTER_TREE="$(find "$W1" -type f ! -name 'install.log' -exec sh -c 'echo "$1  $(md5 -q "$1" 2>/dev/null || md5sum "$1" | cut -d" " -f1)"' _ {} \; | sort)"
-AFTER_STATE_NO_TS="$(grep -v generated_at "$W1/install-state.json")"
-HEALTH_LINES=$(printf '%s' "$OUT3" | grep -c "already set up\|already your Qroky workspace\|already in place\|found (" || true)
-{
-  echo ""
-  echo "--- file tree diff (content hashes, excluding install.log which is append-only by design) ---"
-  diff <(printf '%s' "$BEFORE_TREE") <(printf '%s' "$AFTER_TREE") && echo "(no differences — no file content changed)"
-  echo ""
-  echo "--- state diff (excluding the generated_at timestamp, which always updates on commit) ---"
-  diff <(printf '%s' "$BEFORE_STATE_NO_TS") <(printf '%s' "$AFTER_STATE_NO_TS") && echo "(no differences — every field identical)"
-  echo ""
-  echo "'already done' health-check lines printed: $HEALTH_LINES (expect 10 — one per step incl. the v0.2 machine-wide question)"
-  echo ""
-  echo "journey map on a healthy RERUN (must be 0 — the map is a fresh-install screen): $(printf '%s' "$OUT3" | grep -c "Here is the whole road" || true)"
-} >> "$T3"
-TREE_DIFF="$(diff <(printf '%s' "$BEFORE_TREE") <(printf '%s' "$AFTER_TREE"))"
-STATE_DIFF="$(diff <(printf '%s' "$BEFORE_STATE_NO_TS") <(printf '%s' "$AFTER_STATE_NO_TS"))"
-MAP_ON_RERUN3=$(printf '%s' "$OUT3" | grep -c "Here is the whole road" || true)
-if [[ $STATUS3 -eq 0 && -z "$TREE_DIFF" && -z "$STATE_DIFF" && "$MAP_ON_RERUN3" -eq 0 ]]; then
-  record "3-healthy-rerun" PASS "exit 0, zero file/state changes, $HEALTH_LINES health-check lines, no journey map on a rerun"
+if [[ $STATUS3C -eq 0 && "$DIALOG_C" -ge 1 && "$CANCEL_SAID" -eq 1 && -z "$TREE_DIFF_C" && -z "$STATE_DIFF_C" && "$MAP_ON_RERUN3" -eq 0 \
+      && $STATUS3U -eq 0 && "$ROUTE_SAID" -eq 1 && "$UPDATE_REACHED" -ge 1 \
+      && $STATUS3R -eq 0 && "$DIALOG_R" -ge 1 && "$START_SAID" -eq 1 && $MARKER_GONE -eq 1 && $PROV_FRESH -eq 1 && $FW_GIT_OK -eq 1 \
+      && -n "$TOKEN_MTIME_BEFORE" && "$TOKEN_MTIME_BEFORE" == "$TOKEN_MTIME_AFTER" \
+      && -n "$PROFILE_MD5_BEFORE" && "$PROFILE_MD5_BEFORE" == "$PROFILE_MD5_AFTER" \
+      && -z "$STATE_DIFF_R" && "$REASKED3" -eq 0 && "$FINALE3" -ge 1 && "$RAW_FATAL3" -eq 0 ]]; then
+  record "3-reinstall-dialog" PASS "(a) x3: cancel = no trace; update = routed; reinstall = fresh framework (marker gone, PROVENANCE), live data untouched (token mtime + profile md5 stable), state preserved, zero re-asks, no raw git fatal"
 else
-  record "3-healthy-rerun" FAIL "exit $STATUS3, tree_diff_empty=$([[ -z "$TREE_DIFF" ]] && echo yes || echo no), state_diff_empty=$([[ -z "$STATE_DIFF" ]] && echo yes || echo no), map_on_rerun=$MAP_ON_RERUN3"
+  record "3-reinstall-dialog" FAIL "cancel=$STATUS3C/$DIALOG_C/$CANCEL_SAID/tree$([[ -z "$TREE_DIFF_C" ]] && echo ok || echo DIFF)/state$([[ -z "$STATE_DIFF_C" ]] && echo ok || echo DIFF) update=$STATUS3U/$ROUTE_SAID/$UPDATE_REACHED reinstall=$STATUS3R/$DIALOG_R/$START_SAID/marker$MARKER_GONE/prov$PROV_FRESH/git$FW_GIT_OK token=$TOKEN_MTIME_BEFORE/$TOKEN_MTIME_AFTER profile_stable=$([[ "$PROFILE_MD5_BEFORE" == "$PROFILE_MD5_AFTER" ]] && echo yes || echo no) statediff=$([[ -z "$STATE_DIFF_R" ]] && echo empty || echo DIFF) reasked=$REASKED3 finale=$FINALE3 fatal=$RAW_FATAL3"
 fi
 
 # ---------------------------------------------------------------------------
@@ -564,24 +599,27 @@ fi
 T5="$ATOM_WORKSPACE/scenario-5-idempotency-diff.txt"
 W5="$SANDBOX/w5"
 {
-  echo "Scenario 5 — run the same command twice with identical answers,"
-  echo "diff the state file (structural fields only, excluding the commit"
-  echo "timestamp) and the workspace file listing between the two runs."
+  echo "Scenario 5 — run the installer twice over the same folder; the second"
+  echo "run goes through the ATOM-106 reinstall dialog and answers 'reinstall'."
+  echo "Diff the state file (structural fields only, excluding the commit"
+  echo "timestamp) and the workspace file listing (git internals excluded —"
+  echo "the fresh clone's plumbing differs harmlessly) between the two runs:"
+  echo "a reinstall must be user-invisible on an unchanged origin."
   echo "Generated: $(date -u +%Y-%m-%dT%H:%M:%SZ)"
   echo ""
   echo "--- RUN 1 ---"
 } > "$T5"
-OUT5A="$(run_install "$W5" $'en\n\nn\nn\ny\nn\nn\n')"; STATUS5A=$?
-LIST5A="$(find "$W5" -type f | sed "s|$W5/||" | sort)"
+OUT5A="$(run_install "$W5" $'en\n\nn\nn\ny\nn\n')"; STATUS5A=$?
+LIST5A="$(find "$W5" -type f ! -path '*/.git/*' ! -name '.gitmodules' | sed "s|$W5/||" | sort)"
 STATE5A="$(grep -v generated_at "$W5/install-state.json")"
 {
   echo "$OUT5A"
   echo "--- RUN 1 exit: $STATUS5A ---"
   echo ""
-  echo "--- RUN 2 (identical answers) ---"
+  echo "--- RUN 2 (reinstall dialog -> 'reinstall') ---"
 } >> "$T5"
-OUT5B="$(run_install "$W5" $'en\n\nn\nn\ny\nn\nn\n')"; STATUS5B=$?
-LIST5B="$(find "$W5" -type f | sed "s|$W5/||" | sort)"
+OUT5B="$(run_install "$W5" $'reinstall\n')"; STATUS5B=$?
+LIST5B="$(find "$W5" -type f ! -path '*/.git/*' ! -name '.gitmodules' | sed "s|$W5/||" | sort)"
 STATE5B="$(grep -v generated_at "$W5/install-state.json")"
 {
   echo "$OUT5B"
@@ -596,7 +634,7 @@ STATE5B="$(grep -v generated_at "$W5/install-state.json")"
 LIST_DIFF5="$(diff <(printf '%s' "$LIST5A") <(printf '%s' "$LIST5B"))"
 STATE_DIFF5="$(diff <(printf '%s' "$STATE5A") <(printf '%s' "$STATE5B"))"
 if [[ $STATUS5A -eq 0 && $STATUS5B -eq 0 && -z "$LIST_DIFF5" && -z "$STATE_DIFF5" ]]; then
-  record "5-idempotency-diff" PASS "identical file listing and state across two runs"
+  record "5-idempotency-diff" PASS "identical file listing and state across install + reinstall (git internals excluded)"
 else
   record "5-idempotency-diff" FAIL "run1=$STATUS5A run2=$STATUS5B list_diff_empty=$([[ -z "$LIST_DIFF5" ]] && echo yes || echo no) state_diff_empty=$([[ -z "$STATE_DIFF5" ]] && echo yes || echo no)"
 fi
@@ -765,7 +803,7 @@ W8NO="$SANDBOX/w8no"
   echo "--- fresh install answering 'y' at the heartbeat question ---"
 } > "$T8"
 : > "$LAUNCHCTL_STATE"
-OUT8Y="$(run_install "$W8YES" $'en\n\nn\nn\ny\nn\nn\n')"
+OUT8Y="$(run_install "$W8YES" $'en\n\nn\nn\ny\nn\n')"
 echo "$OUT8Y" >> "$T8"
 LABEL8Y="$(basename "$(ls "$W8YES"/.qroky/launchd/*.plist 2>/dev/null | head -1)" .plist)"
 BOOTSTRAPPED_Y=$(grep -c "bootstrap.*$LABEL8Y" "$LAUNCHCTL_STATE" 2>/dev/null || true)
@@ -777,7 +815,7 @@ BOOTSTRAPPED_Y=$(grep -c "bootstrap.*$LABEL8Y" "$LAUNCHCTL_STATE" 2>/dev/null ||
   echo "--- fresh install answering 'n' at the heartbeat question ---"
 } >> "$T8"
 : > "$LAUNCHCTL_STATE"
-OUT8N="$(run_install "$W8NO" $'en\n\nn\nn\nn\nn\nn\n')"
+OUT8N="$(run_install "$W8NO" $'en\n\nn\nn\nn\nn\n')"
 echo "$OUT8N" >> "$T8"
 LABEL8N="$(basename "$(ls "$W8NO"/.qroky/launchd/*.plist 2>/dev/null | head -1)" .plist)"
 BOOTSTRAPPED_N=$(grep -c "bootstrap" "$LAUNCHCTL_STATE" 2>/dev/null || true)
@@ -821,7 +859,7 @@ rm -f "$FAKE_GH_STATE/authed"   # start un-authed so the walkthrough path runs
   echo ""
   echo "--- OPT-IN branch: fresh install, Telegram token $BACKUP_TOKEN stored, backup = yes ---"
 } > "$T9"
-OUT9A="$(run_install "$W9A" $'en\n\ny\nGOODTOKEN789\nn\nn\ny\nn\n')"
+OUT9A="$(run_install "$W9A" $'en\n\ny\nGOODTOKEN789\nn\nn\ny\n')"
 STATUS9A=$?
 echo "$OUT9A" >> "$T9"
 STATE9A="$(cat "$W9A/install-state.json" 2>/dev/null || echo MISSING)"
@@ -857,7 +895,7 @@ fi
   echo "--- OPT-OUT branch: fresh install, backup = no ---"
 } >> "$T9"
 REPOS_BEFORE9B=$(ls -d "$FAKE_GITHUB"/*.git 2>/dev/null | wc -l | tr -d ' ')
-OUT9B="$(run_install "$W9B" $'en\n\nn\nn\nn\nn\nn\n')"
+OUT9B="$(run_install "$W9B" $'en\n\nn\nn\nn\nn\n')"
 STATUS9B=$?
 echo "$OUT9B" >> "$T9"
 REPOS_AFTER9B=$(ls -d "$FAKE_GITHUB"/*.git 2>/dev/null | wc -l | tr -d ' ')
@@ -908,7 +946,7 @@ W10="$SANDBOX/w10"
   echo ""
   echo "--- RUN 1 (fresh install) ---"
 } > "$T10"
-OUT10A="$(run_install "$W10" $'en\n\nn\nn\ny\nn\nn\n')"
+OUT10A="$(run_install "$W10" $'en\n\nn\nn\ny\nn\n')"
 STATUS10A=$?
 {
   echo "$OUT10A"
@@ -920,9 +958,10 @@ MARKERS_RUN1=$(grep -cF '<!-- qroky-gesture:start -->' "$W10/CLAUDE.md" 2>/dev/n
 SKILL_MD5_RUN1="$( (md5 -q "$SKILL10" 2>/dev/null || md5sum "$SKILL10" 2>/dev/null | cut -d' ' -f1) || true)"
 {
   echo ""
-  echo "--- RUN 2 (re-run — must not duplicate the trigger block) ---"
+  echo "--- RUN 2 (re-run through the ATOM-106 dialog, answer 'reinstall' —"
+  echo "the full walkthrough must not duplicate the trigger block) ---"
 } >> "$T10"
-OUT10B="$(run_install "$W10" '')"
+OUT10B="$(run_install "$W10" $'reinstall\n')"
 STATUS10B=$?
 {
   echo "$OUT10B"
@@ -987,7 +1026,7 @@ W11B="$SANDBOX/w11b"
 } > "$T11"
 : > "$LAUNCHCTL_STATE"
 SENT_BEFORE_A=$(wc -l < "$TG_SENT_LOG" | tr -d ' ')
-OUT11A="$(run_install "$W11A" $'en\n\ny\nGOODTOKEN111\nn\nn\nn\nn\n')"
+OUT11A="$(run_install "$W11A" $'en\n\ny\nGOODTOKEN111\nn\nn\nn\n')"
 STATUS11A=$?
 SENT_AFTER_A=$(wc -l < "$TG_SENT_LOG" | tr -d ' ')
 SENT_DURING_A=$((SENT_AFTER_A - SENT_BEFORE_A))
@@ -1028,7 +1067,7 @@ DIGEST_PREMARK11=$(ls "$TGH11"/state/digest-sent-* 2>/dev/null | wc -l | tr -d '
   echo "--- BRANCH B: token given, Start NEVER pressed (stub delivers nothing) ---"
 } >> "$T11"
 : > "$LAUNCHCTL_STATE"
-OUT11B="$( ( export QROKY_STUB_TG_START=0; run_install "$W11B" $'en\n\ny\nGOODTOKEN222\nn\nn\nn\nn\n' ) )"
+OUT11B="$( ( export QROKY_STUB_TG_START=0; run_install "$W11B" $'en\n\ny\nGOODTOKEN222\nn\nn\nn\n' ) )"
 STATUS11B=$?
 echo "$OUT11B" >> "$T11"
 HONEST11B=$(printf '%s' "$OUT11B" | grep -c "nobody pressed Start" || true)
@@ -1088,22 +1127,24 @@ else
 fi
 
 # ---------------------------------------------------------------------------
-# SCENARIO 12 — machine-wide gesture, both branches (v0.2, ATOM-104,
-# GATE-028 «да, спрашивать при установке»). Each branch runs against its OWN
-# fake HOME so the ~-writes are provable by exhaustive listing.
-# «Да»: EXACTLY two files appear under fake-HOME/.claude — the skill copy
-# (byte-identical to the vendored source, which must carry the recorded I3
-# exception) and CLAUDE.md with exactly ONE marker block; a re-run changes
-# nothing (marker still 1, hash stable, still exactly two files).
-# «Нет» (Enter): fake HOME untouched — and this negative assert is
-# non-vacuous because the yes-branch just proved the same machinery writes
-# when told to.
+# SCENARIO 12 — machine-wide gesture, ALWAYS-ON (INFO-042, supersedes the
+# GATE-028 q9 opt-in — lex posterior). A DEFAULT install, with NO question
+# asked, writes EXACTLY two files under fake-HOME/.claude — the skill copy
+# (byte-identical to the vendored source, which must carry the AMENDED I3
+# exception: GATE-028 + INFO-042) and CLAUDE.md with exactly ONE marker
+# block; the removal paths are still named; the finale carries the TRACE
+# line (what was set up + the one-command removal) — the trace replaces the
+# question. A re-run (through the reinstall dialog) changes nothing. A
+# PRE-EXISTING user CLAUDE.md is appended to, never clobbered. The q9
+# question text is gone from the interview. Mutation-ready: on the q9
+# build a default (Enter-through) install left HOME untouched — every
+# always-on assert here fails there.
 # ---------------------------------------------------------------------------
-T12="$ATOM_WORKSPACE/scenario-12-machinewide-both-branches.txt"
+T12="$ATOM_WORKSPACE/scenario-12-machinewide-always-on.txt"
 W12A="$SANDBOX/w12a"
 W12B="$SANDBOX/w12b"
-HOME_C="$SANDBOX/home-mw-yes"
-HOME_D="$SANDBOX/home-mw-no"
+HOME_C="$SANDBOX/home-mw-default"
+HOME_D="$SANDBOX/home-mw-preexisting"
 for h in "$HOME_C" "$HOME_D"; do
   mkdir -p "$h"
   git config --file "$h/.gitconfig" protocol.file.allow always
@@ -1111,14 +1152,14 @@ for h in "$HOME_C" "$HOME_D"; do
   git config --file "$h/.gitconfig" user.name "Qroky dry run"
 done
 {
-  echo "Scenario 12 — machine-wide gesture opt-in/opt-out (v0.2, question 9)"
+  echo "Scenario 12 — machine-wide gesture always-on (INFO-042: question 9 removed)"
   echo "Generated: $(date -u +%Y-%m-%dT%H:%M:%SZ)"
-  echo "Each branch gets its own fake HOME; the '~-writes' are proven by"
+  echo "Each leg gets its own fake HOME; the '~-writes' are proven by"
   echo "exhaustively listing every file under it."
   echo ""
-  echo "--- YES branch (fake HOME: $HOME_C) ---"
+  echo "--- default install (fake HOME: $HOME_C; NO machine-wide answer in the feed) ---"
 } > "$T12"
-OUT12A="$( ( export HOME="$HOME_C"; run_install "$W12A" $'en\n\nn\nn\nn\nn\ny\n' ) )"
+OUT12A="$( ( export HOME="$HOME_C"; run_install "$W12A" $'en\n\nn\nn\nn\nn\n' ) )"
 STATUS12A=$?
 echo "$OUT12A" >> "$T12"
 MW_SKILL="$HOME_C/.claude/skills/qroky/SKILL.md"
@@ -1128,13 +1169,17 @@ FILES_UNDER_HOME_A=$(find "$HOME_C" -type f 2>/dev/null | wc -l | tr -d ' ')
 MARKERS_A1=$(grep -cF '<!-- qroky-machinewide:start -->' "$MW_CLAUDEMD" 2>/dev/null || true)
 SKILL_DIFF12="$(diff "$VENDORED_SKILL" "$MW_SKILL" 2>&1)"
 I3_EXCEPTION12=$(grep -c "GATE-028" "$MW_SKILL" 2>/dev/null || true)
+I3_AMENDED12=$(grep -c "INFO-042" "$MW_SKILL" 2>/dev/null || true)
 REMOVAL_NAMED12=$(printf '%s' "$OUT12A" | grep -c "to remove, delete them" || true)
+Q9_ASKED12=$(printf '%s' "$OUT12A" | grep -c "Type y for machine-wide" || true)
+TRACE_FINALE12=$(printf '%s' "$OUT12A" | grep -c "ANY Claude Code session" || true)
+TRACE_UNINSTALL_CMD12=$(printf '%s' "$OUT12A" | grep -c "bash install.sh --uninstall" || true)
 SKILL_MD5_A1="$( (md5 -q "$MW_SKILL" 2>/dev/null || md5sum "$MW_SKILL" 2>/dev/null | cut -d' ' -f1) || true)"
 {
   echo ""
-  echo "--- YES branch, re-run (idempotency: still exactly two files, ONE marker) ---"
+  echo "--- re-run (ATOM-106 dialog -> 'reinstall'; idempotency: still exactly two files, ONE marker) ---"
 } >> "$T12"
-OUT12A2="$( ( export HOME="$HOME_C"; run_install "$W12A" '' ) )"
+OUT12A2="$( ( export HOME="$HOME_C"; run_install "$W12A" $'reinstall\n' ) )"
 STATUS12A2=$?
 echo "$OUT12A2" >> "$T12"
 MARKERS_A2=$(grep -cF '<!-- qroky-machinewide:start -->' "$MW_CLAUDEMD" 2>/dev/null || true)
@@ -1142,8 +1187,9 @@ FILES_UNDER_CLAUDE_A2=$(find "$HOME_C/.claude" -type f 2>/dev/null | wc -l | tr 
 SKILL_MD5_A2="$( (md5 -q "$MW_SKILL" 2>/dev/null || md5sum "$MW_SKILL" 2>/dev/null | cut -d' ' -f1) || true)"
 {
   echo ""
-  echo "--- YES branch assertions ---"
+  echo "--- default-install assertions ---"
   echo "exit codes: run1=$STATUS12A rerun=$STATUS12A2"
+  echo "q9 question asked (must be 0 — INFO-042 removed it): $Q9_ASKED12"
   echo "files under fake-HOME/.claude after run 1 (must be EXACTLY 2): $FILES_UNDER_CLAUDE_A"
   echo "total files under fake HOME (must be 3: .gitconfig + the two): $FILES_UNDER_HOME_A"
   echo "full listing of every file under the fake HOME:"
@@ -1151,37 +1197,43 @@ SKILL_MD5_A2="$( (md5 -q "$MW_SKILL" 2>/dev/null || md5sum "$MW_SKILL" 2>/dev/nu
   echo "marker blocks in ~/.claude/CLAUDE.md after run 1 (must be 1): $MARKERS_A1; after re-run (must still be 1): $MARKERS_A2"
   echo "files under .claude after re-run (must still be 2): $FILES_UNDER_CLAUDE_A2"
   echo "skill copy byte-identical to the vendored source: $([[ -z "$SKILL_DIFF12" ]] && echo yes || echo NO-DEFECT)"
-  echo "skill copy carries the recorded I3 exception (GATE-028): $I3_EXCEPTION12"
+  echo "skill copy carries the recorded I3 exception (GATE-028): $I3_EXCEPTION12 and its INFO-042 amendment: $I3_AMENDED12"
   echo "removal paths named to the human: $REMOVAL_NAMED12"
+  echo "finale carries the trace (works in ANY session + one-command removal): $TRACE_FINALE12 (>=1) / $TRACE_UNINSTALL_CMD12 (>=1)"
   echo "skill hash stable across the re-run: $([[ -n "$SKILL_MD5_A1" && "$SKILL_MD5_A1" == "$SKILL_MD5_A2" ]] && echo yes || echo NO-DEFECT)"
   echo ""
-  echo "--- NO branch (Enter; fake HOME: $HOME_D) ---"
+  echo "--- pre-existing user CLAUDE.md is appended to, never clobbered (fake HOME: $HOME_D) ---"
 } >> "$T12"
-OUT12B="$( ( export HOME="$HOME_D"; run_install "$W12B" $'en\n\nn\nn\nn\nn\n\n' ) )"
+mkdir -p "$HOME_D/.claude"
+printf '# my own machine rules — must survive the install untouched\n' > "$HOME_D/.claude/CLAUDE.md"
+OUT12B="$( ( export HOME="$HOME_D"; run_install "$W12B" $'en\n\nn\nn\nn\nn\n' ) )"
 STATUS12B=$?
 echo "$OUT12B" >> "$T12"
-FILES_UNDER_HOME_B=$(find "$HOME_D" -type f 2>/dev/null | wc -l | tr -d ' ')
-CLAUDE_DIR_B=0; [[ -e "$HOME_D/.claude" ]] && CLAUDE_DIR_B=1
-PROJECT_ONLY_LINE_B=$(printf '%s' "$OUT12B" | grep -c "working folder only" || true)
+USER_LINE_KEPT=$(grep -c "my own machine rules" "$HOME_D/.claude/CLAUDE.md" 2>/dev/null || true)
+MARKERS_B=$(grep -cF '<!-- qroky-machinewide:start -->' "$HOME_D/.claude/CLAUDE.md" 2>/dev/null || true)
+SKILL_B=0; [[ -s "$HOME_D/.claude/skills/qroky/SKILL.md" ]] && SKILL_B=1
+# README trace: the uninstall doc names the machine-wide undo in all 3 locales
+TRACE_README_EN=$(grep -c "machine-wide setup is removed" "$HERE/README.en.md" || true)
+TRACE_README_RU=$(grep -c "удаляется целиком этой одной командой" "$HERE/README.ru.md" || true)
+TRACE_README_RO=$(grep -c "este eliminată complet de această singură comandă" "$HERE/README.ro.md" || true)
 {
   echo ""
-  echo "--- NO branch assertions ---"
+  echo "--- pre-existing CLAUDE.md assertions ---"
   echo "exit code: $STATUS12B"
-  echo "fake HOME untouched — total files (must be 1, the .gitconfig): $FILES_UNDER_HOME_B"
-  echo "~/.claude exists (must be no): $([[ $CLAUDE_DIR_B -eq 0 ]] && echo no || echo YES-DEFECT)"
-  echo "project-only choice acknowledged: $PROJECT_ONLY_LINE_B"
-  echo "(non-vacuous: the YES branch above proved this same machinery writes when told to)"
+  echo "the user's own line survived: $USER_LINE_KEPT (1); marker appended exactly once: $MARKERS_B (1); skill copy landed: $SKILL_B (1)"
+  echo "README uninstall doc carries the machine-wide trace: en=$TRACE_README_EN ru=$TRACE_README_RU ro=$TRACE_README_RO (each >=1)"
 } >> "$T12"
-if [[ $STATUS12A -eq 0 && $STATUS12A2 -eq 0 \
+if [[ $STATUS12A -eq 0 && $STATUS12A2 -eq 0 && "$Q9_ASKED12" -eq 0 \
       && "$FILES_UNDER_CLAUDE_A" == "2" && "$FILES_UNDER_HOME_A" == "3" \
       && "$MARKERS_A1" -eq 1 && "$MARKERS_A2" -eq 1 && "$FILES_UNDER_CLAUDE_A2" == "2" \
-      && -z "$SKILL_DIFF12" && "$I3_EXCEPTION12" -gt 0 && "$REMOVAL_NAMED12" -gt 0 \
+      && -z "$SKILL_DIFF12" && "$I3_EXCEPTION12" -gt 0 && "$I3_AMENDED12" -gt 0 && "$REMOVAL_NAMED12" -gt 0 \
+      && "$TRACE_FINALE12" -ge 1 && "$TRACE_UNINSTALL_CMD12" -ge 1 \
       && -n "$SKILL_MD5_A1" && "$SKILL_MD5_A1" == "$SKILL_MD5_A2" \
-      && $STATUS12B -eq 0 && "$FILES_UNDER_HOME_B" == "1" && $CLAUDE_DIR_B -eq 0 \
-      && "$PROJECT_ONLY_LINE_B" -gt 0 ]]; then
-  record "12-machinewide-both-branches" PASS "yes: exactly 2 files under ~/.claude, one marker after re-run, skill identical to vendored (I3 exception aboard), removal named; no: fake HOME untouched (negative assert non-vacuous)"
+      && $STATUS12B -eq 0 && "$USER_LINE_KEPT" -eq 1 && "$MARKERS_B" -eq 1 && $SKILL_B -eq 1 \
+      && "$TRACE_README_EN" -ge 1 && "$TRACE_README_RU" -ge 1 && "$TRACE_README_RO" -ge 1 ]]; then
+  record "12-machinewide-always-on" PASS "no question asked; default install wrote exactly 2 files under ~/.claude (skill = vendored source with the GATE-028+INFO-042 amended exception), one marker after re-run, removal named, finale + README carry the trace in 3 locales; a pre-existing CLAUDE.md survived untouched"
 else
-  record "12-machinewide-both-branches" FAIL "a=$STATUS12A a2=$STATUS12A2 claude_files=$FILES_UNDER_CLAUDE_A/$FILES_UNDER_CLAUDE_A2 home_files=$FILES_UNDER_HOME_A markers=$MARKERS_A1/$MARKERS_A2 diff_empty=$([[ -z "$SKILL_DIFF12" ]] && echo yes || echo no) i3=$I3_EXCEPTION12 removal=$REMOVAL_NAMED12 md5=$([[ "$SKILL_MD5_A1" == "$SKILL_MD5_A2" ]] && echo stable || echo CHANGED) b=$STATUS12B b_files=$FILES_UNDER_HOME_B b_claude=$CLAUDE_DIR_B b_ack=$PROJECT_ONLY_LINE_B"
+  record "12-machinewide-always-on" FAIL "a=$STATUS12A a2=$STATUS12A2 q9=$Q9_ASKED12 claude_files=$FILES_UNDER_CLAUDE_A/$FILES_UNDER_CLAUDE_A2 home_files=$FILES_UNDER_HOME_A markers=$MARKERS_A1/$MARKERS_A2 diff_empty=$([[ -z "$SKILL_DIFF12" ]] && echo yes || echo no) i3=$I3_EXCEPTION12/$I3_AMENDED12 removal=$REMOVAL_NAMED12 trace=$TRACE_FINALE12/$TRACE_UNINSTALL_CMD12 md5=$([[ "$SKILL_MD5_A1" == "$SKILL_MD5_A2" ]] && echo stable || echo CHANGED) b=$STATUS12B/$USER_LINE_KEPT/$MARKERS_B/$SKILL_B readme=$TRACE_README_EN/$TRACE_README_RU/$TRACE_README_RO"
 fi
 
 # ---------------------------------------------------------------------------
@@ -1201,7 +1253,7 @@ REG13="$SANDBOX/registries/machine13.registry"
   echo ""
   echo "--- (a) first workspace: full telegram journey on machine13 ---"
 } > "$T13"
-OUT13A="$(QROKY_DRYRUN_REGISTRY="$REG13" run_install "$W13A" $'en\n\ny\nGOODTOKEN123\nn\ny\nn\nn\n')"
+OUT13A="$(QROKY_DRYRUN_REGISTRY="$REG13" run_install "$W13A" $'en\n\ny\nGOODTOKEN123\nn\ny\nn\n')"
 STATUS13A=$?
 echo "$OUT13A" >> "$T13"
 REG13_LINE1=""; [[ -f "$REG13" ]] && REG13_LINE1="$(head -1 "$REG13")"
@@ -1214,7 +1266,7 @@ REG13_LOGGED=$(grep -c "telegram REGISTERED workspace" "$W13A/install.log" 2>/de
 } >> "$T13"
 BOOTS_BEFORE_B=$(grep -c "bootstrap.*md.qroky.telegram" "$LAUNCHCTL_STATE" 2>/dev/null || true)
 SENT_BEFORE_13B=$(wc -l < "$TG_SENT_LOG" | tr -d ' ')
-OUT13B="$(QROKY_DRYRUN_REGISTRY="$REG13" run_install "$W13B" $'en\n\ny\nn\nn\nn\nn\n')"
+OUT13B="$(QROKY_DRYRUN_REGISTRY="$REG13" run_install "$W13B" $'en\n\ny\nn\nn\nn\n')"
 STATUS13B=$?
 echo "$OUT13B" >> "$T13"
 BOOTS_AFTER_B=$(grep -c "bootstrap.*md.qroky.telegram" "$LAUNCHCTL_STATE" 2>/dev/null || true)
@@ -1230,7 +1282,7 @@ BOUND13B=$(grep -c '"answer_telegram_bound": "yes"' "$W13B/install-state.json" 2
   echo ""
   echo "--- (c) apply-update auto-complete: token+binding present, head undeployed ---"
 } >> "$T13"
-OUT13C="$(QROKY_DRYRUN_REGISTRY="$SANDBOX/registries/machine13c.registry" run_install "$W13C" $'en\n\nn\nn\nn\nn\nn\n')"
+OUT13C="$(QROKY_DRYRUN_REGISTRY="$SANDBOX/registries/machine13c.registry" run_install "$W13C" $'en\n\nn\nn\nn\nn\n')"
 STATUS13C=$?
 # plant the recorded-defect shape: v1-era token + captured binding, no head
 mkdir -p "$W13C/.qroky/telegram/state"
@@ -1260,7 +1312,7 @@ HELLO_DELTA_13C=$(( SENT_AFTER_13C - SENT_BEFORE_13C ))   # H5: no second hello
   echo ""
   echo "--- (d) apply-update with token but NO binding: hint only, no deploy ---"
 } >> "$T13"
-OUT13D="$(QROKY_DRYRUN_REGISTRY="$SANDBOX/registries/machine13d.registry" run_install "$W13D" $'en\n\nn\nn\nn\nn\nn\n')"
+OUT13D="$(QROKY_DRYRUN_REGISTRY="$SANDBOX/registries/machine13d.registry" run_install "$W13D" $'en\n\nn\nn\nn\nn\n')"
 mkdir -p "$W13D/.qroky"
 printf 'GOODTOKEN123' > "$W13D/.qroky/telegram.token"; chmod 600 "$W13D/.qroky/telegram.token"
 git -C "$FAKE_FW" -c user.email=dryrun@qroky.local -c user.name="Qroky dry run" \
@@ -1320,7 +1372,7 @@ W14="$SANDBOX/w14"; W14B="$SANDBOX/w14b"
   echo "--- (a) ru install with telegram ---"
 } > "$T14"
 SENT_BEFORE_14=$(wc -l < "$TG_SENT_LOG" | tr -d ' ')
-OUT14A="$(run_install "$W14" $'ru\n\ny\nGOODTOKEN123\nn\nn\nn\nn\n')"
+OUT14A="$(run_install "$W14" $'ru\n\ny\nGOODTOKEN123\nn\nn\nn\n')"
 STATUS14A=$?
 echo "$OUT14A" >> "$T14"
 HELLO_RU=$(tail -n "+$((SENT_BEFORE_14 + 1))" "$TG_SENT_LOG" | grep -c "Я на связи. Завтра утром пришлю ваш первый дайджест" || true)
@@ -1355,11 +1407,11 @@ LOCALE_SURVIVED=$(grep -c '"answer_language": "ru"' "$W14/install-state.json" ||
 REASKED_LANG=$(printf '%s\n%s\n%s' "$OUT14N" "$OUT14D" "$OUT14Y" | grep -c "1) English  2) Română  3) Русский" || true)
 
 { echo ""; echo "--- (d) unrecognized q1 answers -> honest trilingual fallback ---"; } >> "$T14"
-OUT14B="$(run_install "$W14B" $'xx\nyy\nzz\nqq\nww\n\nn\nn\nn\nn\nn\n')"
+OUT14B="$(run_install "$W14B" $'xx\nyy\nzz\nqq\nww\n\nn\nn\nn\nn\n')"
 STATUS14B=$?
 echo "$OUT14B" >> "$T14"
 FALLBACK_HONEST=$(printf '%s' "$OUT14B" | grep -c "ответ не распознан — продолжаю по-английски" || true)
-FALLBACK_CONTINUED=$(printf '%s' "$OUT14B" | grep -c "Step 9 of 9" || true)
+FALLBACK_CONTINUED=$(printf '%s' "$OUT14B" | grep -c "Step 8 of 8" || true)
 {
   echo ""; echo "--- assertions ---"
   echo "(a) exit: $STATUS14A (0); ru hello really sent: $HELLO_RU (1); head profile LANGUAGE=ru: $PROFILE_LANG_RU (1); state language ru: $STATE_LANG_RU (1)"
@@ -1397,9 +1449,9 @@ cp "$FAKE_HOME/.gitconfig" "$HOME_F/" 2>/dev/null || true
   echo "Scenario 15 — clean slate: --uninstall -> reinstall as first (ATOM-105 DoD 2/3)"
   echo "Generated: $(date -u +%Y-%m-%dT%H:%M:%SZ)"
   echo ""
-  echo "--- full install (telegram y, heartbeat y, machinewide y) ---"
+  echo "--- full install (telegram y, heartbeat y; machine-wide is automatic since INFO-042) ---"
 } > "$T15"
-OUT15A="$( ( export HOME="$HOME_E"; run_install "$W15" $'en\n\ny\nGOODTOKEN123\nn\ny\nn\ny\n' ) )"
+OUT15A="$( ( export HOME="$HOME_E"; run_install "$W15" $'en\n\ny\nGOODTOKEN123\nn\ny\nn\n' ) )"
 STATUS15A=$?
 echo "$OUT15A" >> "$T15"
 PRE_PLISTS=$(ls "$HOME_E/Library/LaunchAgents"/md.qroky.*.plist 2>/dev/null | wc -l | tr -d ' ')
@@ -1435,14 +1487,22 @@ FOREIGN_KEPT=0; [[ -f "$HOME_E/.claude/skills/qroky/SKILL.md" ]] && FOREIGN_KEPT
 FOREIGN_SAID=$(printf '%s' "$OUT15F" | grep -c "provenance marker" || true)
 rm -f "$HOME_E/.claude/skills/qroky/SKILL.md"
 
-{ echo ""; echo "--- reinstall passes as a FIRST run ---"; } >> "$T15"
+{ echo ""; echo "--- reinstall passes as a FIRST run (post-uninstall the workdir still holds"
+  echo "framework/ + live data, so the ATOM-106 dialog fires — answered '1' = reinstall;"
+  echo "this is the CEO's exact journey from INFO-040, minus the raw git fatal) ---"; } >> "$T15"
 SENT_BEFORE_15=$(wc -l < "$TG_SENT_LOG" | tr -d ' ')
-OUT15R="$( ( export HOME="$HOME_E"; run_install "$W15" $'en\n\ny\nGOODTOKEN123\nn\ny\nn\ny\n' ) )"
+OUT15R="$( ( export HOME="$HOME_E"; run_install "$W15" $'en\n\n1\ny\nGOODTOKEN123\nn\ny\nn\n' ) )"
 STATUS15R=$?
 echo "$OUT15R" >> "$T15"
 MAP_AGAIN=$(printf '%s' "$OUT15R" | grep -c "Here is the whole road" || true)
-ALL9_AGAIN=$(printf '%s' "$OUT15R" | grep -c "Step 9 of 9" || true)
+ALL9_AGAIN=$(printf '%s' "$OUT15R" | grep -c "Step 8 of 8" || true)
 HELLO_AGAIN=$(tail -n "+$((SENT_BEFORE_15 + 1))" "$TG_SENT_LOG" | grep -c "chat_id=424242 text=I am connected" || true)
+# ATOM-106: the dialog fired (no state -> the 'update' option is refused
+# honestly if chosen; here reinstall is chosen as '1'), and no raw git
+# fatal ever reaches the founder's screen on the reinstall-over-occupied run.
+DIALOG_15R=$(printf '%s' "$OUT15R" | grep -c "already carries a Qroky install" || true)
+RAW_FATAL_15R=$(printf '%s' "$OUT15R" | grep -c "fatal:\|already exists" || true)
+HINT_15U=$(printf '%s' "$OUT15U" | grep -c "just run this installer again" || true)
 
 { echo ""; echo "--- uninstall on a clean machine: polite no-op ---"; } >> "$T15"
 OUT15N="$( ( export HOME="$HOME_F"; run_install "$W15X" '' --uninstall ) )"
@@ -1456,7 +1516,8 @@ NOOP_POLITE=$(printf '%s' "$OUT15N" | grep -c "Nothing to remove" || true)
   echo "after: plists=$POST_PLISTS (0), skill=$POST_SKILL (0), marker=$POST_MARKER (0), registry=$POST_REG (0), token=$POST_TOKEN (0), state=$POST_STATE (0)"
   echo "workdir kept: $WORKDIR_KEPT (1); steps announced: $STEPS_ANNOUNCED (>=5); token warned BEFORE deletion: $TOKEN_WARNED (1); path printed: $PATH_PRINTED (1); summary list: $SUMMARY_SHOWN (1)"
   echo "foreign skill kept: $FOREIGN_KEPT (1) and said so: $FOREIGN_SAID (1)"
-  echo "reinstall: exit $STATUS15R (0), journey map again: $MAP_AGAIN (1), all 9 again: $ALL9_AGAIN (>0), fresh hello really sent: $HELLO_AGAIN (1)"
+  echo "uninstall finale points at the reinstall path (ATOM-106): $HINT_15U (>=1)"
+  echo "reinstall: exit $STATUS15R (0), dialog fired on the occupied folder: $DIALOG_15R (>=1), raw git fatal on screen: $RAW_FATAL_15R (0), journey map again: $MAP_AGAIN (1), all 8 again: $ALL9_AGAIN (>0), fresh hello really sent: $HELLO_AGAIN (1)"
   echo "clean machine no-op: exit $STATUS15N (0), polite line: $NOOP_POLITE (1)"
 } >> "$T15"
 if [[ $STATUS15A -eq 0 && "$PRE_PLISTS" -ge 3 && $PRE_SKILL -eq 1 && "$PRE_MARKER" -eq 1 && $PRE_REG -eq 1 \
@@ -1464,12 +1525,218 @@ if [[ $STATUS15A -eq 0 && "$PRE_PLISTS" -ge 3 && $PRE_SKILL -eq 1 && "$PRE_MARKE
       && "$POST_PLISTS" -eq 0 && $POST_SKILL -eq 0 && "$POST_MARKER" -eq 0 && $POST_REG -eq 0 \
       && $POST_TOKEN -eq 0 && $POST_STATE -eq 0 && $WORKDIR_KEPT -eq 1 \
       && "$STEPS_ANNOUNCED" -ge 5 && "$TOKEN_WARNED" -eq 1 && "$PATH_PRINTED" -eq 1 && "$SUMMARY_SHOWN" -eq 1 \
+      && "$HINT_15U" -ge 1 \
       && $FOREIGN_KEPT -eq 1 && "$FOREIGN_SAID" -eq 1 \
-      && $STATUS15R -eq 0 && "$MAP_AGAIN" -eq 1 && "$ALL9_AGAIN" -gt 0 && "$HELLO_AGAIN" -eq 1 \
+      && $STATUS15R -eq 0 && "$DIALOG_15R" -ge 1 && "$RAW_FATAL_15R" -eq 0 \
+      && "$MAP_AGAIN" -eq 1 && "$ALL9_AGAIN" -gt 0 && "$HELLO_AGAIN" -eq 1 \
       && $STATUS15N -eq 0 && "$NOOP_POLITE" -eq 1 ]]; then
-  record "15-clean-slate" PASS "uninstall removed launchd/gesture/registry/token/state (each announced first, token warned, summary listed, workdir kept + path printed), left a FOREIGN skill alone; reinstall ran as a genuine first run (map, all 9, fresh hello); clean machine = polite no-op rc 0"
+  record "15-clean-slate" PASS "uninstall removed launchd/gesture/registry/token/state (each announced first, token warned, summary listed, workdir kept + path printed + reinstall hint), left a FOREIGN skill alone; reinstall over the occupied workdir = dialog, then a genuine first run (map, all 8, fresh hello, zero raw git fatals); clean machine = polite no-op rc 0"
 else
-  record "15-clean-slate" FAIL "inst=$STATUS15A pre=$PRE_PLISTS/$PRE_SKILL/$PRE_MARKER/$PRE_REG un=$STATUS15U/$((BOOTOUTS_AFTER - BOOTOUTS_BEFORE)) post=$POST_PLISTS/$POST_SKILL/$POST_MARKER/$POST_REG/$POST_TOKEN/$POST_STATE kept=$WORKDIR_KEPT ui=$STEPS_ANNOUNCED/$TOKEN_WARNED/$PATH_PRINTED/$SUMMARY_SHOWN foreign=$FOREIGN_KEPT/$FOREIGN_SAID re=$STATUS15R/$MAP_AGAIN/$ALL9_AGAIN/$HELLO_AGAIN noop=$STATUS15N/$NOOP_POLITE"
+  record "15-clean-slate" FAIL "inst=$STATUS15A pre=$PRE_PLISTS/$PRE_SKILL/$PRE_MARKER/$PRE_REG un=$STATUS15U/$((BOOTOUTS_AFTER - BOOTOUTS_BEFORE)) post=$POST_PLISTS/$POST_SKILL/$POST_MARKER/$POST_REG/$POST_TOKEN/$POST_STATE kept=$WORKDIR_KEPT ui=$STEPS_ANNOUNCED/$TOKEN_WARNED/$PATH_PRINTED/$SUMMARY_SHOWN hint=$HINT_15U foreign=$FOREIGN_KEPT/$FOREIGN_SAID re=$STATUS15R/$DIALOG_15R/$RAW_FATAL_15R/$MAP_AGAIN/$ALL9_AGAIN/$HELLO_AGAIN noop=$STATUS15N/$NOOP_POLITE"
+fi
+
+# ---------------------------------------------------------------------------
+# SCENARIO 16 — ATOM-106 case (b): an orphaned framework/ clone (no data next
+# to it) gets the "recreate?" question, both branches; plus the case (c)
+# parity assert (a clean-folder install never sees any reinstall dialog) and
+# the three-locale completeness of every new string. Mutation-ready
+# (INFO-037): the pre-fix build shows no orphan question at all.
+# ---------------------------------------------------------------------------
+T16="$ATOM_WORKSPACE/scenario-16-orphan-clone.txt"
+W16="$SANDBOX/w16"
+mkdir -p "$W16"
+git clone -q "$FAKE_FW" "$W16/framework"
+echo "stale clone — must vanish on recreate" > "$W16/framework/OLD-CLONE-MARKER"
+LIST16_BEFORE="$(find "$W16" -type f ! -path '*/.git/*' | sort)"
+{
+  echo "Scenario 16 — orphaned clone: framework/ with no data next to it (ATOM-106 case b)"
+  echo "Generated: $(date -u +%Y-%m-%dT%H:%M:%SZ)"
+  echo "Setup: a bare 'git clone' of the framework into an otherwise empty folder"
+  echo "(the raw-git entry a founder can produce by hand), plus a planted marker"
+  echo "file that must survive 'no' and vanish on 'da'."
+  echo ""
+  echo "--- branch NO: leaves without a trace ---"
+} > "$T16"
+OUT16N="$(run_install "$W16" $'en\n\nno\n')"
+STATUS16N=$?
+echo "$OUT16N" >> "$T16"
+LIST16_AFTER_N="$(find "$W16" -type f ! -path '*/.git/*' | sort)"
+LIST16_DIFF_N="$(diff <(printf '%s' "$LIST16_BEFORE") <(printf '%s' "$LIST16_AFTER_N"))"
+ORPHAN_ASKED_N=$(printf '%s' "$OUT16N" | grep -c "looks like an orphaned clone" || true)
+DECLINED_SAID=$(printf '%s' "$OUT16N" | grep -c "leaving everything as it is" || true)
+NO_STATE_AFTER_N=0; [[ -f "$W16/install-state.json" ]] || NO_STATE_AFTER_N=1
+MARKER_KEPT_N=0; [[ -f "$W16/framework/OLD-CLONE-MARKER" ]] && MARKER_KEPT_N=1
+
+{ echo ""; echo "--- branch YES (answered 'da' — the ru/ro yes must work on the en path): recreate + clean install ---"; } >> "$T16"
+OUT16Y="$(run_install "$W16" $'en\n\nda\nn\nn\ny\nn\n')"
+STATUS16Y=$?
+echo "$OUT16Y" >> "$T16"
+ORPHAN_ASKED_Y=$(printf '%s' "$OUT16Y" | grep -c "looks like an orphaned clone" || true)
+MARKER_GONE_16=1; [[ -f "$W16/framework/OLD-CLONE-MARKER" ]] && MARKER_GONE_16=0
+PROV_16=0; [[ -f "$W16/framework/PROVENANCE.md" ]] && PROV_16=1
+STATE_DONE_16=$(grep -c '"step_machinewide": "done"' "$W16/install-state.json" 2>/dev/null || true)
+MAP_16=$(printf '%s' "$OUT16Y" | grep -c "Here is the whole road" || true)
+RAW_FATAL_16=$(printf '%s' "$OUT16Y" | grep -c "fatal:" || true)
+
+# case (c) parity: Scenario 1's CLEAN run never met any reinstall/orphan
+# dialog — non-vacuous because the very same phrases matched >0 above and
+# in scenario 3.
+PARITY_CLEAN=$(printf '%s' "$OUT1" | grep -c "already carries a Qroky install\|looks like an orphaned clone" || true)
+
+# three-locale completeness: every new L_ function exists once per lang file
+LANG_PARITY_OK=1
+for fn in L_REINSTALL_FOUND L_REINSTALL_ASK L_REINSTALL_START L_REINSTALL_UPDATE_ROUTE \
+          L_REINSTALL_UPDATE_NEEDS_STATE L_REINSTALL_CANCELLED L_ORPHAN_FOUND \
+          L_ORPHAN_ASK L_ORPHAN_DECLINED L_UNINSTALL_REINSTALL_HINT \
+          L_FINALE_NEW_SESSION_NOTE L_MARKER_SESSION_NOTE \
+          L_FINALE_MACHINEWIDE_TRACE L_MACHINEWIDE_WIRING L_MACHINEWIDE_ALREADY; do
+  for lf in en ru ro; do
+    n=$(grep -c "^${fn}()" "$HERE/lang/$lf.sh" || true)
+    [[ "$n" -eq 1 ]] || { LANG_PARITY_OK=0; echo "MISSING/DUP: $fn in lang/$lf.sh (count=$n)" >> "$T16"; }
+  done
+done
+{
+  echo ""
+  echo "--- assertions ---"
+  echo "NO branch: exit $STATUS16N (0), orphan question asked: $ORPHAN_ASKED_N (>=1), declined line: $DECLINED_SAID (1), folder untouched: $([[ -z "$LIST16_DIFF_N" ]] && echo yes || echo NO-DEFECT), marker kept: $MARKER_KEPT_N (1), no install-state created: $NO_STATE_AFTER_N (1)"
+  echo "YES branch ('da'): exit $STATUS16Y (0), question asked: $ORPHAN_ASKED_Y (>=1), stale marker gone (fresh clone): $MARKER_GONE_16 (1), PROVENANCE present: $PROV_16 (1), install completed: $STATE_DONE_16 (1), journey map (a genuine first run): $MAP_16 (1), raw git fatal: $RAW_FATAL_16 (0)"
+  echo "case (c) parity: reinstall/orphan dialog lines in Scenario 1's CLEAN run: $PARITY_CLEAN (0; non-vacuous — the same phrases matched above)"
+  echo "three-locale completeness of the 15 new strings (incl. INFO-041 visibility notes + INFO-042 trace/wiring): $([[ $LANG_PARITY_OK -eq 1 ]] && echo yes || echo NO-DEFECT)"
+} >> "$T16"
+if [[ $STATUS16N -eq 0 && "$ORPHAN_ASKED_N" -ge 1 && "$DECLINED_SAID" -eq 1 && -z "$LIST16_DIFF_N" \
+      && $MARKER_KEPT_N -eq 1 && $NO_STATE_AFTER_N -eq 1 \
+      && $STATUS16Y -eq 0 && "$ORPHAN_ASKED_Y" -ge 1 && $MARKER_GONE_16 -eq 1 && $PROV_16 -eq 1 \
+      && "$STATE_DONE_16" -eq 1 && "$MAP_16" -eq 1 && "$RAW_FATAL_16" -eq 0 \
+      && "$PARITY_CLEAN" -eq 0 && $LANG_PARITY_OK -eq 1 ]]; then
+  record "16-orphan-clone" PASS "(b) no = polite exit, folder byte-untouched; (b) 'da' = stale clone recreated + full clean install (marker gone, PROVENANCE, map, no raw fatal); (c) parity: clean run saw no dialog; all 15 new strings present x3 locales"
+else
+  record "16-orphan-clone" FAIL "no=$STATUS16N/$ORPHAN_ASKED_N/$DECLINED_SAID/diff$([[ -z "$LIST16_DIFF_N" ]] && echo ok || echo CHANGED)/marker$MARKER_KEPT_N/state$NO_STATE_AFTER_N yes=$STATUS16Y/$ORPHAN_ASKED_Y/gone$MARKER_GONE_16/prov$PROV_16/done$STATE_DONE_16/map$MAP_16/fatal$RAW_FATAL_16 parity=$PARITY_CLEAN lang=$LANG_PARITY_OK"
+fi
+
+# ---------------------------------------------------------------------------
+# SCENARIO 17 — ATOM-106 recovery semantics (DoD 3): a framework/ broken by
+# an interrupted self-update (folder deleted, git submodule slot still held —
+# exactly the half-state whose re-add used to die with the raw
+# "destination path 'framework' already exists" fatal) recovers through the
+# (a) dialog to a WORKING state with zero loss of the live data. Plus the
+# ru-locale leg of the dialog against Scenario-14's Russian install.
+# Mutation-ready: on the pre-fix build this run dies at the framework step.
+# ---------------------------------------------------------------------------
+T17="$ATOM_WORKSPACE/scenario-17-broken-framework-recovery.txt"
+W17="$SANDBOX/w17"
+{
+  echo "Scenario 17 — recovery of a broken framework/ after an interrupted self-update"
+  echo "Generated: $(date -u +%Y-%m-%dT%H:%M:%SZ)"
+  echo ""
+  echo "--- full install first ---"
+} > "$T17"
+OUT17A="$(run_install "$W17" $'en\n\nn\nn\ny\nn\n')"
+STATUS17A=$?
+echo "$OUT17A" >> "$T17"
+echo "the founder's own note" > "$W17/mission/note.md"
+STATE17_BEFORE="$(grep -v generated_at "$W17/install-state.json" | grep '"answer_')"
+# break it: the folder goes, the submodule slot stays — the CEO-fatal shape
+rm -rf "$W17/framework"
+HALFSTATE_OK=0; [[ -d "$W17/.git/modules/framework" ]] && HALFSTATE_OK=1
+{
+  echo ""
+  echo "--- broken: framework/ deleted, .git/modules/framework left ($([[ $HALFSTATE_OK -eq 1 ]] && echo present || echo MISSING — setup void)) ---"
+  echo ""
+  echo "--- recovery run: dialog -> 'переустановить' (ru word on the en path) ---"
+} >> "$T17"
+OUT17R="$(run_install "$W17" $'переустановить\n')"
+STATUS17R=$?
+echo "$OUT17R" >> "$T17"
+DIALOG_17=$(printf '%s' "$OUT17R" | grep -c "already carries a Qroky install" || true)
+FW_BACK=0; [[ -e "$W17/framework/.git" && -f "$W17/framework/PROVENANCE.md" ]] && FW_BACK=1
+NOTE_KEPT=0; [[ -f "$W17/mission/note.md" ]] && NOTE_KEPT=1
+STATE17_AFTER="$(grep -v generated_at "$W17/install-state.json" | grep '"answer_')"
+ANSWERS_DIFF17="$(diff <(printf '%s' "$STATE17_BEFORE") <(printf '%s' "$STATE17_AFTER"))"
+REASKED17=$(printf '%s' "$OUT17R" | grep -c "Which language do you want to use?" || true)
+FINALE17=$(printf '%s' "$OUT17R" | grep -c "qroky start" || true)
+RAW_FATAL17=$(printf '%s' "$OUT17R" | grep -c "fatal:\|already exists" || true)
+# and the update channel works again after recovery (the framework is a
+# healthy checkout, not a husk): --check-update runs clean
+OUT17U="$(run_install "$W17" '' --check-update)"
+STATUS17U=$?
+{ echo ""; echo "--- --check-update after recovery ---"; echo "$OUT17U"; } >> "$T17"
+
+{ echo ""; echo "--- ru-locale dialog leg (Scenario-14's Russian install, answer «отмена») ---"; } >> "$T17"
+OUT17RU="$(run_install "$W14" $'отмена\n')"
+STATUS17RU=$?
+echo "$OUT17RU" >> "$T17"
+RU_DIALOG=$(printf '%s' "$OUT17RU" | grep -c "уже есть установка Qroky" || true)
+RU_CANCEL=$(printf '%s' "$OUT17RU" | grep -c "Отменено. Ничего не изменено." || true)
+RU_EN_LEAK=$(printf '%s' "$OUT17RU" | grep -c "already carries a Qroky install\|Cancelled. Nothing was changed." || true)
+{
+  echo ""
+  echo "--- assertions ---"
+  echo "install: exit $STATUS17A (0); half-state planted for real: $HALFSTATE_OK (1 — non-vacuous)"
+  echo "recovery: exit $STATUS17R (0), dialog: $DIALOG_17 (>=1), framework healthy again (.git + PROVENANCE): $FW_BACK (1)"
+  echo "live data intact: mission note kept: $NOTE_KEPT (1); answers preserved: $([[ -z "$ANSWERS_DIFF17" ]] && echo yes || echo NO-DEFECT)"
+  echo "zero re-asks: $REASKED17 (0); finale: $FINALE17 (>=1); raw git fatal on screen: $RAW_FATAL17 (0)"
+  echo "update channel alive after recovery: exit $STATUS17U (0)"
+  echo "ru dialog: exit $STATUS17RU (0), ru text: $RU_DIALOG (>=1), ru cancel: $RU_CANCEL (1), en leak: $RU_EN_LEAK (0)"
+} >> "$T17"
+if [[ $STATUS17A -eq 0 && $HALFSTATE_OK -eq 1 \
+      && $STATUS17R -eq 0 && "$DIALOG_17" -ge 1 && $FW_BACK -eq 1 && $NOTE_KEPT -eq 1 \
+      && -z "$ANSWERS_DIFF17" && "$REASKED17" -eq 0 && "$FINALE17" -ge 1 && "$RAW_FATAL17" -eq 0 \
+      && $STATUS17U -eq 0 \
+      && $STATUS17RU -eq 0 && "$RU_DIALOG" -ge 1 && "$RU_CANCEL" -eq 1 && "$RU_EN_LEAK" -eq 0 ]]; then
+  record "17-broken-framework-recovery" PASS "half-state after an interrupted self-update (non-vacuous) recovered via the dialog to a working install: framework healthy, mission note + answers intact, zero re-asks, no raw fatal, update channel alive; ru dialog speaks Russian and «отмена» works"
+else
+  record "17-broken-framework-recovery" FAIL "inst=$STATUS17A half=$HALFSTATE_OK rec=$STATUS17R/$DIALOG_17/fw$FW_BACK/note$NOTE_KEPT answers=$([[ -z "$ANSWERS_DIFF17" ]] && echo ok || echo DIFF) reask=$REASKED17 finale=$FINALE17 fatal=$RAW_FATAL17 upd=$STATUS17U ru=$STATUS17RU/$RU_DIALOG/$RU_CANCEL/leak$RU_EN_LEAK"
+fi
+
+# ---------------------------------------------------------------------------
+# SCENARIO 18 — ATOM-106 DoD 6 (INFO-041): the environment reads context at
+# session START, so a freshly installed gesture is invisible to windows
+# opened before the install. The kit must say so at THREE touch points:
+# the installer finale, the Telegram hello, and the CLAUDE.md marker blocks
+# (BOTH copies — workdir and machine-wide). Checked against artifacts the
+# earlier scenarios already produced (en: scenarios 1/12/15; ru: scenario
+# 14), so the asserts run over real founder-facing output — every grep
+# fails on the pre-INFO-041 build by construction.
+# ---------------------------------------------------------------------------
+T18="$ATOM_WORKSPACE/scenario-18-fresh-gesture-visibility.txt"
+{
+  echo "Scenario 18 — fresh-gesture visibility notes at all three touch points (INFO-041)"
+  echo "Generated: $(date -u +%Y-%m-%dT%H:%M:%SZ)"
+  echo ""
+} > "$T18"
+# (1) finale — en (Scenario 1's full run) and ru (Scenario 14's install)
+FIN_EN=$(printf '%s' "$OUT1" | grep -c "only NEW Claude Code chats see" || true)
+FIN_RU=$(printf '%s' "$OUT14A" | grep -c "видят только НОВЫЕ чаты Claude Code" || true)
+# INFO-042: the machine-wide TRACE line is in the ru finale too (en is
+# asserted in scenario 12 against the same real output)
+TRACE_RU=$(printf '%s' "$OUT14A" | grep -c "ЛЮБОЙ сессии Claude Code" || true)
+# (2) Telegram hello — the literal route (new chat -> folder -> phrase),
+# with the REAL workdir path substituted, in the actually-sent payload
+HELLO_EN_ROUTE=$(grep -c "open a new Claude Code chat in $W1 and say «qroky start»" "$TG_SENT_LOG" || true)
+HELLO_RU_ROUTE=$(grep -c "откройте новый чат Claude Code в папке $W14 и скажите «qroky start»" "$TG_SENT_LOG" || true)
+# (3) marker blocks — BOTH copies: the workdir CLAUDE.md (scenario 1's W1)
+# and the machine-wide ~/.claude/CLAUDE.md (scenario 12's YES branch HOME_C)
+MARK_WORKDIR=$(grep -c "installed AFTER this session started" "$W1/CLAUDE.md" 2>/dev/null || true)
+MARK_MACHINE=$(grep -c "installed AFTER this session started" "$HOME_C/.claude/CLAUDE.md" 2>/dev/null || true)
+# the note sits INSIDE the marker fences, so the uninstall strip removes it
+MARK_IN_FENCE=$(awk '/qroky-machinewide:start/,/qroky-machinewide:end/' "$HOME_C/.claude/CLAUDE.md" 2>/dev/null | grep -c "installed AFTER this session started" || true)
+# ru marker (scenario 14's workdir CLAUDE.md was written under ru locale)
+MARK_RU=$(grep -c "установлен ПОСЛЕ старта" "$W14/CLAUDE.md" 2>/dev/null || true)
+{
+  echo "--- assertions (all against real output of earlier scenarios) ---"
+  echo "finale note, en (scenario 1): $FIN_EN (>=1); ru (scenario 14): $FIN_RU (>=1)"
+  echo "hello carries the literal route with the real path, en: $HELLO_EN_ROUTE (>=1); ru: $HELLO_RU_ROUTE (>=1)"
+  echo "marker note in the WORKDIR copy (en, $W1/CLAUDE.md): $MARK_WORKDIR (1)"
+  echo "marker note in the MACHINE-WIDE copy ($HOME_C/.claude/CLAUDE.md): $MARK_MACHINE (1), inside the strip fences: $MARK_IN_FENCE (1)"
+  echo "marker note in the ru workdir copy ($W14/CLAUDE.md): $MARK_RU (1)"
+  echo "machine-wide trace line in the ru finale (INFO-042): $TRACE_RU (>=1)"
+} >> "$T18"
+if [[ "$FIN_EN" -ge 1 && "$FIN_RU" -ge 1 && "$HELLO_EN_ROUTE" -ge 1 && "$HELLO_RU_ROUTE" -ge 1 \
+      && "$MARK_WORKDIR" -eq 1 && "$MARK_MACHINE" -eq 1 && "$MARK_IN_FENCE" -eq 1 && "$MARK_RU" -eq 1 \
+      && "$TRACE_RU" -ge 1 ]]; then
+  record "18-fresh-gesture-visibility" PASS "the new-session note is at all three touch points (finale en+ru, hello with the literal route + real path en+ru, marker blocks in BOTH copies incl. inside the uninstall fences)"
+else
+  record "18-fresh-gesture-visibility" FAIL "finale=$FIN_EN/$FIN_RU hello=$HELLO_EN_ROUTE/$HELLO_RU_ROUTE marker=$MARK_WORKDIR/$MARK_MACHINE/fence$MARK_IN_FENCE/ru$MARK_RU trace_ru=$TRACE_RU"
 fi
 
 # ---------------------------------------------------------------------------

@@ -7,13 +7,13 @@
 
 L_SETUP_TITLE() { printf '== Instalare Qroky ==\n'; }
 
-L_STEP_HEADER() { printf 'Pasul %s din 9 — %s\n' "$1" "$2"; }
+L_STEP_HEADER() { printf 'Pasul %s din 8 — %s\n' "$1" "$2"; }
 L_STEP_ALREADY_DONE() { printf '  deja configurat — nimic de făcut (verificare de sănătate)\n'; }
 
 # v0.2 (GATE-027): tot drumul într-un singur paragraf, de la început.
 L_JOURNEY_MAP() {
   cat <<'EOF'
-Iată tot drumul: 9 întrebări, aproximativ 3 minute de instalare, iar la
+Iată tot drumul: 8 întrebări, aproximativ 3 minute de instalare, iar la
 final primești două linii gata de copiat și lipit pentru prima conversație.
 Fiecare întrebare spune a câta este; cele opționale se sar cu un singur
 Enter. Nimic nu se instalează pe la spatele tău.
@@ -27,7 +27,6 @@ L_STEP_SUBSCRIPTION_NAME() { printf 'verifică abonamentul'; }
 L_STEP_TELEGRAM_NAME() { printf 'conectează Telegram (opțional)'; }
 L_STEP_TELEMETRY_NAME() { printf 'partajarea sprijinului zilnic (opțional)'; }
 L_STEP_HEARTBEAT_NAME() { printf 'rezumatul de dimineață (opțional)'; }
-L_STEP_MACHINEWIDE_NAME() { printf 'fraza de pornire oriunde pe acest calculator (opțional)'; }
 
 L_ASK_LANGUAGE() {
   printf 'Ce limbă dorești să folosești?\n'
@@ -104,7 +103,7 @@ L_TELEGRAM_PRESS_START() {
   printf '  (sau trimite-i orice mesaj). Îl aștept aici, până la %s secunde...\n' "$2"
 }
 L_TELEGRAM_BOUND() { printf '  te-am prins — Telegram-ul tău este acum legat de acest asistent (doar chat-ul TĂU va fi servit)\n'; }
-L_TG_HELLO_TEXT() { printf 'Sunt conectat. Mâine dimineață îți trimit primul rezumat. — Qroky'; }
+L_TG_HELLO_TEXT() { printf 'Sunt conectat. Mâine dimineață îți trimit primul rezumat. Important: doar conversațiile NOI văd ce tocmai s-a instalat — deschide o conversație Claude Code nouă în %s și spune «qroky start». — Qroky' "$1"; }
 L_TELEGRAM_HELLO_SENT() { printf '  botul tocmai ți-a scris înapoi — uită-te pe telefon\n'; }
 L_TELEGRAM_HELLO_FAILED() {
   printf '  legătura e stabilită, dar salutul nu a putut fi trimis chiar acum (adesea o\n'
@@ -300,23 +299,16 @@ L_DISCLAIMER() {
 }
 
 # --- v0.2 (ATOM-104, GATE-028): întrebarea 9 — fraza de pornire pe tot calculatorul ---
-L_MACHINEWIDE_ASK_OPTIN() {
-  cat <<'EOF'
-Faci ca "qroky start" să funcționeze în ORICE conversație pe acest
-calculator, nu doar în folderul de lucru? [recomandăm: da] O linie sinceră
-despre ce înseamnă asta: am scrie exact două fișiere în ~/.claude (o copie
-a paginii de reguli a frazei și o scurtă notă-declanșator) — nimic altceva,
-ambele îți sunt numite și sunt ușor de șters.
-EOF
-  printf 'Scrie y — pe tot calculatorul; Enter = nu, doar folderul de lucru: '
-}
+# INFO-042 (2026-07-11): întrebarea 9 eliminată — fraza pe tot calculatorul
+# se instalează la fiecare instalare, cu o urmă în loc de întrebare.
+L_MACHINEWIDE_WIRING() { printf '  învăț tot acest calculator fraza de pornire (exact două fișiere în ~/.claude; ecranul final le numește împreună cu comanda de eliminare)...\n'; }
+L_MACHINEWIDE_ALREADY() { printf '  fraza de pornire pe tot calculatorul este deja la locul ei — nimic de făcut (verificare de sănătate)\n'; }
 L_MACHINEWIDE_DONE() {
   printf '  gata — "qroky start" funcționează acum în orice conversație pe acest calculator.\n'
   printf '  Au fost scrise exact două fișiere (ca să le elimini, șterge-le):\n'
   printf '    ~/.claude/skills/qroky/SKILL.md\n'
   printf '    blocul marcat din ~/.claude/CLAUDE.md (între marcajele qroky-machinewide)\n'
 }
-L_MACHINEWIDE_SKIPPED() { printf '  cum ai ales: fraza funcționează doar în folderul de lucru. Nimic nu a fost scris în afara lui.\n'; }
 L_MACHINEWIDE_FAILED() {
   printf '  NOTĂ: configurarea pe tot calculatorul nu a reușit (cel mai adesea: versiunea\n'
   printf '  regulamentului e mai veche decât acest instalator, sau ~/.claude nu poate fi\n'
@@ -359,3 +351,47 @@ L_UNINSTALL_KEEP_WORKDIR() {
   printf 'Șterge tu acel dosar dacă vrei zero complet.\n'
 }
 L_UNINSTALL_NOOP() { printf 'Nimic de șters — pe această mașină nu există o instalare Qroky. Deja curat.\n'; }
+
+# --- calea de reinstalare (ATOM-106, INFO-040) ------------------------------
+L_REINSTALL_FOUND() {
+  printf 'Acest dosar poartă deja o instalare Qroky: framework/ plus datele tale alături.\n'
+  printf '  %s\n' "$1"
+}
+L_REINSTALL_ASK() {
+  printf 'Reinstalare: datele tale rămân neatinse, framework/ este recreat de la zero.\n'
+  printf 'Ce facem? [1 reinstalare / 2 actualizare / 3 anulare] (Enter = anulare): '
+}
+L_REINSTALL_START() { printf 'Recreez framework/ — datele tale nu sunt atinse.\n'; }
+L_REINSTALL_UPDATE_ROUTE() { printf 'Redirecționez către calea de actualizare...\n'; }
+L_REINSTALL_UPDATE_NEEDS_STATE() {
+  printf 'Nu există o înregistrare a instalării aici — nu e nimic de actualizat. Alege reinstalare sau anulare.\n'
+}
+L_REINSTALL_CANCELLED() { printf 'Anulat. Nimic nu a fost schimbat.\n'; }
+L_ORPHAN_FOUND() {
+  printf 'Acest dosar ține o copie framework/ fără date alături — pare o clonă orfană:\n'
+  printf '  %s\n' "$1"
+}
+L_ORPHAN_ASK() { printf 'O recreez și instalez curat? [da/nu] (Enter = nu): '; }
+L_ORPHAN_DECLINED() { printf 'Bine — las totul așa cum este.\n'; }
+L_UNINSTALL_REINSTALL_HINT() {
+  printf 'Pentru reinstalare, pornește pur și simplu acest installer din nou — datele rămân.\n'
+}
+
+# --- vizibilitatea gestului proaspăt (ATOM-106 DoD 6, INFO-041) --------------
+L_FINALE_NEW_SESSION_NOTE() {
+  printf 'Important: doar conversațiile NOI Claude Code văd ce tocmai s-a instalat — o\n'
+  printf 'fereastră deschisă ÎNAINTE de această instalare nu știe încă fraza. Deschide o conversație nouă.\n'
+}
+L_MARKER_SESSION_NOTE() {
+  printf 'Notă pentru asistent: mediul citește contextul la PORNIREA sesiunii. Dacă\n'
+  printf 'qroky/«кроки» este menționat dar fișierul skill de mai sus nu este accesibil,\n'
+  printf 'probabil a fost instalat DUPĂ pornirea acestei sesiuni — sugerează deschiderea\n'
+  printf 'unei conversații NOI în loc de un simplu „not found".\n'
+}
+
+# --- urmă în loc de întrebare pentru machine-wide (INFO-042) -----------------
+L_FINALE_MACHINEWIDE_TRACE() {
+  printf 'Configurat fără întrebare (ca să funcționeze pur și simplu): asistentul\n'
+  printf 'răspunde la «qroky» în ORICE sesiune Claude Code pe acest calculator — exact\n'
+  printf 'două fișiere în ~/.claude. Se elimină complet cu o comandă: bash install.sh --uninstall\n'
+}

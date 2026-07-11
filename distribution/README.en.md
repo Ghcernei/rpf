@@ -3,13 +3,13 @@
 ## What this installer does
 
 One script, `install.sh`, takes a clean computer to a working assistant in
-under 15 minutes. It asks you exactly **nine questions** (listed below),
+under 15 minutes. It asks you exactly **eight questions** (listed below),
 sets up a private folder on your own computer, and ends with a ready
 copy-paste block for your first conversation. It never asks anything beyond
-those nine questions — every other line it prints is either progress, a
+those eight questions — every other line it prints is either progress, a
 check result, or (on a real problem) a plain-language fix instruction
 naming the exact next step. The very first screen is a map of the whole
-road: 9 questions, ~3 minutes, two lines at the end.
+road: 8 questions, ~3 minutes, two lines at the end.
 
 ## The one-liner
 
@@ -49,11 +49,12 @@ next to the work in progress, `NARRATIVE.md` — a live, human-language
 account of what is being done and why. Tasks and their statuses accumulate
 in the same folder — everything is plain text you can open and read.
 
-One honest note: the starting phrase lives **in the working folder**
-(question 2); if you said yes at question 9, it works in any chat on this
-machine.
+One honest note: the starting phrase works **in any Claude Code chat on
+this machine** — the installer sets that up itself (exactly two files under
+`~/.claude`; the finish screen names them, and
+`bash install.sh --uninstall` removes everything entirely).
 
-## The nine questions
+## The eight questions
 
 1. **Language** — English, Română, or Русский. Everything after this point
    is shown in the language you pick.
@@ -89,14 +90,14 @@ machine.
    way as the Telegram bot. **The backup goes to YOUR account** — a private
    copy visible only to you, never to us or anyone else. Your secret files
    (like the Telegram token) are excluded from every backup, automatically.
-9. **Starting phrase everywhere on this machine (optional, recommended)** —
-   make "qroky start" work in ANY chat on this machine, not only in your
-   working folder. One honest line: a yes writes exactly **two files**
-   under `~/.claude` — a copy of the phrase's rules page
-   (`~/.claude/skills/qroky/SKILL.md`) and a marked trigger block in
-   `~/.claude/CLAUDE.md`. Nothing else, ever. Both are easy to remove (see
-   "Don't touch my instance" below). An explicit "y" is required — Enter
-   means "no, working folder only".
+There used to be a ninth question here — "starting phrase everywhere on
+this machine?" — but it asked for understanding a new user cannot have, so
+the installer now just does it (exactly **two files** under `~/.claude`: a
+copy of the phrase's rules page at `~/.claude/skills/qroky/SKILL.md` and a
+marked trigger block in `~/.claude/CLAUDE.md` — nothing else, ever). The
+trace replaces the question: the assistant answers to «qroky» in ANY Claude
+Code session on this machine, and one command removes it all entirely:
+`bash install.sh --uninstall`.
 
 ## What leaves this computer
 
@@ -142,8 +143,8 @@ optional piece it turns on can be turned off just as easily:
   `md.qroky.telegram.listener.plist` and `md.qroky.telegram.digest.plist`
   from `~/Library/LaunchAgents/` (its working files live in
   `.qroky/telegram/` inside your workspace and do nothing by themselves).
-- **Remove the machine-wide starting phrase** (if you said yes at
-  question 9): delete exactly the two files that were written — the file
+- **Remove the machine-wide starting phrase**: delete exactly the two
+  files that were written — the file
   `~/.claude/skills/qroky/SKILL.md` and the marked block between the
   `qroky-machinewide` markers in `~/.claude/CLAUDE.md`. The installer wrote
   nothing else under `~`.
@@ -203,3 +204,8 @@ Every step is printed before it runs, and the end is a list of what was
 removed. Your working folder is NOT touched — its path is printed so you
 can delete it yourself if you want a complete zero. On a machine with no
 install this command is a polite no-op.
+
+What this undoes, among the rest: the assistant answers to «qroky» in any
+Claude Code session on this machine — that machine-wide setup is removed
+entirely by this one command. To reinstall later, just run the installer
+again — your data will stay.

@@ -5,11 +5,12 @@
 # Depends only on: bash, POSIX tools (mkdir/cat/grep/sed/date/chmod/mv...),
 # curl, git. Checks for each and says in plain words what is missing (H1).
 #
-# WHAT THIS SCRIPT DOES: interviews you at exactly nine points (language,
+# WHAT THIS SCRIPT DOES: interviews you at exactly eight points (language,
 # working folder, Claude Code check, subscription check, Telegram opt-in,
 # daily-support-sharing opt-in, morning-digest opt-in, backup opt-in to
-# your OWN private GitHub — v0.1.1, machine-wide starting-phrase opt-in —
-# v0.2/GATE-028), sets up a private workspace with the assistant's rulebook
+# your OWN private GitHub — v0.1.1; the machine-wide starting phrase is set
+# up WITHOUT a question since INFO-042 — a trace on the finale replaces the
+# former question 9), sets up a private workspace with the assistant's rulebook
 # vendored into it, wires the "qroky start" gesture into the workspace
 # itself (v0.1.2, automatic — the gesture's rulebook page is copied to
 # <workdir>/.claude/skills/qroky/SKILL.md and a marker-guarded trigger note
@@ -215,6 +216,141 @@ state_commit() {
 }
 
 # ---------------------------------------------------------------------------
+# Reinstall path (ATOM-106, INFO-040): running the installer over an
+# OCCUPIED folder is a first-class scenario, never a raw git fatal. By
+# construction framework/ is a recreatable read-only vendored copy; the
+# founder's data lives NEXT to it (install-state, .qroky/, mission/,
+# decisions/, atoms/, the workdir CLAUDE.md). Three entry cases:
+#   (a) framework/ + live data  -> dialog [reinstall / update / cancel]
+#   (b) framework/ alone        -> "orphaned clone — recreate?"
+#   (c) clean folder            -> the ordinary install, byte-identical.
+# The same (a)/(b) branch is the recovery path after a broken self-update.
+# These prompts are deliberately OUTSIDE the 9-point interview inventory
+# (same standing as the --apply-update confirmation): they exist only on an
+# occupied-folder entry, never on a fresh install — hence this block sits
+# ABOVE step_language, outside the inventory scan range.
+# ---------------------------------------------------------------------------
+_workdir_has_live_data() {
+  local w="$1" d
+  [[ -f "$w/install-state.json" || -f "$w/CLAUDE.md" ]] && return 0
+  for d in .qroky .claude mission decisions atoms; do
+    [[ -d "$w/$d" ]] || continue
+    [[ -n "$(find "$w/$d" -type f -print -quit 2>/dev/null)" ]] && return 0
+  done
+  return 1
+}
+
+_framework_purge() {
+  # Tolerates every half-state a broken clone or an interrupted self-update
+  # can leave behind: dir present, dir gone with the submodule slot still
+  # held (index entry, .gitmodules section, .git/modules copy) — a fresh
+  # `git submodule add` dies on ANY of those with exactly the raw fatal the
+  # founder must never meet. Raw git noise goes to the log, never the screen.
+  local fw="$WORKSPACE_DIR/framework"
+  if [[ -e "$WORKSPACE_DIR/.git" ]]; then
+    git -C "$WORKSPACE_DIR" submodule deinit -f framework >>"${LOG_FILE:-/dev/null}" 2>&1 || true
+    git -C "$WORKSPACE_DIR" rm -f -q framework >>"${LOG_FILE:-/dev/null}" 2>&1 || true
+    git -C "$WORKSPACE_DIR" rm -rf -q --cached framework >>"${LOG_FILE:-/dev/null}" 2>&1 || true
+    git -C "$WORKSPACE_DIR" config -f "$WORKSPACE_DIR/.gitmodules" \
+      --remove-section submodule.framework >>"${LOG_FILE:-/dev/null}" 2>&1 || true
+    git -C "$WORKSPACE_DIR" config --remove-section submodule.framework >>"${LOG_FILE:-/dev/null}" 2>&1 || true
+    # Deliberately NOT deleting an emptied .gitmodules from the worktree:
+    # `git rm` leaves the empty file registered in the index, and a
+    # worktree-only deletion makes the next `git submodule add` die with
+    # «please make sure that the .gitmodules file is in the working tree»
+    # (caught by the harness on the first full run of scenario 3).
+    rm -rf "$WORKSPACE_DIR/.git/modules/framework"
+  fi
+  rm -rf "$fw"
+}
+
+_reinstall_do_purge() {
+  L_REINSTALL_START
+  _framework_purge
+  log "reinstall-gate FRAMEWORK-PURGED"
+  if [[ -f "${STATE_FILE:-}" ]]; then
+    STEP_FRAMEWORK="pending"; FRAMEWORK_REF=""; FRAMEWORK_TAG=""
+    state_commit
+  fi
+}
+
+_reinstall_dialog() {
+  # Case (a). The answer words of all three locales are accepted on every
+  # path (the q1 lesson, ATOM-105); Enter/EOF = cancel — the only safe
+  # non-answer default. Cancel leaves without a trace.
+  L_REINSTALL_FOUND "$WORKSPACE_DIR"
+  local tries=0 ans choice=""
+  while (( tries < 5 )); do
+    L_REINSTALL_ASK
+    ans="$(read_answer "")"
+    case "$(printf '%s' "$ans" | tr '[:upper:]' '[:lower:]' | tr -d '[:space:]')" in
+      1|r|reinstall|переустановить|переустановка|reinstalez|reinstaleaza|reinstalează|reinstalare) choice="reinstall" ;;
+      2|u|update|обновить|обновление|actualizez|actualizeaza|actualizează|actualizare) choice="update" ;;
+      3|c|cancel|отмена|отменить|anulez|anuleaza|anulează|anulare|no|нет|nu|n|"") choice="cancel" ;;
+      *) tries=$((tries + 1)); continue ;;
+    esac
+    if [[ "$choice" == "update" && ! -f "$WORKSPACE_DIR/install-state.json" ]]; then
+      # post-uninstall there is no install record — nothing to diff an
+      # update against; say so honestly and re-ask instead of dying later
+      L_REINSTALL_UPDATE_NEEDS_STATE
+      choice=""; tries=$((tries + 1)); continue
+    fi
+    break
+  done
+  [[ -z "$choice" ]] && choice="cancel"
+  case "$choice" in
+    cancel)
+      L_REINSTALL_CANCELLED
+      log "reinstall-gate CANCELLED"
+      exit 0 ;;
+    update)
+      L_REINSTALL_UPDATE_ROUTE
+      log "reinstall-gate ROUTE-UPDATE"
+      QROKY_WORKSPACE_DIR="$WORKSPACE_DIR" cmd_apply_update
+      exit 0 ;;
+    reinstall)
+      log "reinstall-gate REINSTALL chosen"
+      _reinstall_do_purge
+      return 0 ;;
+  esac
+}
+
+_orphan_dialog() {
+  # Case (b): framework/ with nothing alive next to it — an orphaned clone.
+  L_ORPHAN_FOUND "$WORKSPACE_DIR"
+  L_ORPHAN_ASK
+  local ans; ans="$(read_answer "no")"
+  if is_affirmative "$ans"; then
+    log "reinstall-gate ORPHAN-RECREATE"
+    _reinstall_do_purge
+    return 0
+  fi
+  L_ORPHAN_DECLINED
+  log "reinstall-gate ORPHAN-DECLINED"
+  exit 0
+}
+
+_reinstall_gate() {
+  # Fires only when the chosen folder is already occupied by framework/ or
+  # by its leftover git half-state. A mid-interview resume is NOT a
+  # reinstall — the idempotent walkthrough already owns that recovery; only
+  # a COMPLETE install (or no record at all) reaches the dialog.
+  [[ -n "${WORKSPACE_DIR:-}" ]] || return 0
+  local occupied=0
+  [[ -e "$WORKSPACE_DIR/framework" ]] && occupied=1
+  [[ -d "$WORKSPACE_DIR/.git/modules/framework" ]] && occupied=1
+  (( occupied == 1 )) || return 0
+  if [[ -f "$WORKSPACE_DIR/install-state.json" && "${STEP_MACHINEWIDE:-}" != "done" ]]; then
+    return 0
+  fi
+  if _workdir_has_live_data "$WORKSPACE_DIR"; then
+    _reinstall_dialog
+  else
+    _orphan_dialog
+  fi
+}
+
+# ---------------------------------------------------------------------------
 # Step 1 — language (IV-POINT:1:language). Printed in the neutral trilingual
 # form (labels of each language name are self-explanatory in any language)
 # because we do not know the answer yet. Resumed silently if already known.
@@ -290,6 +426,22 @@ step_workdir() {
   WORKSPACE_DIR="$(cd "$ans" && pwd)"
   ANSWER_WORKDIR="$WORKSPACE_DIR"
   STATE_FILE="$WORKSPACE_DIR/install-state.json"
+  # ATOM-106 (INFO-040): if the chosen folder already carries an install
+  # record this run did not resume from (the kit was re-cloned, so the
+  # pointer next to install.sh was lost), ADOPT it before the gate — a
+  # reinstall then walks idempotently over the recorded answers instead of
+  # re-asking. The language chosen in THIS conversation wins over the
+  # stored one; the workdir is the one just confirmed.
+  if [[ -f "$STATE_FILE" ]]; then
+    local _adopt_lang="${ANSWER_LANGUAGE:-}"
+    state_load
+    ANSWER_LANGUAGE="$_adopt_lang"
+    ANSWER_WORKDIR="$WORKSPACE_DIR"
+  fi
+  # Reinstall gate (ATOM-106): an occupied folder gets a dialog, never a
+  # raw git fatal. May exit (cancel / orphan-no / update route) — nothing
+  # has been written into the folder yet, so leaving leaves no trace.
+  _reinstall_gate
   LOG_FILE="$WORKSPACE_DIR/install.log"
   DECISIONS_DIR="$WORKSPACE_DIR/decisions"
   FRAMEWORK_DIR="$WORKSPACE_DIR/framework"
@@ -423,6 +575,7 @@ plan → wait for an explicit «го»). The word inside ordinary prose does NOT
 trigger. Mission orientation: the confirmed two whys live in \`qroky/mission.md\`
 once set up, and parent runs narrate themselves in \`NARRATIVE.md\` next to
 \`STATUS.md\` (skill §7 M6).
+$(L_MARKER_SESSION_NOTE)
 $GESTURE_MARKER_END
 EOF
   fi
@@ -832,7 +985,7 @@ _telegram_connect_flow() {
     ANSWER_TELEGRAM_BOUND="yes"
     L_TELEGRAM_BOUND
     log "telegram CHAT-BOUND (id written to the head's state, never to this log or state file)"
-    if _telegram_send_hello "$token" "$TG_CHAT_ID" "$(L_TG_HELLO_TEXT)"; then
+    if _telegram_send_hello "$token" "$TG_CHAT_ID" "$(L_TG_HELLO_TEXT "$WORKSPACE_DIR")"; then
       L_TELEGRAM_HELLO_SENT
       log "telegram HELLO-SENT"
     else
@@ -1113,19 +1266,17 @@ step_backup() {
 }
 
 # ---------------------------------------------------------------------------
-# Step 9 — machine-wide starting phrase (IV-POINT:9:machinewide_optin —
-# v0.2, GATE-028: the CEO's answer was «да, спрашивать при установке»).
-# «Да» writes EXACTLY two files under ~/.claude — a copy of the gesture's
-# rulebook page at ~/.claude/skills/qroky/SKILL.md and a marker-guarded
-# trigger note appended to ~/.claude/CLAUDE.md (created if absent) — and
-# NOTHING else under ~ ever. This is the recorded exception to the gesture
-# protocol's own rule I3 (never write into ~), valid strictly on this
-# explicit opt-in; the vendored skill file documents it with the same
-# provenance (GATE-028). Idempotent (markers + cmp — re-runs never duplicate
-# or re-copy); removable (the two paths are named to the human right here
-# and in the README). «Нет» (or just Enter) → project-folder wiring only,
-# exactly as before. Explicit means explicit: a typed yes is required —
-# Enter deliberately does NOT default into writing to ~.
+# Machine-wide starting phrase — EXACTLY two files under ~/.claude: a copy
+# of the gesture's rulebook page at ~/.claude/skills/qroky/SKILL.md and a
+# marker-guarded trigger note appended to ~/.claude/CLAUDE.md (created if
+# absent) — and NOTHING else under ~ ever. History: v0.2/GATE-028 made this
+# interview question 9 (explicit opt-in); INFO-042 (2026-07-11, lex
+# posterior) REMOVED the question — the two files are written at every
+# install, because the target user has no basis to answer and a wrong «no»
+# strands the whole install. The vendored skill file documents the amended
+# I3 exception with the same provenance. Idempotent (markers + cmp — re-runs
+# never duplicate or re-copy); removable (the trace on the finale and the
+# uninstall doc name both paths and the one command that removes it all).
 # ---------------------------------------------------------------------------
 MACHINEWIDE_MARKER_START="<!-- qroky-machinewide:start -->"
 MACHINEWIDE_MARKER_END="<!-- qroky-machinewide:end -->"
@@ -1142,7 +1293,7 @@ _machinewide_wire_attempt() {
   if ! grep -qF "$MACHINEWIDE_MARKER_START" "$claude_md" 2>/dev/null; then
     cat >> "$claude_md" <<EOF
 $MACHINEWIDE_MARKER_START
-# Qroky gesture, machine-wide (written by install.sh on your explicit yes — question 9; re-runs never duplicate this block)
+# Qroky gesture, machine-wide (written by install.sh — INFO-042: set up at every install, with the removal named below; re-runs never duplicate this block)
 A chat message STARTING with «кроки» or «qroky» (case-insensitive) — including
 «qroky start» — in ANY folder on this machine triggers the protocol in
 \`~/.claude/skills/qroky/SKILL.md\`: read that file and follow it exactly
@@ -1150,40 +1301,47 @@ A chat message STARTING with «кроки» or «qroky» (case-insensitive) — 
 The word inside ordinary prose does NOT trigger.
 To remove: delete this block (between its two marker comments) and the file
 \`~/.claude/skills/qroky/SKILL.md\` — nothing else was written.
+$(L_MARKER_SESSION_NOTE)
 $MACHINEWIDE_MARKER_END
 EOF
   fi
   return 0
 }
 
+# Machine-wide gesture — automatic since INFO-042 (2026-07-11, supersedes
+# the GATE-028 q9 opt-in, lex posterior): question 9 asked for understanding
+# the target user does not have, and a wrong/default «no» made the install
+# useless («Кроки есть, но никто не знает где»). The same EXACTLY TWO files
+# are written, idempotently; the perimeter did not grow by a single path.
+# A TRACE replaces the question: the finale and the uninstall doc say what
+# was written and name the one-command removal. The gesture is read-only
+# until an explicit «го» by construction — foreign projects are protected
+# by the gesture's behavior, not by install scope.
 step_machinewide() {
-  L_STEP_HEADER 9 "$(L_STEP_MACHINEWIDE_NAME)"
-  if [[ "${STEP_MACHINEWIDE:-}" == "done" ]]; then L_STEP_ALREADY_DONE; return 0; fi
-  L_MACHINEWIDE_ASK_OPTIN
-  local ans; ans="$(read_answer "n")"   # IV-POINT:9:machinewide_optin
-  if is_affirmative "$ans"; then
-    if run_with_ladder machinewide _machinewide_wire_attempt; then
-      L_MACHINEWIDE_DONE
-      ANSWER_MACHINEWIDE_OPTIN="yes"
-      STEP_MACHINEWIDE="done"
-    else
-      # Deliberately NOT marked done: a re-run re-asks this one question, so
-      # «re-run this installer to try again» stays a true sentence. The
-      # install itself continues — this degradation never kills it.
-      L_MACHINEWIDE_FAILED
-      ANSWER_MACHINEWIDE_OPTIN="no"
-      STEP_MACHINEWIDE=""
-      state_commit
-      log "machinewide FAILED-TO-HUMAN after ladder (left pending so a re-run re-asks; install continues)"
-      return 0
-    fi
-  else
-    L_MACHINEWIDE_SKIPPED
-    ANSWER_MACHINEWIDE_OPTIN="no"
+  if [[ "${STEP_MACHINEWIDE:-}" == "done" ]] \
+     && [[ -s "$HOME/.claude/skills/qroky/SKILL.md" ]] \
+     && grep -qF "$MACHINEWIDE_MARKER_START" "$HOME/.claude/CLAUDE.md" 2>/dev/null; then
+    L_MACHINEWIDE_ALREADY
+    return 0
+  fi
+  L_MACHINEWIDE_WIRING
+  if run_with_ladder machinewide _machinewide_wire_attempt; then
+    L_MACHINEWIDE_DONE
+    ANSWER_MACHINEWIDE_OPTIN="yes"
     STEP_MACHINEWIDE="done"
+  else
+    # Deliberately NOT marked done: a re-run retries this step, so «run the
+    # installer again» stays a true sentence. The install itself continues —
+    # this degradation never kills it.
+    L_MACHINEWIDE_FAILED
+    ANSWER_MACHINEWIDE_OPTIN="no"
+    STEP_MACHINEWIDE=""
+    state_commit
+    log "machinewide FAILED-TO-HUMAN after ladder (left pending so a re-run retries; install continues)"
+    return 0
   fi
   state_commit
-  log "machinewide DONE optin=$ANSWER_MACHINEWIDE_OPTIN"
+  log "machinewide DONE (always-on, INFO-042)"
 }
 
 # Shared by every flag-driven command (--check-update, --show-update-details,
@@ -1257,7 +1415,13 @@ cmd_enable_telegram() {
 # Finale (H5) — printed at the end of every successful run, fresh install
 # or healthy rerun alike.
 # ---------------------------------------------------------------------------
-finale() { L_FINALE "$WORKSPACE_DIR"; say ""; L_DISCLAIMER; log "FINALE-SHOWN"; }
+# INFO-041 (ATOM-106): the environment reads context at session START — a
+# freshly installed gesture is invisible to windows opened BEFORE this
+# install. The finale says so explicitly (touch point 1 of 3; the Telegram
+# hello and the CLAUDE.md marker blocks are the other two).
+# The finale also carries the machine-wide TRACE (INFO-042): what was set up
+# without a question, and the one command that removes it entirely.
+finale() { L_FINALE "$WORKSPACE_DIR"; say ""; L_FINALE_MACHINEWIDE_TRACE; say ""; L_FINALE_NEW_SESSION_NOTE; say ""; L_DISCLAIMER; log "FINALE-SHOWN"; }
 
 # ---------------------------------------------------------------------------
 # Self-update (H11). Release tags only, never main. Digest -> да/позже/
@@ -1489,6 +1653,8 @@ cmd_uninstall() {
   elif [[ -d "$candidate" ]]; then
     L_UNINSTALL_KEEP_WORKDIR "$candidate"
   fi
+  # ATOM-106 (INFO-040): the uninstall finale points at the reinstall path.
+  L_UNINSTALL_REINSTALL_HINT
   return 0
 }
 
@@ -1535,15 +1701,20 @@ main_interview() {
   say ""
 
   # Journey map (v0.2, GATE-027 finding 3): a fresh install opens with the
-  # whole road in one paragraph — 9 questions, ~3 minutes, two lines at the
-  # end. Printed right after the language question so it arrives in the
-  # human's own language (a map the reader cannot read is not a map); the
-  # language question itself is announced as «1 из 9» by its own header.
+  # whole road in one paragraph — 8 questions (INFO-042), ~3 minutes, two
+  # lines at the end. Printed right after the language question so it
+  # arrives in the human's own language (a map the reader cannot read is
+  # not a map); the language question itself is announced as «1 из 8».
   # A resumed/healthy run skips the map — those runs are not a journey.
   local fresh_run=0
   [[ "$resumed" -eq 0 ]] && fresh_run=1
 
   step_language
+  # Reinstall gate (ATOM-106) for the RESUMED entry: a COMPLETE install
+  # re-run gets the [reinstall/update/cancel] dialog in the founder's own
+  # language (right after the language step restored it); a mid-interview
+  # resume passes straight through — the gate self-guards.
+  if [[ "$resumed" -eq 1 ]]; then _reinstall_gate; fi
   if [[ "$fresh_run" -eq 1 ]]; then say ""; L_JOURNEY_MAP; fi
   say ""
   step_workdir;    say ""

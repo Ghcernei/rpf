@@ -1,0 +1,76 @@
+# run.log — ATOM-106 (reinstall path, kit v0.3.2)
+
+[breath] Mandate read (ATOM-106-LAUNCH.md canonical, INFO-040 verbatim spec).
+CEO met a raw «fatal: destination path 'framework' already exists» after
+uninstall+reclone. framework/ is recreatable by construction; everything
+next to it is the founder's. Design question: WHERE does the gate live and
+when must it stay silent.
+
+[design] Gate placement: (1) resumed entry — after step_language (dialog in
+the restored locale), only when the install is COMPLETE (STEP_MACHINEWIDE
+done); a mid-interview resume passes through untouched — the idempotent
+walkthrough IS its recovery (scenario 2 stays byte-green). (2) fresh entry —
+inside step_workdir right after the folder answer, BEFORE pointer/state are
+written, so «отмена»/«нет» leave without a trace. Fresh entry with a
+foreign state in the chosen folder (re-cloned kit, pointer lost) ADOPTS the
+state first — reinstall then walks the recorded answers with zero re-asks;
+this run's q1 language wins over the stored one. The dialog functions sit
+ABOVE step_language in the file, outside the question-inventory awk range —
+same standing as the --apply-update confirmation (occupied-entry-only, not
+part of the fresh interview).
+
+[design] Purge tolerates every git half-state (dir present / dir gone with
+index entry / .gitmodules section / .git/modules copy) — each one alone
+kills `git submodule add` with exactly the CEO's fatal. Live data is
+untouched by construction: purge names only framework/ and git plumbing.
+
+[harness-catch — REAL BUG, first full run] Scenarios 3/5/10/12/15/17 all
+red with one root cause: my purge deleted an EMPTIED .gitmodules from the
+worktree. `git rm` on the last submodule leaves an EMPTY .gitmodules
+registered in the index; a worktree-only deletion then kills the next
+`git submodule add` with «please make sure that the .gitmodules file is in
+the working tree». Reproduced in a minimal sandbox, fixed by leaving the
+file to git, documented in the code. Re-run green.
+
+[addendum 1 — INFO-041] Fresh-gesture visibility (среда читает контекст при
+старте сессии): (1) finale note L_FINALE_NEW_SESSION_NOTE; (2) Telegram
+hello extended with the literal route + REAL workdir path — prefix of the
+old hello kept verbatim so every existing hello grep stays alive; (3)
+L_MARKER_SESSION_NOTE inside BOTH CLAUDE.md marker blocks (workdir +
+machine-wide), inside the fences so uninstall strips it with the block.
+Scenario 18 checks all three points en+ru against real earlier output.
+
+[addendum 2 — INFO-042] q9 removed, machine-wide always-on: step_machinewide
+converted to an automatic check→do step (same exactly-two files, perimeter
+unchanged); headers/map/README «9» → «8» in three locales; the q9 README
+entry replaced by an honest «here used to be a ninth question» paragraph;
+trace instead of a question — L_FINALE_MACHINEWIDE_TRACE ×3 + README
+clean-slate additions ×3. Vendored skill (sanctioned one-file perimeter
+extension): I3 exception re-grounded — «Recorded exception (GATE-028;
+Amended INFO-042, 2026-07-11)», q9 condition superseded lex posterior,
+foreign projects protected by the gesture's read-only-until-«го» behavior;
+Amended row added to the §4 provenance table; the «GATE-028» string kept so
+the uninstall provenance grep still matches. Author-machine copy NOT
+touched (coordinator's own edit). Scenario 12 rewritten as always-on
+(default run writes 2 files with NO question; pre-existing user CLAUDE.md
+appended, never clobbered; mutation-ready: on the q9 build a default run
+left HOME untouched). Interview audit (workspace/interview-audit.md):
+8 questions through the CEO filter — no removal recommendations (5-8
+outward → opt-in untouchable; 1 = perfect basis; 3-4 are checks); the only
+future candidate is q2 with a trace, left as-is. Decisions are the CEO's.
+
+[verify-local] Kit dry-run: 20/20 (18 scenarios; 3/5/10/12/15 rebuilt for
+the dialog, 16 orphan + (в)-parity + 15-string locale completeness, 17
+recovery + ru dialog leg, 18 visibility notes). Falsifiable against the
+pre-fix build: no dialog exists there (every dialog grep = 0), the recovery
+run dies at the framework step, a default install writes nothing to HOME.
+Head harness untouched (no head edits — NOT-DOING). No network, no real
+HOME, no git operations; token greps stay non-vacuous and empty (scenario 6).
+
+[release] CHANGELOG v0.3.2: reinstall-as-first-class, repair path, orphan,
+uninstall hint, new-chats note, one-question-fewer. Tag is the coordinator's
+after verify.
+
+[records] RESULT.md, STATUS.md, this run.log, interview-audit.md +
+transcripts in workspace/. Spend ~102k of ~110k (two envelope raises;
+INFO-019 honored, no E4 needed).
