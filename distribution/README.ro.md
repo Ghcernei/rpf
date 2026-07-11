@@ -199,3 +199,18 @@ scris de instalator pentru tine — nu părăsesc niciodată acest calculator.
 Sistemul produce ciorne și analize; deciziile și semnăturile juridice,
 financiare și medicale aparțin întotdeauna unui om. Nu constituie
 consultanță profesională.
+
+## Pornire de la zero
+
+O singură comandă șterge tot ce a pus installer-ul pe ACEASTĂ MAȘINĂ —
+job-urile programate, fișierele machine-wide ale gestului (doar dacă poartă
+marcajul de proveniență al acestui kit), starea `~/.qroky`, răspunsurile
+salvate și fișierul cu token-ul botului (anunțat înainte de ștergere;
+conținutul nu este citit):
+
+    bash install.sh --uninstall
+
+Fiecare pas se tipărește înainte de execuție, iar la final — lista celor
+șterse. Dosarul tău de lucru NU este atins — calea lui se tipărește, ca să
+îl poți șterge singur dacă vrei zero complet. Pe o mașină fără instalare
+comanda este un no-op politicos.

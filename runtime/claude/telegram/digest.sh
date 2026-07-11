@@ -77,7 +77,7 @@ pending_gate_lines() { # $1 = workspace path filter ("" = all)
         fi
       fi
     fi
-    out+="• $(basename "$g") — ждёт твоего решения (кнопки в чате выше)"$'\n'
+    out+="• $(basename "$g")$(T_DG_PENDING_SUFFIX)"$'\n'
   done
   printf '%s' "$out"
 }
@@ -91,13 +91,13 @@ PENDING_LINES="$(pending_gate_lines "")"
 SIGNALED_LINES=""
 if [[ -f "$(signaled_file)" ]]; then
   while IFS= read -r ev; do
-    [[ -n "$ev" ]] && SIGNALED_LINES+="• $ev — уже приходило событием сегодня, без повторной тревоги"$'\n'
+    [[ -n "$ev" ]] && SIGNALED_LINES+="• $ev$(T_DG_SIGNALED_SUFFIX)"$'\n'
   done < <(sort -u "$(signaled_file)")
 fi
 
 # ---- расход (честно: ledger или «данных нет») -------------------------------
-SPEND_LINE="расход: данных за сегодня нет"
-[[ -f "$STATE_DIR/spend/$TODAY" ]] && SPEND_LINE="расход: $(cat "$STATE_DIR/spend/$TODAY")"
+SPEND_LINE="$(T_DG_SPEND_NONE)"
+[[ -f "$STATE_DIR/spend/$TODAY" ]] && SPEND_LINE="$(T_DG_SPEND "$(cat "$STATE_DIR/spend/$TODAY")")"
 
 # ---- changelog line on a new framework release tag (INFO-023) ---------------
 CHANGELOG=""
@@ -107,7 +107,7 @@ if command -v git >/dev/null 2>&1 && [[ -e "$FW_DIR/.git" ]]; then
   last_seen=""; [[ -f "$STATE_DIR/last-release-tag" ]] && last_seen="$(cat "$STATE_DIR/last-release-tag")"
   if [[ -n "$latest" && "$latest" != "$last_seen" ]]; then
     body="$(git -C "$FW_DIR" tag -l "$latest" --format='%(contents:body)' 2>>"$LOG_FILE" | sed '/^[[:space:]]*$/d' | head -3)"
-    CHANGELOG="Обновление правил $latest:"$'\n'"$body"
+    CHANGELOG="$(T_DG_CHANGELOG "$latest")"$'\n'"$body"
     printf '%s' "$latest" > "$STATE_DIR/last-release-tag.tmp" && mv "$STATE_DIR/last-release-tag.tmp" "$STATE_DIR/last-release-tag"
   fi
 else
@@ -121,17 +121,17 @@ if ! router_active; then
   # «решений не ждём» line appears only when BOTH are empty, so a phone screen
   # never shows waiting items and «ничего не ждёт» together.
   WAIT_COMBINED="$WAIT_LINES$PENDING_LINES"
-  [[ -n "${WAIT_COMBINED//[$'\n' ]/}" ]] || WAIT_COMBINED="• решений не ждём"$'\n'
+  [[ -n "${WAIT_COMBINED//[$'\n' ]/}" ]] || WAIT_COMBINED="$(T_DG_NO_DECISIONS)"$'\n'
 
-  MSG="Доброе утро. Дайджест за $TODAY:
+  MSG="$(T_DG_GREETING "$TODAY")
 
-Сделано:
-${DONE_LINES:-• пока пусто}
-В работе:
-${RUN_LINES:-• ничего не бежит}
-Ждёт тебя сегодня:
+$(T_DG_DONE)
+${DONE_LINES:-$(T_DG_EMPTY_DONE)}
+$(T_DG_RUN)
+${RUN_LINES:-$(T_DG_EMPTY_RUN)}
+$(T_DG_WAIT_TODAY)
 ${WAIT_COMBINED}
-${SIGNALED_LINES:+Уже в ленте сегодня (статус, не тревога):
+${SIGNALED_LINES:+$(T_DG_SIGNALED_HEADER)
 $SIGNALED_LINES}
 $SPEND_LINE${CHANGELOG:+
 
@@ -146,7 +146,7 @@ else
     [[ -n "$ws" ]] || continue
     name="$(workspace_name "$ws")"
     if [[ ! -d "$ws" ]]; then
-      SECTIONS+="⚠ [$name] — путь из реестра не найден: $ws (поправь ~/.qroky/registry)"$'\n\n'
+      SECTIONS+="$(T_DG_DEAD "$name" "$ws")"$'\n\n'
       continue
     fi
     collect_status "$ws/products"
@@ -155,40 +155,40 @@ else
     WAIT_COMBINED="$WAIT_LINES$PG"
     sp_file="$ws/.qroky/telegram/state/spend/$TODAY"
     [[ "$ws" == "$TG_ROOT" ]] && sp_file="$STATE_DIR/spend/$TODAY"
-    SPL="расход: данных нет"
+    SPL="$(T_DG_SPEND_NONE_SHORT)"
     if [[ -f "$sp_file" ]]; then
-      v="$(cat "$sp_file")"; SPL="расход: $v"
+      v="$(cat "$sp_file")"; SPL="$(T_DG_SPEND "$v")"
       n="$(printf '%s' "$v" | grep -oE '^[0-9]+' || true)"
       [[ -n "$n" ]] && { TOTAL_SPEND=$((TOTAL_SPEND + n)); HAVE_SPEND=1; }
     fi
     if [[ -z "${DONE_LINES//[$'\n' ]/}${RUN_LINES//[$'\n' ]/}${WAIT_COMBINED//[$'\n' ]/}" ]]; then
-      SECTIONS+="[$name] — тихо: изменений нет, решений не ждём"$'\n\n'
+      SECTIONS+="$(T_DG_QUIET "$name")"$'\n\n'
       continue
     fi
-    [[ -n "${WAIT_COMBINED//[$'\n' ]/}" ]] || WAIT_COMBINED="• решений не ждём"$'\n'
+    [[ -n "${WAIT_COMBINED//[$'\n' ]/}" ]] || WAIT_COMBINED="$(T_DG_NO_DECISIONS)"$'\n'
     SECTIONS+="[$name]
-Сделано:
-${DONE_LINES:-• пока пусто}
-В работе:
-${RUN_LINES:-• ничего не бежит}
-Ждёт тебя:
+$(T_DG_DONE)
+${DONE_LINES:-$(T_DG_EMPTY_DONE)}
+$(T_DG_RUN)
+${RUN_LINES:-$(T_DG_EMPTY_RUN)}
+$(T_DG_WAIT)
 ${WAIT_COMBINED}$SPL
 
 "
   done < <(registry_entries)
 
   TOTAL_LINE=""
-  [[ $HAVE_SPEND -eq 1 ]] && TOTAL_LINE="итого расход (по числовым ledger): $TOTAL_SPEND"
-  MSG="Доброе утро. Сводный дайджест за $TODAY:
+  [[ $HAVE_SPEND -eq 1 ]] && TOTAL_LINE="$(T_DG_TOTAL "$TOTAL_SPEND")"
+  MSG="$(T_DG_GREETING_MERGED "$TODAY")
 
-$SECTIONS${SIGNALED_LINES:+Уже в ленте сегодня (статус, не тревога):
+$SECTIONS${SIGNALED_LINES:+$(T_DG_SIGNALED_HEADER)
 $SIGNALED_LINES
 }${TOTAL_LINE}${CHANGELOG:+
 
 $CHANGELOG}"
 fi
 
-[[ ${#MSG} -gt 3900 ]] && MSG="${MSG:0:3900}"$'\n'"…(обрезано)"
+[[ ${#MSG} -gt 3900 ]] && MSG="${MSG:0:3900}"$'\n'"$(T_DG_TRUNCATED)"
 
 CHAT="$(bound_chat_id)"
 if [[ -z "$CHAT" ]]; then

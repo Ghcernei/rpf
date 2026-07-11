@@ -45,3 +45,7 @@ API_BASE="https://api.telegram.org"
 # Human-level (this file, primary only): adds an «общий» button to the
 # project re-ask, routing unaddressed thoughts to the named project's inbox.
 #DEFAULT_PROJECT="miapos"
+
+# Owner-visible language of the head (ATOM-105): en | ro | ru. The kit
+# writes your question-1 answer here at deploy; absent -> Russian.
+LANGUAGE="ru"

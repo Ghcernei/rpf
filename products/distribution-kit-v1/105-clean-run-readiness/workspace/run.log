@@ -1,0 +1,82 @@
+# run.log — ATOM-105 (clean-run readiness, kit v0.3.1)
+
+[breath] Mandate read (ATOM-105-LAUNCH.md, canonical). G1 = INFO-035. Kit
+v0.3.1, tree A, envelope ~70k. Four DoD points: language consistency,
+clean slate (--uninstall), harness scenarios, compatibility. The live CEO
+question — why did he see an EN финал — must be answered by CODE, not by
+guess, and reported as a separate line.
+
+[investigate] EN-финал root cause. Walked install.sh across committed
+versions v0.1 (a097c59) → v0.3. Facts: (a) the --apply-update prompt was
+never EN-hardcoded — L_UPDATE_ASK_CONFIRM localized since v0.1; the
+mandate's install.sh:887 claim does not hold in ANY committed version;
+(b) is_affirmative accepted да/da/yes since v0.1 on all paths;
+(c) answer_language persisted in install-state.json and restored on
+resume and in every subcommand since v0.1. The only silent-EN paths that
+DID exist: (1) step_language falls back to lang="en" on EOF or after 5
+unrecognized answers — with no honest line (e.g. answering «русский» in
+words was unrecognized: only 3/ru matched); (2) ${ANSWER_LANGUAGE:-en} in
+resolve_and_load_state when the state field is empty — also silent.
+Conclusion: the CEO's install-state most probably records
+answer_language=en (explicit q1 answer, or silent fallback 1).
+Verifiable on his machine: grep answer_language <workdir>/install-state.json.
+
+[build 1 — language] Both silent fallbacks made honest (trilingual line).
+q1 parsing widened: english/eng, romana/română/romaneste, rus/русский/
+по-русски now recognized (question text untouched — NOT-DOING respected).
+Grep-audit of user-visible strings outside lang/*.sh: two post-locale EN
+strings found and moved to catalogs (L_NO_RELEASE_TAGS ×2 call sites,
+L_TOTAL_ELAPSED); pre-locale strings (git/curl SETUP STOPPED, «No install
+found», Usage) justified as EN — printed before the language is knowable.
+
+[build 2 — head i18n] Owner-visible head strings (~40 literals across
+listener.sh, handler.sh, digest.sh, lib.sh render_status) extracted into
+runtime/claude/telegram/lang/{ru,en,ro}.sh as T_* function catalogs.
+Design choice for zero-risk compatibility: ru catalog = the ORIGINAL v1
+literals verbatim, LANGUAGE default = ru → byte-parity with pre-atom
+behavior by construction; all 21 head scenarios stayed green with
+UNTOUCHED asserts (this is itself the DoD-4 proof for the head). Kit
+deploy now writes LANGUAGE="${ANSWER_LANGUAGE:-ru}" into profile.conf.
+Log lines deliberately left operator-EN/RU (not owner-visible).
+
+[build 3 — clean slate] cmd_uninstall in install.sh: launchd bootout +
+plist removal (listener, digest, heartbeat), machine-wide skill removed
+ONLY with our provenance (grep -qF "GATE-028" in SKILL.md; foreign file
+kept + honest line), CLAUDE.md marker block stripped between
+MACHINEWIDE_MARKER_START/END only, ~/.qroky, token file (L_UNINSTALL_
+TOKEN_WARN BEFORE rm, contents never read), install-state, pointer.
+Workdir never touched — path printed. Every step printed before running;
+final list of what was done; clean machine = polite no-op rc 0. README ×3
+languages gained the «Начать с чистого листа» section.
+
+[build 4 — harness] dry-run.sh: ATOM_WORKSPACE retargeted here. New
+scenario 14 (language integrity): ru install → real ru hello sent,
+LANGUAGE="ru" in head profile, ru apply-update prompt with zero EN leak,
+«нет» cancels, «да» applies v1.4.0, English «yes» applies v1.5.0 on the
+ru path, locale survives two updates with REASKED_LANG=0; W14B: 5 garbage
+q1 answers → honest trilingual line + green EN install. New scenario 15
+(clean slate): full install (telegram+heartbeat+machinewide) → uninstall
+with falsifiable asserts (bootout ≥3, all files gone, token warned,
+workdir path printed, ≥5 "removing:" steps, pre-asserts prove
+non-vacuity) → foreign SKILL.md untouched → reinstall runs as a FIRST run
+(map, all 9 questions, fresh hello actually sent) → uninstall on clean
+HOME = no-op rc 0.
+
+[harness-catch — REAL BUG] Scenario 15's no-op leg failed on first run:
+cmd_uninstall deleted the shared WORKDIR_POINTER even when there was
+nothing to uninstall — i.e. uninstalling «nothing» would orphan ANOTHER
+install's pointer on a real machine. Fixed: pointer removed only when
+have_state=1 AND pointer content == WORKSPACE_DIR. Re-run green. This is
+the falsifiable-asserts discipline (r1-F1 lesson) paying off again.
+
+[verify-local] Kit dry-run: 17/17 (15 prior + 14-language-integrity +
+15-clean-slate). Head dry-run: 21/21, asserts untouched. Silent-migration
+checks (head 16, kit 13c) stayed green — compatibility DoD-4 held.
+Negative token greps non-vacuous and empty. No network, no real HOME, no
+git operations.
+
+[release] CHANGELOG.md v0.3.1 entry prepended (user-benefit language).
+Tag is the coordinator's after verify.
+
+[records] RESULT.md, STATUS.md, this run.log; transcripts in workspace/.
+Spend ~68k of ~70k — inside envelope, no E4 needed (INFO-019 honored).

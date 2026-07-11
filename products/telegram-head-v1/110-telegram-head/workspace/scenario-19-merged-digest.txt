@@ -1,6 +1,6 @@
 Scenario 19 — merged digest (H2)
-Generated: 2026-07-10T20:42:27Z
-registered: /var/folders/pd/mlvnqxbj7tj0h1qb5qv78_l00000gn/T/qroky-tg-dry.VvRAHV/quiet-proj -> /var/folders/pd/mlvnqxbj7tj0h1qb5qv78_l00000gn/T/qroky-tg-dry.VvRAHV/home/.qroky/registry (3 workspace(s) total)
+Generated: 2026-07-11T07:05:50Z
+registered: /var/folders/pd/mlvnqxbj7tj0h1qb5qv78_l00000gn/T/qroky-tg-dry.xQ6VRQ/quiet-proj -> /var/folders/pd/mlvnqxbj7tj0h1qb5qv78_l00000gn/T/qroky-tg-dry.xQ6VRQ/home/.qroky/registry (3 workspace(s) total)
 
 --- assertions ---
 ONE message: 1 (must be 1); merged header + both project sections: 1 (1)
@@ -11,7 +11,7 @@ spend per project: 1/1 (>0 each); numeric total: 1 (1)
 already-signaled events as status lines: 19 (>0)
 
 --- digest (verbatim) ---
-Доброе утро. Сводный дайджест за 2026-07-10:
+Доброе утро. Сводный дайджест за 2026-07-11:
 
 [miapos]
 Сделано:

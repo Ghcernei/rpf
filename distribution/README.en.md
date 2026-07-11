@@ -189,3 +189,17 @@ you — they never leave this machine.
 The system produces drafts and analysis; legal, financial, and medical
 decisions and signatures are always made by a human. Not professional
 advice.
+
+## Starting from a clean slate
+
+One command removes everything the installer put on this MACHINE — the
+scheduled jobs, the machine-wide gesture files (only if they carry this
+kit's provenance), the `~/.qroky` state, the saved answers, and the bot
+token file (announced before deletion; its contents are never read):
+
+    bash install.sh --uninstall
+
+Every step is printed before it runs, and the end is a list of what was
+removed. Your working folder is NOT touched — its path is printed so you
+can delete it yourself if you want a complete zero. On a machine with no
+install this command is a polite no-op.

@@ -5,6 +5,27 @@ better for you). Rendered from the release's verified records — nothing here
 is composed from memory. Rule (INFO-024): a release without a changelog
 entry is not published.
 
+## v0.3.1 — 2026-07-11
+
+- Your language now truly follows you to the very end. The answer to
+  question 1 governs every later screen — including the update
+  confirmation, which speaks your language and accepts «да», «da» AND
+  «yes» on any path. If the installer ever has to fall back to English
+  (unrecognized answer, missing saved language), it now SAYS so in three
+  languages instead of switching silently.
+- The bot speaks your language too: the greeting and everything the
+  assistant sends to your phone — acknowledgments, the morning digest,
+  status replies, button questions — arrive in the language you chose at
+  question 1 (English, Romanian, or Russian).
+- Starting over is one honest command: `bash install.sh --uninstall`
+  removes everything the kit put on the machine — scheduled jobs, the
+  machine-wide gesture files (only if they are really ours), saved answers,
+  and the bot token (with a warning first). Every step is printed before it
+  runs; your working folder is never touched — its path is printed so you
+  decide. After it, a fresh install runs exactly like the first time.
+- Nothing changes for existing installs: updating stays question-free, and
+  a machine that never chose a language keeps working exactly as before.
+
 ## v0.3 — 2026-07-10
 
 - One bot, all your projects: events arrive labeled «[project]», a button

@@ -337,3 +337,27 @@ L_TELEGRAM_UPDATE_FINISH_HINT() {
   printf '  подключение завершает одна команда (она подождёт вашего нажатия Start):\n'
   printf '      bash install.sh --enable-telegram\n'
 }
+
+# ATOM-105 (готовность к чистому прогону): строки, бывшие EN-hardcode, и новые.
+L_NO_RELEASE_TAGS() { printf '(релизных тегов ещё нет — сравнивать не с чем)\n'; }
+L_TOTAL_ELAPSED() { printf '(всего прошло: %s)\n' "$1"; }
+L_UNINSTALL_TITLE() {
+  printf 'Чистый лист — удаляю всё, что установщик положил на ЭТУ МАШИНУ.\n'
+  printf 'Ваша рабочая папка не трогается. Каждый шаг печатается до выполнения.\n\n'
+}
+L_UNINSTALL_STEP() { printf '  удаляю: %s\n' "$1"; }
+L_UNINSTALL_FOREIGN_SKILL() {
+  printf '  оставляю %s на месте — в нём нет метки происхождения этого кита,\n' "$1"
+  printf '  значит удалять его не нам.\n'
+}
+L_UNINSTALL_TOKEN_WARN() {
+  printf '  сейчас БУДЕТ УДАЛЁН файл токена бота: %s\n' "$1"
+  printf '  (его содержимое не читается и не показывается; сам бот остаётся жив\n'
+  printf '  у @BotFather — отзовите токен там, если хотите его погасить).\n'
+}
+L_UNINSTALL_SUMMARY() { printf '\nГотово. Удалено:\n'; }
+L_UNINSTALL_KEEP_WORKDIR() {
+  printf '\nВаши данные остались здесь: %s\n' "$1"
+  printf 'Удалите эту папку сами, если нужен полный ноль.\n'
+}
+L_UNINSTALL_NOOP() { printf 'Удалять нечего — на этой машине нет установки Qroky. Уже чисто.\n'; }

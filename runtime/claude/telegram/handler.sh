@@ -72,7 +72,7 @@ work_kroky() { # <inbox-file>; ack already sent by the listener
   if ! promise_is_open "$id"; then
     local due; due="$(due_time)"
     promise_open "$id" "$due"
-    send_to_owner "Принял, результат к $due — осматриваюсь по протоколу «кроки»."
+    send_to_owner "$(T_PROMISE "$due")"
   fi
   if reply="$(printf '%s' "$msg" | run_llm kroky)"; then
     llm_burn_note "kroky"
@@ -81,7 +81,7 @@ work_kroky() { # <inbox-file>; ack already sent by the listener
     mv "$f" "$INBOX_DIR/done/$(basename "$f")"
     log handler "kroky $id done"
   else
-    send_to_owner "Не могу поднять обработчик «кроки» на этой машине (claude CLI недоступен) — запрос сохранён, живая сессия его подхватит. Детали: telegram.log."
+    send_to_owner "$(T_KROKY_NOLLM)"
     log handler "kroky $id: NO LLM — event kept in inbox for a live session"
   fi
 }
@@ -117,11 +117,11 @@ timestamp: $(date -u +%Y-%m-%dT%H:%M:%SZ)
 ---
 $reply
 EOF
-      send_to_owner "Оформил как задачу — живая сессия увидит её в $where. Формулировка:"$'\n'"$reply"
+      send_to_owner "$(T_TASK_FILED "$where")"$'\n'"$reply"
       log handler "router: routed task-proposal written to $target_inbox"
       mv "$f" "$INBOX_DIR/done/$(basename "$f")"
     else
-      send_to_owner "Не могу сформулировать без обработчика (claude CLI недоступен) — сообщение сохранено, живая сессия оформит. Детали: telegram.log."
+      send_to_owner "$(T_FORMULATE_NOLLM_ROUTED)"
       log handler "router: NO LLM at routed formulate — kept in inbox"
     fi
     return 0
@@ -147,10 +147,10 @@ timestamp: $(date -u +%Y-%m-%dT%H:%M:%SZ)
 $reply
 EOF
       rm -f "$pending" "$pending.ws"
-      send_to_owner "Оформил как задачу — живая сессия увидит её в $where. Формулировка:"$'\n'"$reply"
+      send_to_owner "$(T_TASK_FILED "$where")"$'\n'"$reply"
       log handler "router: task-proposal written for chat $chat -> $target_inbox"
     else
-      send_to_owner "Не могу сформулировать без обработчика (claude CLI недоступен) — твой ответ сохранён, живая сессия оформит. Детали: telegram.log."
+      send_to_owner "$(T_FORMULATE_NOLLM)"
       log handler "router: NO LLM at formulate — kept in inbox"
       return 0    # keep the inbox file: a live session finishes the job
     fi
@@ -164,7 +164,7 @@ EOF
       send_to_owner "$reply"
       log handler "router: clarifying question sent to chat $chat${ws:+ (project remembered: $ws)}"
     else
-      send_to_owner "Записал. Обработчик на этой машине недоступен (claude CLI) — живая сессия разберёт твоё сообщение из decisions/inbox."
+      send_to_owner "$(T_CLARIFY_NOLLM)"
       log handler "router: NO LLM at clarify — kept in inbox"
       return 0
     fi
@@ -184,7 +184,7 @@ case "${1:---pass}" in
       work="$(sed -n 's/^work: //p' "$p" | head -1)"
       if [[ -n "$work" && ! -f "$INBOX_DIR/$work.md" ]]; then
         # promise without ITS work item: the result was never sent — say so
-        send_to_owner "По обещанию «результат к $(sed -n 's/^due: //p' "$p" | head -1)»: работа была прервана и её вход утерян — повтори запрос, пожалуйста. Это честный сбой, он записан."
+        send_to_owner "$(T_ORPHAN_PROMISE "$(sed -n 's/^due: //p' "$p" | head -1)")"
         log handler "orphan promise $work — owner notified, promise closed"
         mv "$p" "$INBOX_DIR/done/$(basename "$p")"
       fi

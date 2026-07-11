@@ -335,3 +335,27 @@ L_TELEGRAM_UPDATE_FINISH_HINT() {
   printf '  o singură comandă termină conectarea (așteaptă apăsarea ta pe Start):\n'
   printf '      bash install.sh --enable-telegram\n'
 }
+
+# ATOM-105 (pregătire pentru testul curat): șiruri fost EN-hardcode și noi.
+L_NO_RELEASE_TAGS() { printf '(încă nu există tag-uri de release — nu avem cu ce compara)\n'; }
+L_TOTAL_ELAPSED() { printf '(timp total: %s)\n' "$1"; }
+L_UNINSTALL_TITLE() {
+  printf 'Foaie curată — șterg tot ce a pus installer-ul pe ACEASTĂ MAȘINĂ.\n'
+  printf 'Dosarul tău de lucru nu este atins. Fiecare pas se tipărește înainte de execuție.\n\n'
+}
+L_UNINSTALL_STEP() { printf '  șterg: %s\n' "$1"; }
+L_UNINSTALL_FOREIGN_SKILL() {
+  printf '  las %s pe loc — nu poartă marcajul de proveniență al acestui kit,\n' "$1"
+  printf '  deci nu e al nostru să-l ștergem.\n'
+}
+L_UNINSTALL_TOKEN_WARN() {
+  printf '  urmează să ȘTERG fișierul cu token-ul botului: %s\n' "$1"
+  printf '  (conținutul lui nu este citit sau afișat; botul rămâne viu la\n'
+  printf '  @BotFather — revocă token-ul acolo dacă vrei să-l stingi).\n'
+}
+L_UNINSTALL_SUMMARY() { printf '\nGata. Șters:\n'; }
+L_UNINSTALL_KEEP_WORKDIR() {
+  printf '\nDatele tale au rămas aici: %s\n' "$1"
+  printf 'Șterge tu acel dosar dacă vrei zero complet.\n'
+}
+L_UNINSTALL_NOOP() { printf 'Nimic de șters — pe această mașină nu există o instalare Qroky. Deja curat.\n'; }

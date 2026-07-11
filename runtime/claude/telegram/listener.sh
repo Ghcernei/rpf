@@ -122,7 +122,7 @@ handle_route_callback() {
     label="$(sed -n "s/^button$idx: //p" "$rfile" 2>/dev/null | head -1 || true)"
   fi
   if [[ -z "$ws" || ! -d "$ws" ]]; then
-    ack "$CHAT_ID" "Не нашёл этот переспрос — возможно, он уже закрыт. Напиши мысль заново, лучше сразу с именем проекта."
+    ack "$CHAT_ID" "$(T_ROUTE_DECLINE)"
     log listener "route callback declined (id=$id idx=$idx) — no record made"
     return 0
   fi
@@ -137,7 +137,7 @@ timestamp: $(date -u +%Y-%m-%dT%H:%M:%SZ)
 $text
 EOF
   mv "$rfile" "$rfile.answered" 2>/dev/null || true
-  ack "$CHAT_ID" "Принял — направляю в [${label:-$(workspace_name "$ws")}], оформлю и покажу здесь."
+  ack "$CHAT_ID" "$(T_ROUTE_ACK "${label:-$(workspace_name "$ws")}")"
   log listener "route callback: text routed to $ws"
   NEED_WAKE=1
 }
@@ -153,7 +153,7 @@ handle_callback() { # button press → parity event or risk re-ask
   if [[ -f "$pfile" ]] && head -1 "$pfile" | grep -q '^risk: 1'; then
     # H5: button-press-style reply to a risk item → rejected and re-asked
     tg_api listener answerCallbackQuery --data-urlencode "callback_query_id=$CB_ID" >/dev/null || true
-    ack "$CHAT_ID" "Это подтверждение риск-уровня — кнопкой его принять нельзя. Набери слово $RISK_WORD текстом."
+    ack "$CHAT_ID" "$(T_RISK_BUTTON_REJECT "$RISK_WORD")"
     log listener "risk item $id: button-style reply rejected, re-asked"
     return 0
   fi
@@ -169,7 +169,7 @@ handle_callback() { # button press → parity event or risk re-ask
     label="$(sed -n "s/^button$idx: //p" "$pfile" 2>/dev/null | head -1 || true)"
   fi
   if [[ -z "$label" ]]; then
-    ack "$CHAT_ID" "Не нашёл этот вопрос — возможно, он уже закрыт. Если он всё ещё ждёт решения, напиши ответ текстом."
+    ack "$CHAT_ID" "$(T_GATE_DECLINE)"
     log listener "callback declined: unknown/closed gate or bad index (id=$id idx=$idx) — no record made"
     return 0
   fi
@@ -180,7 +180,7 @@ answer: $label
 timestamp: $(date -u +%Y-%m-%dT%H:%M:%SZ)
 channel: telegram
 EOF
-  ack "$CHAT_ID" "Принял: «${label}» — записываю решение по $id."
+  ack "$CHAT_ID" "$(T_GATE_ACK "$label" "$id")"
   log listener "gate-answer persisted gate=$id"
   NEED_WAKE=1
 }
@@ -212,8 +212,8 @@ send_project_reask() { # ONE mechanical re-ask with project buttons (H4)
   if [[ -n "$DEFAULT_PROJECT" ]]; then
     local dw; dw="$(workspace_by_name "$DEFAULT_PROJECT" || true)"
     if [[ -n "$dw" ]]; then
-      i=$((i + 1)); labels+="${labels:+|}общий"
-      meta+="button$i: общий"$'\n'"workspace$i: $dw"$'\n'
+      i=$((i + 1)); labels+="${labels:+|}$(T_BTN_COMMON)"
+      meta+="button$i: $(T_BTN_COMMON)"$'\n'"workspace$i: $dw"$'\n'
     fi
   fi
   local markup=""
@@ -238,14 +238,14 @@ timestamp: $(date -u +%Y-%m-%dT%H:%M:%SZ)
 ---
 $text
 EOF
-    ack "$CHAT_ID" "Принял, смотрю — отвечу здесь."
+    ack "$CHAT_ID" "$(T_FREE_ACK)"
     NEED_WAKE=1; return 0
   fi
   atomic_write "$STATE_DIR/route-pending/$id" <<EOF
 $meta---
 $text
 EOF
-  if send_text listener "$CHAT_ID" "В какой проект это направить? Один тап — и я оформлю." "$markup"; then
+  if send_text listener "$CHAT_ID" "$(T_REASK_QUESTION)" "$markup"; then
     log listener "project re-ask sent (id=$id, $i buttons)"
   else
     log listener "project re-ask send FAILED (id=$id) — текст сохранён в route-pending; назови проект следующим сообщением"
@@ -265,7 +265,7 @@ timestamp: $(date -u +%Y-%m-%dT%H:%M:%SZ)
 ---
 $text
 EOF
-    ack "$CHAT_ID" "Принял. Запускаю протокол «кроки» — осмотрюсь и пришлю предложение сюда; действий до твоего «го» не будет."
+    ack "$CHAT_ID" "$(T_KROKY_ACK)"
     NEED_WAKE=1; return 0
   fi
 
@@ -290,8 +290,8 @@ EOF
     elif [[ "$n" == "1" ]]; then target="$ids"
     fi
     if [[ -z "$target" || ! -f "$STATE_DIR/pending-gates/$target" ]]; then
-      if [[ "$n" == "0" ]]; then ack "$CHAT_ID" "Сейчас нет ожидающих подтверждений риск-уровня."
-      else ack "$CHAT_ID" "Ожидают подтверждения: $(printf '%s' "$ids" | tr '\n' ' '). Уточни: $RISK_WORD <id>."
+      if [[ "$n" == "0" ]]; then ack "$CHAT_ID" "$(T_RISK_NONE)"
+      else ack "$CHAT_ID" "$(T_RISK_WHICH "$(printf '%s' "$ids" | tr '\n' ' ')" "$RISK_WORD")"
       fi
       return 0
     fi
@@ -302,7 +302,7 @@ answer: $text
 timestamp: $(date -u +%Y-%m-%dT%H:%M:%SZ)
 channel: telegram
 EOF
-    ack "$CHAT_ID" "Принял подтверждение по $target — записываю решение."
+    ack "$CHAT_ID" "$(T_RISK_ACK "$target")"
     log listener "risk confirmation persisted gate=$target (explicit word)"
     NEED_WAKE=1; return 0
   fi
@@ -327,7 +327,7 @@ ${target:+workspace: $target
 ---
 $text
 EOF
-  ack "$CHAT_ID" "Принял, смотрю — отвечу здесь."
+  ack "$CHAT_ID" "$(T_FREE_ACK)"
   NEED_WAKE=1
 }
 
@@ -394,7 +394,7 @@ if [[ "$DETAIL_LEVEL" != "1" ]]; then    # level 1 = gates only, no beats
           beat="$new"                     # level 3 — full reasoning beats
         fi
         if [[ -n "${beat//[$'\n' ]/}" ]]; then
-          [[ ${#beat} -gt 3800 ]] && beat="${beat:0:3800}"$'\n'"…(продолжение в $slug/NARRATIVE.md)"
+          [[ ${#beat} -gt 3800 ]] && beat="${beat:0:3800}"$'\n'"$(T_BEAT_MORE "$slug")"
           "$TG_LIB_DIR/send-event.sh" --kind beat --id "narrative-$key-$off" \
             --workspace "$ws" --text "$lbl"$'\n'"$beat" \
             || { log listener "beat send failed for $slug — offset kept, retry next pass"; continue; }

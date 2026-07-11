@@ -63,7 +63,7 @@
 set -uo pipefail   # NOT -e: scenarios intentionally capture non-zero exits
 
 HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-ATOM_WORKSPACE="$(cd "$HERE/../products/distribution-kit-v1/104-installation-journey/workspace" && pwd)"
+ATOM_WORKSPACE="$(cd "$HERE/../products/distribution-kit-v1/105-clean-run-readiness/workspace" && pwd)"
 SANDBOX="$(mktemp -d /private/tmp/qroky-install-dry-run.XXXXXX)"
 cleanup() { rm -rf "$SANDBOX"; }
 trap cleanup EXIT
@@ -1300,6 +1300,176 @@ if [[ $STATUS13A -eq 0 && "$REG13_COUNT" -eq 1 && "$REG13_LINE1" == "$W13A" && "
   record "13-router-hooks" PASS "deploy registers the workspace; second workspace joins (registry 2 lines, primary first) with zero token/hello/launchd of its own; apply-update auto-completed the «токен есть, головы нет» half-connect with no second hello (H5) and only HINTED when the binding was missing"
 else
   record "13-router-hooks" FAIL "a=$STATUS13A/$REG13_COUNT/$([[ "$REG13_LINE1" == "$W13A" ]] && echo ok || echo mism)/$REG13_LOGGED b=$STATUS13B/$JOINED13/$BOTFATHER13B/$REG13_COUNT_B/$((BOOTS_AFTER_B - BOOTS_BEFORE_B))/$TOKEN13B/$((SENT_AFTER_13B - SENT_BEFORE_13B))/$BOUND13B c=$STATUS13C/$STATUS13C2/$AUTOCOMPLETE13/$WRAP13C/$PLISTS13C/$BOUND13C/$HELLO_DELTA_13C d=$STATUS13D2/$HINT13D/$NOBIND_LOG13D/$WRAP13D"
+fi
+
+# ---------------------------------------------------------------------------
+# SCENARIO 14 — ATOM-105 language integrity: the question-1 answer governs
+# EVERY later user-visible line. (a) ru install: ru bot hello, LANGUAGE="ru"
+# in the head profile; (b) --apply-update prompt in Russian, «да» accepted;
+# (c) a SECOND update accepted with English «yes» on the ru path (the word
+# must never break it); locale survives both updates with no re-ask;
+# (d) unrecognized q1 answers -> an HONEST trilingual fallback line, then a
+# green EN install (the recorded «EN-финал» class made visible).
+# ---------------------------------------------------------------------------
+T14="$ATOM_WORKSPACE/scenario-14-language-integrity.txt"
+W14="$SANDBOX/w14"; W14B="$SANDBOX/w14b"
+{
+  echo "Scenario 14 — language integrity end-to-end (ATOM-105 DoD 1)"
+  echo "Generated: $(date -u +%Y-%m-%dT%H:%M:%SZ)"
+  echo ""
+  echo "--- (a) ru install with telegram ---"
+} > "$T14"
+SENT_BEFORE_14=$(wc -l < "$TG_SENT_LOG" | tr -d ' ')
+OUT14A="$(run_install "$W14" $'ru\n\ny\nGOODTOKEN123\nn\nn\nn\nn\n')"
+STATUS14A=$?
+echo "$OUT14A" >> "$T14"
+HELLO_RU=$(tail -n "+$((SENT_BEFORE_14 + 1))" "$TG_SENT_LOG" | grep -c "Я на связи. Завтра утром пришлю ваш первый дайджест" || true)
+PROFILE_LANG_RU=$(grep -c '^LANGUAGE="ru"$' "$W14/.qroky/telegram/profile.conf" 2>/dev/null || true)
+STATE_LANG_RU=$(grep -c '"answer_language": "ru"' "$W14/install-state.json" 2>/dev/null || true)
+
+{ echo ""; echo "--- (b) apply-update: prompt RU, «нет» cancels, «да» applies ---"; } >> "$T14"
+git -C "$FAKE_FW" -c user.email=dryrun@qroky.local -c user.name="Qroky dry run" \
+  commit -q --allow-empty -m "stub commit 5"
+git -C "$FAKE_FW" -c user.email=dryrun@qroky.local -c user.name="Qroky dry run" \
+  tag -a v1.4.0 -m $'v1.4.0\n\nстрока раз\nстрока два\nстрока три'
+OUT14N="$(run_install "$W14" $'нет\n' --apply-update)"
+echo "$OUT14N" >> "$T14"
+PROMPT_RU=$(printf '%s' "$OUT14N" | grep -c "Применить это обновление сейчас" || true)
+PROMPT_EN_LEAK=$(printf '%s' "$OUT14N" | grep -c "Apply this update now" || true)
+CANCEL_RU=$(printf '%s' "$OUT14N" | grep -c "обновление отменено — ничего не изменилось" || true)
+OUT14D="$(run_install "$W14" $'да\n' --apply-update)"
+echo "$OUT14D" >> "$T14"
+DA_APPLIED=$(grep -c '"framework_tag": "v1.4.0"' "$W14/install-state.json" || true)
+APPLIED_RU=$(printf '%s' "$OUT14D" | grep -c "обновление применено: " || true)
+
+{ echo ""; echo "--- (c) second update: English «yes» on the ru path ---"; } >> "$T14"
+git -C "$FAKE_FW" -c user.email=dryrun@qroky.local -c user.name="Qroky dry run" \
+  commit -q --allow-empty -m "stub commit 6"
+git -C "$FAKE_FW" -c user.email=dryrun@qroky.local -c user.name="Qroky dry run" \
+  tag -a v1.5.0 -m $'v1.5.0\n\nещё раз\nещё два\nещё три'
+OUT14Y="$(run_install "$W14" $'yes\n' --apply-update)"
+echo "$OUT14Y" >> "$T14"
+YES_APPLIED=$(grep -c '"framework_tag": "v1.5.0"' "$W14/install-state.json" || true)
+YES_PROMPT_RU=$(printf '%s' "$OUT14Y" | grep -c "Применить это обновление сейчас" || true)
+LOCALE_SURVIVED=$(grep -c '"answer_language": "ru"' "$W14/install-state.json" || true)
+REASKED_LANG=$(printf '%s\n%s\n%s' "$OUT14N" "$OUT14D" "$OUT14Y" | grep -c "1) English  2) Română  3) Русский" || true)
+
+{ echo ""; echo "--- (d) unrecognized q1 answers -> honest trilingual fallback ---"; } >> "$T14"
+OUT14B="$(run_install "$W14B" $'xx\nyy\nzz\nqq\nww\n\nn\nn\nn\nn\nn\n')"
+STATUS14B=$?
+echo "$OUT14B" >> "$T14"
+FALLBACK_HONEST=$(printf '%s' "$OUT14B" | grep -c "ответ не распознан — продолжаю по-английски" || true)
+FALLBACK_CONTINUED=$(printf '%s' "$OUT14B" | grep -c "Step 9 of 9" || true)
+{
+  echo ""; echo "--- assertions ---"
+  echo "(a) exit: $STATUS14A (0); ru hello really sent: $HELLO_RU (1); head profile LANGUAGE=ru: $PROFILE_LANG_RU (1); state language ru: $STATE_LANG_RU (1)"
+  echo "(b) apply prompt in Russian: $PROMPT_RU (>0), EN prompt leak: $PROMPT_EN_LEAK (0); «нет» cancelled in Russian: $CANCEL_RU (1); «да» applied: $DA_APPLIED (1), applied line ru: $APPLIED_RU (1)"
+  echo "(c) «yes» on ru path applied v1.5.0: $YES_APPLIED (1) with the prompt still Russian: $YES_PROMPT_RU (>0)"
+  echo "locale survived both updates: $LOCALE_SURVIVED (1); language question re-asked by subcommands: $REASKED_LANG (must be 0)"
+  echo "(d) honest trilingual fallback line: $FALLBACK_HONEST (1); install continued green in EN: $FALLBACK_CONTINUED (>0), exit $STATUS14B (0)"
+} >> "$T14"
+if [[ $STATUS14A -eq 0 && "$HELLO_RU" -eq 1 && "$PROFILE_LANG_RU" -eq 1 && "$STATE_LANG_RU" -eq 1 \
+      && "$PROMPT_RU" -gt 0 && "$PROMPT_EN_LEAK" -eq 0 && "$CANCEL_RU" -eq 1 \
+      && "$DA_APPLIED" -eq 1 && "$APPLIED_RU" -eq 1 \
+      && "$YES_APPLIED" -eq 1 && "$YES_PROMPT_RU" -gt 0 \
+      && "$LOCALE_SURVIVED" -eq 1 && "$REASKED_LANG" -eq 0 \
+      && "$FALLBACK_HONEST" -eq 1 && "$FALLBACK_CONTINUED" -gt 0 && $STATUS14B -eq 0 ]]; then
+  record "14-language-integrity" PASS "ru q1 governs everything: ru hello, LANGUAGE=ru in the head profile, RUSSIAN apply-update prompt, «да» AND English «yes» both accepted, locale survives two updates with zero re-asks; unrecognized q1 answers now produce an HONEST trilingual line before the EN fallback"
+else
+  record "14-language-integrity" FAIL "a=$STATUS14A/$HELLO_RU/$PROFILE_LANG_RU/$STATE_LANG_RU b=$PROMPT_RU/$PROMPT_EN_LEAK/$CANCEL_RU/$DA_APPLIED/$APPLIED_RU c=$YES_APPLIED/$YES_PROMPT_RU locale=$LOCALE_SURVIVED/$REASKED_LANG d=$FALLBACK_HONEST/$FALLBACK_CONTINUED/$STATUS14B"
+fi
+
+# ---------------------------------------------------------------------------
+# SCENARIO 15 — ATOM-105 clean slate: full install (telegram + heartbeat +
+# machine-wide) -> --uninstall removes the MACHINE side (launchd, gesture
+# files with our provenance, registry, token with a warning, install-state),
+# keeps the workdir and prints its path; reinstall then passes AS A FIRST
+# RUN (journey map, all 9, a fresh hello). A foreign skill at our path is
+# left alone. Uninstall on a clean machine = polite no-op, rc 0.
+# ---------------------------------------------------------------------------
+T15="$ATOM_WORKSPACE/scenario-15-clean-slate.txt"
+W15="$SANDBOX/w15"; W15X="$SANDBOX/w15x"
+HOME_E="$SANDBOX/home-e"; HOME_F="$SANDBOX/home-f"
+mkdir -p "$HOME_E" "$HOME_F"
+cp "$FAKE_HOME/.gitconfig" "$HOME_E/" 2>/dev/null || true
+cp "$FAKE_HOME/.gitconfig" "$HOME_F/" 2>/dev/null || true
+{
+  echo "Scenario 15 — clean slate: --uninstall -> reinstall as first (ATOM-105 DoD 2/3)"
+  echo "Generated: $(date -u +%Y-%m-%dT%H:%M:%SZ)"
+  echo ""
+  echo "--- full install (telegram y, heartbeat y, machinewide y) ---"
+} > "$T15"
+OUT15A="$( ( export HOME="$HOME_E"; run_install "$W15" $'en\n\ny\nGOODTOKEN123\nn\ny\nn\ny\n' ) )"
+STATUS15A=$?
+echo "$OUT15A" >> "$T15"
+PRE_PLISTS=$(ls "$HOME_E/Library/LaunchAgents"/md.qroky.*.plist 2>/dev/null | wc -l | tr -d ' ')
+PRE_SKILL=0; [[ -f "$HOME_E/.claude/skills/qroky/SKILL.md" ]] && PRE_SKILL=1
+PRE_MARKER=$(grep -c "qroky-machinewide:start" "$HOME_E/.claude/CLAUDE.md" 2>/dev/null || true)
+REG15="$SANDBOX/registries/w15.registry"
+PRE_REG=0; [[ -f "$REG15" ]] && PRE_REG=1
+
+{ echo ""; echo "--- --uninstall ---"; } >> "$T15"
+BOOTOUTS_BEFORE=$(grep -c "bootout" "$LAUNCHCTL_STATE" 2>/dev/null || true)
+OUT15U="$( ( export HOME="$HOME_E"; run_install "$W15" '' --uninstall ) )"
+STATUS15U=$?
+echo "$OUT15U" >> "$T15"
+BOOTOUTS_AFTER=$(grep -c "bootout" "$LAUNCHCTL_STATE" 2>/dev/null || true)
+POST_PLISTS=$(ls "$HOME_E/Library/LaunchAgents"/md.qroky.*.plist 2>/dev/null | wc -l | tr -d ' ')
+POST_SKILL=0; [[ -f "$HOME_E/.claude/skills/qroky/SKILL.md" ]] && POST_SKILL=1
+POST_MARKER=$(grep -c "qroky-machinewide:start" "$HOME_E/.claude/CLAUDE.md" 2>/dev/null || true)
+POST_REG=0; [[ -f "$REG15" ]] && POST_REG=1
+POST_TOKEN=0; [[ -f "$W15/.qroky/telegram.token" ]] && POST_TOKEN=1
+POST_STATE=0; [[ -f "$W15/install-state.json" ]] && POST_STATE=1
+WORKDIR_KEPT=0; [[ -d "$W15/decisions" ]] && WORKDIR_KEPT=1
+STEPS_ANNOUNCED=$(printf '%s' "$OUT15U" | grep -c "removing: " || true)
+TOKEN_WARNED=$(printf '%s' "$OUT15U" | grep -c "about to DELETE the bot token file" || true)
+PATH_PRINTED=$(printf '%s' "$OUT15U" | grep -cF "Your data stayed here: $W15" || true)
+SUMMARY_SHOWN=$(printf '%s' "$OUT15U" | grep -c "Done. Removed:" || true)
+
+{ echo ""; echo "--- foreign skill at our path is NOT ours to delete ---"; } >> "$T15"
+mkdir -p "$HOME_E/.claude/skills/qroky"
+printf '# somebody else wrote this — no kit provenance\n' > "$HOME_E/.claude/skills/qroky/SKILL.md"
+OUT15F="$( ( export HOME="$HOME_E"; run_install "$W15" '' --uninstall ) )"
+echo "$OUT15F" >> "$T15"
+FOREIGN_KEPT=0; [[ -f "$HOME_E/.claude/skills/qroky/SKILL.md" ]] && FOREIGN_KEPT=1
+FOREIGN_SAID=$(printf '%s' "$OUT15F" | grep -c "provenance marker" || true)
+rm -f "$HOME_E/.claude/skills/qroky/SKILL.md"
+
+{ echo ""; echo "--- reinstall passes as a FIRST run ---"; } >> "$T15"
+SENT_BEFORE_15=$(wc -l < "$TG_SENT_LOG" | tr -d ' ')
+OUT15R="$( ( export HOME="$HOME_E"; run_install "$W15" $'en\n\ny\nGOODTOKEN123\nn\ny\nn\ny\n' ) )"
+STATUS15R=$?
+echo "$OUT15R" >> "$T15"
+MAP_AGAIN=$(printf '%s' "$OUT15R" | grep -c "Here is the whole road" || true)
+ALL9_AGAIN=$(printf '%s' "$OUT15R" | grep -c "Step 9 of 9" || true)
+HELLO_AGAIN=$(tail -n "+$((SENT_BEFORE_15 + 1))" "$TG_SENT_LOG" | grep -c "chat_id=424242 text=I am connected" || true)
+
+{ echo ""; echo "--- uninstall on a clean machine: polite no-op ---"; } >> "$T15"
+OUT15N="$( ( export HOME="$HOME_F"; run_install "$W15X" '' --uninstall ) )"
+STATUS15N=$?
+echo "$OUT15N" >> "$T15"
+NOOP_POLITE=$(printf '%s' "$OUT15N" | grep -c "Nothing to remove" || true)
+{
+  echo ""; echo "--- assertions ---"
+  echo "install exit: $STATUS15A (0); before uninstall: plists=$PRE_PLISTS (>=3), skill=$PRE_SKILL (1), marker=$PRE_MARKER (1), registry=$PRE_REG (1) — the negative asserts below are non-vacuous"
+  echo "uninstall exit: $STATUS15U (0); bootout calls fired: $((BOOTOUTS_AFTER - BOOTOUTS_BEFORE)) (>=3)"
+  echo "after: plists=$POST_PLISTS (0), skill=$POST_SKILL (0), marker=$POST_MARKER (0), registry=$POST_REG (0), token=$POST_TOKEN (0), state=$POST_STATE (0)"
+  echo "workdir kept: $WORKDIR_KEPT (1); steps announced: $STEPS_ANNOUNCED (>=5); token warned BEFORE deletion: $TOKEN_WARNED (1); path printed: $PATH_PRINTED (1); summary list: $SUMMARY_SHOWN (1)"
+  echo "foreign skill kept: $FOREIGN_KEPT (1) and said so: $FOREIGN_SAID (1)"
+  echo "reinstall: exit $STATUS15R (0), journey map again: $MAP_AGAIN (1), all 9 again: $ALL9_AGAIN (>0), fresh hello really sent: $HELLO_AGAIN (1)"
+  echo "clean machine no-op: exit $STATUS15N (0), polite line: $NOOP_POLITE (1)"
+} >> "$T15"
+if [[ $STATUS15A -eq 0 && "$PRE_PLISTS" -ge 3 && $PRE_SKILL -eq 1 && "$PRE_MARKER" -eq 1 && $PRE_REG -eq 1 \
+      && $STATUS15U -eq 0 && $((BOOTOUTS_AFTER - BOOTOUTS_BEFORE)) -ge 3 \
+      && "$POST_PLISTS" -eq 0 && $POST_SKILL -eq 0 && "$POST_MARKER" -eq 0 && $POST_REG -eq 0 \
+      && $POST_TOKEN -eq 0 && $POST_STATE -eq 0 && $WORKDIR_KEPT -eq 1 \
+      && "$STEPS_ANNOUNCED" -ge 5 && "$TOKEN_WARNED" -eq 1 && "$PATH_PRINTED" -eq 1 && "$SUMMARY_SHOWN" -eq 1 \
+      && $FOREIGN_KEPT -eq 1 && "$FOREIGN_SAID" -eq 1 \
+      && $STATUS15R -eq 0 && "$MAP_AGAIN" -eq 1 && "$ALL9_AGAIN" -gt 0 && "$HELLO_AGAIN" -eq 1 \
+      && $STATUS15N -eq 0 && "$NOOP_POLITE" -eq 1 ]]; then
+  record "15-clean-slate" PASS "uninstall removed launchd/gesture/registry/token/state (each announced first, token warned, summary listed, workdir kept + path printed), left a FOREIGN skill alone; reinstall ran as a genuine first run (map, all 9, fresh hello); clean machine = polite no-op rc 0"
+else
+  record "15-clean-slate" FAIL "inst=$STATUS15A pre=$PRE_PLISTS/$PRE_SKILL/$PRE_MARKER/$PRE_REG un=$STATUS15U/$((BOOTOUTS_AFTER - BOOTOUTS_BEFORE)) post=$POST_PLISTS/$POST_SKILL/$POST_MARKER/$POST_REG/$POST_TOKEN/$POST_STATE kept=$WORKDIR_KEPT ui=$STEPS_ANNOUNCED/$TOKEN_WARNED/$PATH_PRINTED/$SUMMARY_SHOWN foreign=$FOREIGN_KEPT/$FOREIGN_SAID re=$STATUS15R/$MAP_AGAIN/$ALL9_AGAIN/$HELLO_AGAIN noop=$STATUS15N/$NOOP_POLITE"
 fi
 
 # ---------------------------------------------------------------------------

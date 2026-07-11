@@ -338,3 +338,27 @@ L_TELEGRAM_UPDATE_FINISH_HINT() {
   printf '  one command finishes the connection (it waits for your Start press):\n'
   printf '      bash install.sh --enable-telegram\n'
 }
+
+# ATOM-105 (clean-run readiness): strings that were EN-hardcoded or new.
+L_NO_RELEASE_TAGS() { printf '(no release tags published yet — nothing to compare against)\n'; }
+L_TOTAL_ELAPSED() { printf '(total elapsed: %s)\n' "$1"; }
+L_UNINSTALL_TITLE() {
+  printf 'Clean slate — removing everything the installer put on this MACHINE.\n'
+  printf 'Your working folder is not touched. Each step is printed before it runs.\n\n'
+}
+L_UNINSTALL_STEP() { printf '  removing: %s\n' "$1"; }
+L_UNINSTALL_FOREIGN_SKILL() {
+  printf '  leaving %s in place — it does not carry this kit'\''s provenance marker,\n' "$1"
+  printf '  so it is not ours to delete.\n'
+}
+L_UNINSTALL_TOKEN_WARN() {
+  printf '  about to DELETE the bot token file: %s\n' "$1"
+  printf '  (its contents are never read or shown; the bot itself stays alive at\n'
+  printf '  @BotFather — revoke the token there if you want it dead).\n'
+}
+L_UNINSTALL_SUMMARY() { printf '\nDone. Removed:\n'; }
+L_UNINSTALL_KEEP_WORKDIR() {
+  printf '\nYour data stayed here: %s\n' "$1"
+  printf 'Delete that folder yourself if you want a complete zero.\n'
+}
+L_UNINSTALL_NOOP() { printf 'Nothing to remove — this machine has no Qroky install. All clean already.\n'; }

@@ -74,8 +74,15 @@ TOKEN_FILE="$TG_HOME/.token" # PRODUCTION: point at the kit's stored path
                              #   <workspace>/.qroky/telegram.token
 DEFAULT_PROJECT=""           # router: adds an «общий» button to the project
                              # re-ask, routing to the workspace of this name
+LANGUAGE="ru"                # owner-visible strings (ATOM-105): en | ro | ru.
+                             # The kit writes the question-1 answer here;
+                             # absent/unknown -> Russian (v1 byte-behavior).
 API_BASE="https://api.telegram.org"
 [[ -f "$TG_HOME/profile.conf" ]] && . "$TG_HOME/profile.conf"
+
+# ---- owner-visible message catalog (ATOM-105): T_* functions per language ---
+case "${LANGUAGE:-ru}" in en|ro|ru) ;; *) LANGUAGE="ru" ;; esac
+. "$TG_LIB_DIR/lang/$LANGUAGE.sh"
 
 # ---- project router helpers (ATOM-111) --------------------------------------
 workspace_name() { # human label of a workspace: PROJECT_NAME override or basename
@@ -214,27 +221,27 @@ render_status() { # /status [name-filter]: plain-language summary, no LLM.
         [[ "$(printf '%s' "$n" | tr '[:upper:]' '[:lower:]')" == "$(printf '%s' "$filter" | tr '[:upper:]' '[:lower:]')" ]] || continue
       fi
       if [[ ! -d "$w" ]]; then
-        out+="[$n] ⚠ путь из реестра не найден: $w"$'\n\n'
+        out+="$(T_STATUS_DEAD "$n" "$w")"$'\n\n'
         continue
       fi
       # $() strips the block's trailing newline (verify r1-F2) — re-add it
       # plus one blank line, so project sections separate cleanly.
       block="$(_render_status_one "$w/products")"
-      out+="[$n]"$'\n'"${block:-• пока пусто}"$'\n\n'
+      out+="[$n]"$'\n'"${block:-$(T_STATUS_EMPTY_BLOCK)}"$'\n\n'
     done <<EOF
 $(workspaces_or_root)
 EOF
     out="${out%$'\n'}"   # one trailing newline at the very end, not two
-    [[ -n "${out//[$'\n' ]/}" ]] || out="Проект с таким именем в реестре не найден. Зарегистрированы: $(workspaces_or_root | while IFS= read -r x; do [[ -n "$x" ]] && printf '%s ' "$(workspace_name "$x")"; done)"
+    [[ -n "${out//[$'\n' ]/}" ]] || out="$(T_STATUS_NOT_FOUND "$(workspaces_or_root | while IFS= read -r x; do [[ -n "$x" ]] && printf '%s ' "$(workspace_name "$x")"; done)")"
   else
     out="$(_render_status_one "$PRODUCTS_DIR")"
     # v1 ended with a newline the $() wrap above just stripped — restore it,
     # so a single-project /status stays byte-identical to v1 (verify r1-F2).
     [[ -n "$out" ]] && out+=$'\n'
-    [[ -n "${out//[$'\n' ]/}" ]] || out="Пока нет ни одной задачи в products/ — статусов нет."
+    [[ -n "${out//[$'\n' ]/}" ]] || out="$(T_STATUS_EMPTY)"
   fi
   # ≤1 message: Telegram cap 4096; keep margin and say so when truncated
-  if [[ ${#out} -gt 3800 ]]; then out="${out:0:3800}"$'\n'"…(обрезано — полная картина в утреннем дайджесте)"; fi
+  if [[ ${#out} -gt 3800 ]]; then out="${out:0:3800}"$'\n'"$(T_STATUS_TRUNCATED)"; fi
   printf '%s' "$out"
 }
 
@@ -243,9 +250,9 @@ _render_status_one() { # one products/ dir -> per-product status lines
   for f in "$pdir"/*/status.yaml; do
     [[ -f "$f" ]] || continue
     prod="$(basename "$(dirname "$f")")"
-    out+="$(py - "$f" "$prod" <<'PYEOF'
+    out+="$(py - "$f" "$prod" "$(T_STATUS_DONE_CLOSED)" <<'PYEOF'
 import sys, re
-path, prod = sys.argv[1], sys.argv[2]
+path, prod, done_label = sys.argv[1], sys.argv[2], sys.argv[3]
 lines = open(path, encoding="utf-8", errors="replace").read().splitlines()
 cur = None; rows = []
 for ln in lines:
@@ -261,7 +268,7 @@ done = [(a, s) for a, s in rows if s.startswith(("closed", "delivered"))]
 if act or done:
     print(f"• {prod}:")
     for a, s in act: print(f"    {a} — {s}")
-    if done: print(f"    готово/закрыто: {len(done)}")
+    if done: print(f"    {done_label}: {len(done)}")
 PYEOF
 )"$'\n'
   done

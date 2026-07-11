@@ -1,5 +1,5 @@
 Scenario 16 — v1 -> router migration (H5)
-Generated: 2026-07-10T20:42:23Z
+Generated: 2026-07-11T07:05:48Z
 
 --- assertions ---
 pass rc: 0 (0); registry seeded with the workspace as line 1: 1 (must be 1)
