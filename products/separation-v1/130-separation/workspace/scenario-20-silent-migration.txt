@@ -1,5 +1,5 @@
 Scenario 20 — live v0.3.x instance updates to a manifest release SILENTLY
-Generated: 2026-07-11T17:18:47Z
+Generated: 2026-07-11T17:27:51Z
 
 --- install against the OLD (manifest-less) origin, telegram on ---
 == Qroky setup ==
@@ -19,8 +19,8 @@ a single Enter. Nothing installs behind your back.
 Step 2 of 8 — choose your working folder
 Where should your private Qroky folder live?
 Press Enter to use the suggested folder, or type a different path.
-Suggested: /private/tmp/qroky-install-dry-run.KfOkRu/w20
->   working folder: /private/tmp/qroky-install-dry-run.KfOkRu/w20
+Suggested: /private/tmp/qroky-install-dry-run.ZWTtgG/w20
+>   working folder: /private/tmp/qroky-install-dry-run.ZWTtgG/w20
 
 Step 3 of 8 — check the Claude Code assistant
   Claude Code — found (claude-code 0.0.0-dry-run-stub)
@@ -103,13 +103,13 @@ Turn the backup on? Yes/no (y/n), default y:   backup — off, as you chose. Tur
 
 Copy-paste this into your terminal:
 
-    cd /private/tmp/qroky-install-dry-run.KfOkRu/w20 && claude
+    cd /private/tmp/qroky-install-dry-run.ZWTtgG/w20 && claude
 
 then say:
 
     qroky start
 
-(In VS Code instead: File → Open Folder → /private/tmp/qroky-install-dry-run.KfOkRu/w20 → start a new chat — same phrase.)
+(In VS Code instead: File → Open Folder → /private/tmp/qroky-install-dry-run.ZWTtgG/w20 → start a new chat — same phrase.)
 
 One honest note: the FIRST time claude starts, it asks a couple of its own
 questions (color theme, login) — that is normal; answer them and continue.
@@ -130,10 +130,10 @@ Not professional advice.
 (total elapsed: 1s)
 
 --- the next tag brings dist-manifest; --apply-update («да») ---
-Apply this update now? Type "yes" to confirm, anything else cancels:   update applied: v0.3.9 -> v0.4.0. A record was written to: /private/tmp/qroky-install-dry-run.KfOkRu/w20/decisions/UPDATE-2026-07-11-v0.4.0.md
+Apply this update now? Type "yes" to confirm, anything else cancels:   update applied: v0.3.9 -> v0.4.0. A record was written to: /private/tmp/qroky-install-dry-run.ZWTtgG/w20/decisions/UPDATE-2026-07-11-v0.4.0.md
 
 --- freeze check after migration ---
-FREEZE-CHECK OK: /private/tmp/qroky-install-dry-run.KfOkRu/w20/framework contains manifest paths only (11 manifest entries).
+FREEZE-CHECK OK: /private/tmp/qroky-install-dry-run.ZWTtgG/w20/framework contains manifest paths only (11 manifest entries).
 
 --- assertions ---
 old install: exit 0 (0); fat instance proven (junk vendored, non-vacuous): 1 (1); bound chat: 424242

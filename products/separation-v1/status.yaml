@@ -2,7 +2,7 @@
 atoms:
   ATOM-130:
     folder: 130-separation
-    status: delivered (awaiting verify — mutation, INFO-037; then CEO re-run №2 per INFO-035)
+    status: reviewed (kit v0.4, verify ACCEPT r1 — 0 blocking / 5 minor-notes)
     maturity: —
     opened: 2026-07-11
     gate: GATE-031 (G1 go)

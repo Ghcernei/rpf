@@ -1,6 +1,6 @@
 Scenario 19 — merged digest (H2)
-Generated: 2026-07-11T09:29:05Z
-registered: /var/folders/pd/mlvnqxbj7tj0h1qb5qv78_l00000gn/T/qroky-tg-dry.6ejLNV/quiet-proj -> /var/folders/pd/mlvnqxbj7tj0h1qb5qv78_l00000gn/T/qroky-tg-dry.6ejLNV/home/.qroky/registry (3 workspace(s) total)
+Generated: 2026-07-11T17:27:33Z
+registered: /var/folders/pd/mlvnqxbj7tj0h1qb5qv78_l00000gn/T/qroky-tg-dry.ctONl3/quiet-proj -> /var/folders/pd/mlvnqxbj7tj0h1qb5qv78_l00000gn/T/qroky-tg-dry.ctONl3/home/.qroky/registry (3 workspace(s) total)
 
 --- assertions ---
 ONE message: 1 (must be 1); merged header + both project sections: 1 (1)

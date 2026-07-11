@@ -4,7 +4,7 @@ Diff the state file (structural fields only, excluding the commit
 timestamp) and the workspace file listing (git internals excluded —
 the fresh clone's plumbing differs harmlessly) between the two runs:
 a reinstall must be user-invisible on an unchanged origin.
-Generated: 2026-07-11T17:18:22Z
+Generated: 2026-07-11T17:27:22Z
 
 --- RUN 1 ---
 == Qroky setup ==
@@ -24,8 +24,8 @@ a single Enter. Nothing installs behind your back.
 Step 2 of 8 — choose your working folder
 Where should your private Qroky folder live?
 Press Enter to use the suggested folder, or type a different path.
-Suggested: /private/tmp/qroky-install-dry-run.KfOkRu/w5
->   working folder: /private/tmp/qroky-install-dry-run.KfOkRu/w5
+Suggested: /private/tmp/qroky-install-dry-run.ZWTtgG/w5
+>   working folder: /private/tmp/qroky-install-dry-run.ZWTtgG/w5
 
 Step 3 of 8 — check the Claude Code assistant
   Claude Code — found (claude-code 0.0.0-dry-run-stub)
@@ -90,13 +90,13 @@ Turn the backup on? Yes/no (y/n), default y:   backup — off, as you chose. Tur
 
 Copy-paste this into your terminal:
 
-    cd /private/tmp/qroky-install-dry-run.KfOkRu/w5 && claude
+    cd /private/tmp/qroky-install-dry-run.ZWTtgG/w5 && claude
 
 then say:
 
     qroky start
 
-(In VS Code instead: File → Open Folder → /private/tmp/qroky-install-dry-run.KfOkRu/w5 → start a new chat — same phrase.)
+(In VS Code instead: File → Open Folder → /private/tmp/qroky-install-dry-run.ZWTtgG/w5 → start a new chat — same phrase.)
 
 One honest note: the FIRST time claude starts, it asks a couple of its own
 questions (color theme, login) — that is normal; answer them and continue.
@@ -123,7 +123,7 @@ Not professional advice.
 Step 1 of 8 — choose your language
   language set: en
 This folder already carries a Qroky install: framework/ plus your data next to it.
-  /private/tmp/qroky-install-dry-run.KfOkRu/w5
+  /private/tmp/qroky-install-dry-run.ZWTtgG/w5
 Reinstall: your data stays untouched, framework/ is recreated fresh.
 What do we do? [1 reinstall / 2 update / 3 cancel] (Enter = cancel): Recreating framework/ — your data is not touched.
 
@@ -157,13 +157,13 @@ Step 8 of 8 — backup to your own GitHub (optional)
 
 Copy-paste this into your terminal:
 
-    cd /private/tmp/qroky-install-dry-run.KfOkRu/w5 && claude
+    cd /private/tmp/qroky-install-dry-run.ZWTtgG/w5 && claude
 
 then say:
 
     qroky start
 
-(In VS Code instead: File → Open Folder → /private/tmp/qroky-install-dry-run.KfOkRu/w5 → start a new chat — same phrase.)
+(In VS Code instead: File → Open Folder → /private/tmp/qroky-install-dry-run.ZWTtgG/w5 → start a new chat — same phrase.)
 
 One honest note: the FIRST time claude starts, it asks a couple of its own
 questions (color theme, login) — that is normal; answer them and continue.
@@ -181,7 +181,7 @@ A note on responsibility: the system produces drafts and analysis; legal,
 financial, and medical decisions and signatures are always made by a human.
 Not professional advice.
 
-(total elapsed: 0s)
+(total elapsed: 1s)
 --- RUN 2 exit: 0 ---
 
 --- file listing diff (run 1 vs run 2) ---

@@ -1,5 +1,5 @@
 Scenario 9 — backup opt-in + opt-out (v0.1.1, interview point 8)
-Generated: 2026-07-11T17:18:25Z
+Generated: 2026-07-11T17:27:27Z
 gh stub: auth status fails until auth login; repo create --push does a
 REAL git push into a local bare repo (fake-github/) — the negative grep
 below runs over an actually-pushed payload.
@@ -22,8 +22,8 @@ a single Enter. Nothing installs behind your back.
 Step 2 of 8 — choose your working folder
 Where should your private Qroky folder live?
 Press Enter to use the suggested folder, or type a different path.
-Suggested: /private/tmp/qroky-install-dry-run.KfOkRu/w9a
->   working folder: /private/tmp/qroky-install-dry-run.KfOkRu/w9a
+Suggested: /private/tmp/qroky-install-dry-run.ZWTtgG/w9a
+>   working folder: /private/tmp/qroky-install-dry-run.ZWTtgG/w9a
 
 Step 3 of 8 — check the Claude Code assistant
   Claude Code — found (claude-code 0.0.0-dry-run-stub)
@@ -119,13 +119,13 @@ fake-gh: logged in (dry-run stub)
 
 Copy-paste this into your terminal:
 
-    cd /private/tmp/qroky-install-dry-run.KfOkRu/w9a && claude
+    cd /private/tmp/qroky-install-dry-run.ZWTtgG/w9a && claude
 
 then say:
 
     qroky start
 
-(In VS Code instead: File → Open Folder → /private/tmp/qroky-install-dry-run.KfOkRu/w9a → start a new chat — same phrase.)
+(In VS Code instead: File → Open Folder → /private/tmp/qroky-install-dry-run.ZWTtgG/w9a → start a new chat — same phrase.)
 
 One honest note: the FIRST time claude starts, it asks a couple of its own
 questions (color theme, login) — that is normal; answer them and continue.
@@ -193,8 +193,8 @@ a single Enter. Nothing installs behind your back.
 Step 2 of 8 — choose your working folder
 Where should your private Qroky folder live?
 Press Enter to use the suggested folder, or type a different path.
-Suggested: /private/tmp/qroky-install-dry-run.KfOkRu/w9b
->   working folder: /private/tmp/qroky-install-dry-run.KfOkRu/w9b
+Suggested: /private/tmp/qroky-install-dry-run.ZWTtgG/w9b
+>   working folder: /private/tmp/qroky-install-dry-run.ZWTtgG/w9b
 
 Step 3 of 8 — check the Claude Code assistant
   Claude Code — found (claude-code 0.0.0-dry-run-stub)
@@ -260,13 +260,13 @@ Turn the backup on? Yes/no (y/n), default y:   backup — off, as you chose. Tur
 
 Copy-paste this into your terminal:
 
-    cd /private/tmp/qroky-install-dry-run.KfOkRu/w9b && claude
+    cd /private/tmp/qroky-install-dry-run.ZWTtgG/w9b && claude
 
 then say:
 
     qroky start
 
-(In VS Code instead: File → Open Folder → /private/tmp/qroky-install-dry-run.KfOkRu/w9b → start a new chat — same phrase.)
+(In VS Code instead: File → Open Folder → /private/tmp/qroky-install-dry-run.ZWTtgG/w9b → start a new chat — same phrase.)
 
 One honest note: the FIRST time claude starts, it asks a couple of its own
 questions (color theme, login) — that is normal; answer them and continue.

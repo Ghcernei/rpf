@@ -1,5 +1,5 @@
 Scenario 1 — full clean run (H6 baseline, H2 question inventory; v0.3.2 = 8 answers, INFO-042)
-Generated: 2026-07-11T17:18:12Z
+Generated: 2026-07-11T17:27:12Z
 Command a founder actually types: bash install.sh   (no arguments)
 Answers fed (stdin, in order): en / <accept suggested folder> / y (telegram) /
 GOODTOKEN123 / n (sharing) / y (digest) / n (backup); the machine-wide
@@ -24,8 +24,8 @@ a single Enter. Nothing installs behind your back.
 Step 2 of 8 — choose your working folder
 Where should your private Qroky folder live?
 Press Enter to use the suggested folder, or type a different path.
-Suggested: /private/tmp/qroky-install-dry-run.KfOkRu/w1
->   working folder: /private/tmp/qroky-install-dry-run.KfOkRu/w1
+Suggested: /private/tmp/qroky-install-dry-run.ZWTtgG/w1
+>   working folder: /private/tmp/qroky-install-dry-run.ZWTtgG/w1
 
 Step 3 of 8 — check the Claude Code assistant
   Claude Code — found (claude-code 0.0.0-dry-run-stub)
@@ -107,13 +107,13 @@ Turn the backup on? Yes/no (y/n), default y:   backup — off, as you chose. Tur
 
 Copy-paste this into your terminal:
 
-    cd /private/tmp/qroky-install-dry-run.KfOkRu/w1 && claude
+    cd /private/tmp/qroky-install-dry-run.ZWTtgG/w1 && claude
 
 then say:
 
     qroky start
 
-(In VS Code instead: File → Open Folder → /private/tmp/qroky-install-dry-run.KfOkRu/w1 → start a new chat — same phrase.)
+(In VS Code instead: File → Open Folder → /private/tmp/qroky-install-dry-run.ZWTtgG/w1 → start a new chat — same phrase.)
 
 One honest note: the FIRST time claude starts, it asks a couple of its own
 questions (color theme, login) — that is normal; answer them and continue.
@@ -131,7 +131,7 @@ A note on responsibility: the system produces drafts and analysis; legal,
 financial, and medical decisions and signatures are always made by a human.
 Not professional advice.
 
-(total elapsed: 1s)
+(total elapsed: 2s)
 
 --- exit code: 0 ; elapsed: 2s (budget: 900s / 15min) ---
 
@@ -139,7 +139,7 @@ Not professional advice.
 journey map shown on the fresh install: yes
 map names 8 questions (INFO-042): yes
 headers say 'of 8' (step 5 seen: 1, step 8 seen: 1); leftover 'of 9' headers (must be 0): 0
-finale copy-paste block carries the REAL workdir path (cd /private/tmp/qroky-install-dry-run.KfOkRu/w1 && claude): yes
+finale copy-paste block carries the REAL workdir path (cd /private/tmp/qroky-install-dry-run.ZWTtgG/w1 && claude): yes
 finale says the phrase (qroky start): yes
 finale carries the VS Code line: yes
 finale warns about claude's own first-run questions: yes

@@ -1,9 +1,9 @@
 Scenario 12 — machine-wide gesture always-on (INFO-042: question 9 removed)
-Generated: 2026-07-11T17:18:34Z
+Generated: 2026-07-11T17:27:38Z
 Each leg gets its own fake HOME; the '~-writes' are proven by
 exhaustively listing every file under it.
 
---- default install (fake HOME: /private/tmp/qroky-install-dry-run.KfOkRu/home-mw-default; NO machine-wide answer in the feed) ---
+--- default install (fake HOME: /private/tmp/qroky-install-dry-run.ZWTtgG/home-mw-default; NO machine-wide answer in the feed) ---
 == Qroky setup ==
 
 Step 1 of 8 — choose your language
@@ -21,8 +21,8 @@ a single Enter. Nothing installs behind your back.
 Step 2 of 8 — choose your working folder
 Where should your private Qroky folder live?
 Press Enter to use the suggested folder, or type a different path.
-Suggested: /private/tmp/qroky-install-dry-run.KfOkRu/w12a
->   working folder: /private/tmp/qroky-install-dry-run.KfOkRu/w12a
+Suggested: /private/tmp/qroky-install-dry-run.ZWTtgG/w12a
+>   working folder: /private/tmp/qroky-install-dry-run.ZWTtgG/w12a
 
 Step 3 of 8 — check the Claude Code assistant
   Claude Code — found (claude-code 0.0.0-dry-run-stub)
@@ -88,13 +88,13 @@ Turn the backup on? Yes/no (y/n), default y:   backup — off, as you chose. Tur
 
 Copy-paste this into your terminal:
 
-    cd /private/tmp/qroky-install-dry-run.KfOkRu/w12a && claude
+    cd /private/tmp/qroky-install-dry-run.ZWTtgG/w12a && claude
 
 then say:
 
     qroky start
 
-(In VS Code instead: File → Open Folder → /private/tmp/qroky-install-dry-run.KfOkRu/w12a → start a new chat — same phrase.)
+(In VS Code instead: File → Open Folder → /private/tmp/qroky-install-dry-run.ZWTtgG/w12a → start a new chat — same phrase.)
 
 One honest note: the FIRST time claude starts, it asks a couple of its own
 questions (color theme, login) — that is normal; answer them and continue.
@@ -112,7 +112,7 @@ A note on responsibility: the system produces drafts and analysis; legal,
 financial, and medical decisions and signatures are always made by a human.
 Not professional advice.
 
-(total elapsed: 1s)
+(total elapsed: 0s)
 
 --- re-run (ATOM-106 dialog -> 'reinstall'; idempotency: still exactly two files, ONE marker) ---
 == Qroky setup ==
@@ -120,7 +120,7 @@ Not professional advice.
 Step 1 of 8 — choose your language
   language set: en
 This folder already carries a Qroky install: framework/ plus your data next to it.
-  /private/tmp/qroky-install-dry-run.KfOkRu/w12a
+  /private/tmp/qroky-install-dry-run.ZWTtgG/w12a
 Reinstall: your data stays untouched, framework/ is recreated fresh.
 What do we do? [1 reinstall / 2 update / 3 cancel] (Enter = cancel): Recreating framework/ — your data is not touched.
 
@@ -154,13 +154,13 @@ Step 8 of 8 — backup to your own GitHub (optional)
 
 Copy-paste this into your terminal:
 
-    cd /private/tmp/qroky-install-dry-run.KfOkRu/w12a && claude
+    cd /private/tmp/qroky-install-dry-run.ZWTtgG/w12a && claude
 
 then say:
 
     qroky start
 
-(In VS Code instead: File → Open Folder → /private/tmp/qroky-install-dry-run.KfOkRu/w12a → start a new chat — same phrase.)
+(In VS Code instead: File → Open Folder → /private/tmp/qroky-install-dry-run.ZWTtgG/w12a → start a new chat — same phrase.)
 
 One honest note: the FIRST time claude starts, it asks a couple of its own
 questions (color theme, login) — that is normal; answer them and continue.
@@ -198,7 +198,7 @@ removal paths named to the human: 1
 finale carries the trace (works in ANY session + one-command removal): 1 (>=1) / 1 (>=1)
 skill hash stable across the re-run: yes
 
---- pre-existing user CLAUDE.md is appended to, never clobbered (fake HOME: /private/tmp/qroky-install-dry-run.KfOkRu/home-mw-preexisting) ---
+--- pre-existing user CLAUDE.md is appended to, never clobbered (fake HOME: /private/tmp/qroky-install-dry-run.ZWTtgG/home-mw-preexisting) ---
 == Qroky setup ==
 
 Step 1 of 8 — choose your language
@@ -216,8 +216,8 @@ a single Enter. Nothing installs behind your back.
 Step 2 of 8 — choose your working folder
 Where should your private Qroky folder live?
 Press Enter to use the suggested folder, or type a different path.
-Suggested: /private/tmp/qroky-install-dry-run.KfOkRu/w12b
->   working folder: /private/tmp/qroky-install-dry-run.KfOkRu/w12b
+Suggested: /private/tmp/qroky-install-dry-run.ZWTtgG/w12b
+>   working folder: /private/tmp/qroky-install-dry-run.ZWTtgG/w12b
 
 Step 3 of 8 — check the Claude Code assistant
   Claude Code — found (claude-code 0.0.0-dry-run-stub)
@@ -283,13 +283,13 @@ Turn the backup on? Yes/no (y/n), default y:   backup — off, as you chose. Tur
 
 Copy-paste this into your terminal:
 
-    cd /private/tmp/qroky-install-dry-run.KfOkRu/w12b && claude
+    cd /private/tmp/qroky-install-dry-run.ZWTtgG/w12b && claude
 
 then say:
 
     qroky start
 
-(In VS Code instead: File → Open Folder → /private/tmp/qroky-install-dry-run.KfOkRu/w12b → start a new chat — same phrase.)
+(In VS Code instead: File → Open Folder → /private/tmp/qroky-install-dry-run.ZWTtgG/w12b → start a new chat — same phrase.)
 
 One honest note: the FIRST time claude starts, it asks a couple of its own
 questions (color theme, login) — that is normal; answer them and continue.

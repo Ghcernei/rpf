@@ -1,5 +1,5 @@
 Scenario 15 — double-press / answered-gate / malformed callbacks (R2-1)
-Generated: 2026-07-11T09:29:00Z
+Generated: 2026-07-11T17:27:28Z
 
 --- assertions ---
 double-tap setup real: first press recorded via pickup, registry renamed .answered: 1 (must be 1)

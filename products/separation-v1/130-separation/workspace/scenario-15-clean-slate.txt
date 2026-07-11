@@ -1,5 +1,5 @@
 Scenario 15 — clean slate: --uninstall -> reinstall as first (ATOM-105 DoD 2/3)
-Generated: 2026-07-11T17:18:42Z
+Generated: 2026-07-11T17:27:46Z
 
 --- full install (telegram y, heartbeat y; machine-wide is automatic since INFO-042) ---
 == Qroky setup ==
@@ -19,8 +19,8 @@ a single Enter. Nothing installs behind your back.
 Step 2 of 8 — choose your working folder
 Where should your private Qroky folder live?
 Press Enter to use the suggested folder, or type a different path.
-Suggested: /private/tmp/qroky-install-dry-run.KfOkRu/w15
->   working folder: /private/tmp/qroky-install-dry-run.KfOkRu/w15
+Suggested: /private/tmp/qroky-install-dry-run.ZWTtgG/w15
+>   working folder: /private/tmp/qroky-install-dry-run.ZWTtgG/w15
 
 Step 3 of 8 — check the Claude Code assistant
   Claude Code — found (claude-code 0.0.0-dry-run-stub)
@@ -102,13 +102,13 @@ Turn the backup on? Yes/no (y/n), default y:   backup — off, as you chose. Tur
 
 Copy-paste this into your terminal:
 
-    cd /private/tmp/qroky-install-dry-run.KfOkRu/w15 && claude
+    cd /private/tmp/qroky-install-dry-run.ZWTtgG/w15 && claude
 
 then say:
 
     qroky start
 
-(In VS Code instead: File → Open Folder → /private/tmp/qroky-install-dry-run.KfOkRu/w15 → start a new chat — same phrase.)
+(In VS Code instead: File → Open Folder → /private/tmp/qroky-install-dry-run.ZWTtgG/w15 → start a new chat — same phrase.)
 
 One honest note: the FIRST time claude starts, it asks a couple of its own
 questions (color theme, login) — that is normal; answer them and continue.
@@ -135,29 +135,29 @@ Your working folder is not touched. Each step is printed before it runs.
   removing: launchd: md.qroky.telegram.listener
   removing: launchd: md.qroky.telegram.digest
   removing: launchd: md.qroky.heartbeat.w15
-  removing: /private/tmp/qroky-install-dry-run.KfOkRu/home-e/.claude/skills/qroky/SKILL.md
-  removing: /private/tmp/qroky-install-dry-run.KfOkRu/home-e/.claude/CLAUDE.md (marker block only)
-  removing: /private/tmp/qroky-install-dry-run.KfOkRu/registries/w15.registry
-  removing: /private/tmp/qroky-install-dry-run.KfOkRu/home-e/.qroky/workdir
-  about to DELETE the bot token file: /private/tmp/qroky-install-dry-run.KfOkRu/w15/.qroky/telegram.token
+  removing: /private/tmp/qroky-install-dry-run.ZWTtgG/home-e/.claude/skills/qroky/SKILL.md
+  removing: /private/tmp/qroky-install-dry-run.ZWTtgG/home-e/.claude/CLAUDE.md (marker block only)
+  removing: /private/tmp/qroky-install-dry-run.ZWTtgG/registries/w15.registry
+  removing: /private/tmp/qroky-install-dry-run.ZWTtgG/home-e/.qroky/workdir
+  about to DELETE the bot token file: /private/tmp/qroky-install-dry-run.ZWTtgG/w15/.qroky/telegram.token
   (its contents are never read or shown; the bot itself stays alive at
   @BotFather — revoke the token there if you want it dead).
-  removing: /private/tmp/qroky-install-dry-run.KfOkRu/w15/install-state.json
-  removing: /private/tmp/qroky-install-dry-run.KfOkRu/kit/.qroky-workdir-pointer
+  removing: /private/tmp/qroky-install-dry-run.ZWTtgG/w15/install-state.json
+  removing: /private/tmp/qroky-install-dry-run.ZWTtgG/kit/.qroky-workdir-pointer
 
 Done. Removed:
   - launchd: md.qroky.telegram.listener
   - launchd: md.qroky.telegram.digest
   - launchd: md.qroky.heartbeat.w15
-  - /private/tmp/qroky-install-dry-run.KfOkRu/home-e/.claude/skills/qroky/SKILL.md
-  - marker block in /private/tmp/qroky-install-dry-run.KfOkRu/home-e/.claude/CLAUDE.md
-  - /private/tmp/qroky-install-dry-run.KfOkRu/registries/w15.registry
-  - /private/tmp/qroky-install-dry-run.KfOkRu/home-e/.qroky/workdir
-  - /private/tmp/qroky-install-dry-run.KfOkRu/w15/.qroky/telegram.token
-  - /private/tmp/qroky-install-dry-run.KfOkRu/w15/install-state.json
-  - /private/tmp/qroky-install-dry-run.KfOkRu/kit/.qroky-workdir-pointer
+  - /private/tmp/qroky-install-dry-run.ZWTtgG/home-e/.claude/skills/qroky/SKILL.md
+  - marker block in /private/tmp/qroky-install-dry-run.ZWTtgG/home-e/.claude/CLAUDE.md
+  - /private/tmp/qroky-install-dry-run.ZWTtgG/registries/w15.registry
+  - /private/tmp/qroky-install-dry-run.ZWTtgG/home-e/.qroky/workdir
+  - /private/tmp/qroky-install-dry-run.ZWTtgG/w15/.qroky/telegram.token
+  - /private/tmp/qroky-install-dry-run.ZWTtgG/w15/install-state.json
+  - /private/tmp/qroky-install-dry-run.ZWTtgG/kit/.qroky-workdir-pointer
 
-Your data stayed here: /private/tmp/qroky-install-dry-run.KfOkRu/w15
+Your data stayed here: /private/tmp/qroky-install-dry-run.ZWTtgG/w15
 Delete that folder yourself if you want a complete zero.
 To reinstall, just run this installer again — your data will stay.
 
@@ -165,7 +165,7 @@ To reinstall, just run this installer again — your data will stay.
 Clean slate — removing everything the installer put on this MACHINE.
 Your working folder is not touched. Each step is printed before it runs.
 
-  leaving /private/tmp/qroky-install-dry-run.KfOkRu/home-e/.claude/skills/qroky/SKILL.md in place — it does not carry this kit's provenance marker,
+  leaving /private/tmp/qroky-install-dry-run.ZWTtgG/home-e/.claude/skills/qroky/SKILL.md in place — it does not carry this kit's provenance marker,
   so it is not ours to delete.
 Nothing to remove — this machine has no Qroky install. All clean already.
 
@@ -189,12 +189,12 @@ a single Enter. Nothing installs behind your back.
 Step 2 of 8 — choose your working folder
 Where should your private Qroky folder live?
 Press Enter to use the suggested folder, or type a different path.
-Suggested: /private/tmp/qroky-install-dry-run.KfOkRu/w15
+Suggested: /private/tmp/qroky-install-dry-run.ZWTtgG/w15
 > This folder already carries a Qroky install: framework/ plus your data next to it.
-  /private/tmp/qroky-install-dry-run.KfOkRu/w15
+  /private/tmp/qroky-install-dry-run.ZWTtgG/w15
 Reinstall: your data stays untouched, framework/ is recreated fresh.
 What do we do? [1 reinstall / 2 update / 3 cancel] (Enter = cancel): Recreating framework/ — your data is not touched.
-  working folder: /private/tmp/qroky-install-dry-run.KfOkRu/w15
+  working folder: /private/tmp/qroky-install-dry-run.ZWTtgG/w15
 
 Step 3 of 8 — check the Claude Code assistant
   Claude Code — found (claude-code 0.0.0-dry-run-stub)
@@ -276,13 +276,13 @@ Turn the backup on? Yes/no (y/n), default y:   backup — off, as you chose. Tur
 
 Copy-paste this into your terminal:
 
-    cd /private/tmp/qroky-install-dry-run.KfOkRu/w15 && claude
+    cd /private/tmp/qroky-install-dry-run.ZWTtgG/w15 && claude
 
 then say:
 
     qroky start
 
-(In VS Code instead: File → Open Folder → /private/tmp/qroky-install-dry-run.KfOkRu/w15 → start a new chat — same phrase.)
+(In VS Code instead: File → Open Folder → /private/tmp/qroky-install-dry-run.ZWTtgG/w15 → start a new chat — same phrase.)
 
 One honest note: the FIRST time claude starts, it asks a couple of its own
 questions (color theme, login) — that is normal; answer them and continue.

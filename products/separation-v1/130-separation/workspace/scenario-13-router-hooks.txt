@@ -1,5 +1,5 @@
 Scenario 13 — kit router hooks (ATOM-111, GATE-029)
-Generated: 2026-07-11T17:18:36Z
+Generated: 2026-07-11T17:27:40Z
 
 --- (a) first workspace: full telegram journey on machine13 ---
 == Qroky setup ==
@@ -19,8 +19,8 @@ a single Enter. Nothing installs behind your back.
 Step 2 of 8 — choose your working folder
 Where should your private Qroky folder live?
 Press Enter to use the suggested folder, or type a different path.
-Suggested: /private/tmp/qroky-install-dry-run.KfOkRu/w13a
->   working folder: /private/tmp/qroky-install-dry-run.KfOkRu/w13a
+Suggested: /private/tmp/qroky-install-dry-run.ZWTtgG/w13a
+>   working folder: /private/tmp/qroky-install-dry-run.ZWTtgG/w13a
 
 Step 3 of 8 — check the Claude Code assistant
   Claude Code — found (claude-code 0.0.0-dry-run-stub)
@@ -102,13 +102,13 @@ Turn the backup on? Yes/no (y/n), default y:   backup — off, as you chose. Tur
 
 Copy-paste this into your terminal:
 
-    cd /private/tmp/qroky-install-dry-run.KfOkRu/w13a && claude
+    cd /private/tmp/qroky-install-dry-run.ZWTtgG/w13a && claude
 
 then say:
 
     qroky start
 
-(In VS Code instead: File → Open Folder → /private/tmp/qroky-install-dry-run.KfOkRu/w13a → start a new chat — same phrase.)
+(In VS Code instead: File → Open Folder → /private/tmp/qroky-install-dry-run.ZWTtgG/w13a → start a new chat — same phrase.)
 
 One honest note: the FIRST time claude starts, it asks a couple of its own
 questions (color theme, login) — that is normal; answer them and continue.
@@ -146,8 +146,8 @@ a single Enter. Nothing installs behind your back.
 Step 2 of 8 — choose your working folder
 Where should your private Qroky folder live?
 Press Enter to use the suggested folder, or type a different path.
-Suggested: /private/tmp/qroky-install-dry-run.KfOkRu/w13b
->   working folder: /private/tmp/qroky-install-dry-run.KfOkRu/w13b
+Suggested: /private/tmp/qroky-install-dry-run.ZWTtgG/w13b
+>   working folder: /private/tmp/qroky-install-dry-run.ZWTtgG/w13b
 
 Step 3 of 8 — check the Claude Code assistant
   Claude Code — found (claude-code 0.0.0-dry-run-stub)
@@ -214,13 +214,13 @@ Turn the backup on? Yes/no (y/n), default y:   backup — off, as you chose. Tur
 
 Copy-paste this into your terminal:
 
-    cd /private/tmp/qroky-install-dry-run.KfOkRu/w13b && claude
+    cd /private/tmp/qroky-install-dry-run.ZWTtgG/w13b && claude
 
 then say:
 
     qroky start
 
-(In VS Code instead: File → Open Folder → /private/tmp/qroky-install-dry-run.KfOkRu/w13b → start a new chat — same phrase.)
+(In VS Code instead: File → Open Folder → /private/tmp/qroky-install-dry-run.ZWTtgG/w13b → start a new chat — same phrase.)
 
 One honest note: the FIRST time claude starts, it asks a couple of its own
 questions (color theme, login) — that is normal; answer them and continue.
@@ -238,16 +238,16 @@ A note on responsibility: the system produces drafts and analysis; legal,
 financial, and medical decisions and signatures are always made by a human.
 Not professional advice.
 
-(total elapsed: 1s)
+(total elapsed: 0s)
 
 --- (c) apply-update auto-complete: token+binding present, head undeployed ---
-Apply this update now? Type "yes" to confirm, anything else cancels:   update applied: v1.1.0 -> v1.2.0. A record was written to: /private/tmp/qroky-install-dry-run.KfOkRu/w13c/decisions/UPDATE-2026-07-11-v1.2.0.md
+Apply this update now? Type "yes" to confirm, anything else cancels:   update applied: v1.1.0 -> v1.2.0. A record was written to: /private/tmp/qroky-install-dry-run.ZWTtgG/w13c/decisions/UPDATE-2026-07-11-v1.2.0.md
   connecting the bot to this computer (checks every 30 seconds; daily digest at 09:05)...
   first listener pass — healthy
   Telegram assistant — ON (listener every 30 s, digest daily at 09:05; its files live in .qroky/telegram/ inside your workspace)
 
 --- (d) apply-update with token but NO binding: hint only, no deploy ---
-Apply this update now? Type "yes" to confirm, anything else cancels:   update applied: v1.2.0 -> v1.3.0. A record was written to: /private/tmp/qroky-install-dry-run.KfOkRu/w13d/decisions/UPDATE-2026-07-11-v1.3.0.md
+Apply this update now? Type "yes" to confirm, anything else cancels:   update applied: v1.2.0 -> v1.3.0. A record was written to: /private/tmp/qroky-install-dry-run.ZWTtgG/w13d/decisions/UPDATE-2026-07-11-v1.3.0.md
   the update brought the Telegram assistant, and your token is already saved —
   one command finishes the connection (it waits for your Start press):
       bash install.sh --enable-telegram

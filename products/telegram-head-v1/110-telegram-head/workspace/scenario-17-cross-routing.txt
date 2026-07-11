@@ -1,7 +1,7 @@
 Scenario 17 — registry + cross-routing (H1)
-Generated: 2026-07-11T09:29:03Z
-registered: /var/folders/pd/mlvnqxbj7tj0h1qb5qv78_l00000gn/T/qroky-tg-dry.6ejLNV/ws-bankco -> /var/folders/pd/mlvnqxbj7tj0h1qb5qv78_l00000gn/T/qroky-tg-dry.6ejLNV/home/.qroky/registry (2 workspace(s) total)
-already registered: /var/folders/pd/mlvnqxbj7tj0h1qb5qv78_l00000gn/T/qroky-tg-dry.6ejLNV/ws-bankco (/var/folders/pd/mlvnqxbj7tj0h1qb5qv78_l00000gn/T/qroky-tg-dry.6ejLNV/home/.qroky/registry)
+Generated: 2026-07-11T17:27:31Z
+registered: /var/folders/pd/mlvnqxbj7tj0h1qb5qv78_l00000gn/T/qroky-tg-dry.ctONl3/ws-bankco -> /var/folders/pd/mlvnqxbj7tj0h1qb5qv78_l00000gn/T/qroky-tg-dry.ctONl3/home/.qroky/registry (2 workspace(s) total)
+already registered: /var/folders/pd/mlvnqxbj7tj0h1qb5qv78_l00000gn/T/qroky-tg-dry.ctONl3/ws-bankco (/var/folders/pd/mlvnqxbj7tj0h1qb5qv78_l00000gn/T/qroky-tg-dry.ctONl3/home/.qroky/registry)
 
 --- assertions ---
 registry after register + re-register: 2 lines (must be 2), idempotent notice: 1 (1)

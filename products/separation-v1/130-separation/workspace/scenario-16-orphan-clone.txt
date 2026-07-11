@@ -1,5 +1,5 @@
 Scenario 16 — orphaned clone: framework/ with no data next to it (ATOM-106 case b)
-Generated: 2026-07-11T17:18:45Z
+Generated: 2026-07-11T17:27:48Z
 Setup: a bare 'git clone' of the framework into an otherwise empty folder
 (the raw-git entry a founder can produce by hand), plus a planted marker
 file that must survive 'no' and vanish on 'da'.
@@ -22,9 +22,9 @@ a single Enter. Nothing installs behind your back.
 Step 2 of 8 — choose your working folder
 Where should your private Qroky folder live?
 Press Enter to use the suggested folder, or type a different path.
-Suggested: /private/tmp/qroky-install-dry-run.KfOkRu/w16
+Suggested: /private/tmp/qroky-install-dry-run.ZWTtgG/w16
 > This folder holds a framework/ copy with no data next to it — looks like an orphaned clone:
-  /private/tmp/qroky-install-dry-run.KfOkRu/w16
+  /private/tmp/qroky-install-dry-run.ZWTtgG/w16
 Recreate it and install fresh? [yes/no] (Enter = no): Okay — leaving everything as it is.
 
 --- branch YES (answered 'da' — the ru/ro yes must work on the en path): recreate + clean install ---
@@ -45,11 +45,11 @@ a single Enter. Nothing installs behind your back.
 Step 2 of 8 — choose your working folder
 Where should your private Qroky folder live?
 Press Enter to use the suggested folder, or type a different path.
-Suggested: /private/tmp/qroky-install-dry-run.KfOkRu/w16
+Suggested: /private/tmp/qroky-install-dry-run.ZWTtgG/w16
 > This folder holds a framework/ copy with no data next to it — looks like an orphaned clone:
-  /private/tmp/qroky-install-dry-run.KfOkRu/w16
+  /private/tmp/qroky-install-dry-run.ZWTtgG/w16
 Recreate it and install fresh? [yes/no] (Enter = no): Recreating framework/ — your data is not touched.
-  working folder: /private/tmp/qroky-install-dry-run.KfOkRu/w16
+  working folder: /private/tmp/qroky-install-dry-run.ZWTtgG/w16
 
 Step 3 of 8 — check the Claude Code assistant
   Claude Code — found (claude-code 0.0.0-dry-run-stub)
@@ -114,13 +114,13 @@ Turn the backup on? Yes/no (y/n), default y:   backup — off, as you chose. Tur
 
 Copy-paste this into your terminal:
 
-    cd /private/tmp/qroky-install-dry-run.KfOkRu/w16 && claude
+    cd /private/tmp/qroky-install-dry-run.ZWTtgG/w16 && claude
 
 then say:
 
     qroky start
 
-(In VS Code instead: File → Open Folder → /private/tmp/qroky-install-dry-run.KfOkRu/w16 → start a new chat — same phrase.)
+(In VS Code instead: File → Open Folder → /private/tmp/qroky-install-dry-run.ZWTtgG/w16 → start a new chat — same phrase.)
 
 One honest note: the FIRST time claude starts, it asks a couple of its own
 questions (color theme, login) — that is normal; answer them and continue.

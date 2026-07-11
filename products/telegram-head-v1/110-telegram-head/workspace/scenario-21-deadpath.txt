@@ -1,6 +1,6 @@
 Scenario 21 — dead registry path (H6)
-Generated: 2026-07-11T09:29:07Z
-unregistered: /var/folders/pd/mlvnqxbj7tj0h1qb5qv78_l00000gn/T/qroky-tg-dry.6ejLNV/gone-project (remaining: 3)
+Generated: 2026-07-11T17:27:36Z
+unregistered: /var/folders/pd/mlvnqxbj7tj0h1qb5qv78_l00000gn/T/qroky-tg-dry.ctONl3/gone-project (remaining: 3)
 
 --- assertions ---
 listener rc with a dead path: 0 (0); digest rc: 0 (0)

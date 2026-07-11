@@ -1,6 +1,6 @@
 dry-run.sh — summary of all scenarios
-Generated: 2026-07-11T17:18:50Z
-Sandbox: /private/tmp/qroky-install-dry-run.KfOkRu (removed on exit)
+Generated: 2026-07-11T17:27:54Z
+Sandbox: /private/tmp/qroky-install-dry-run.ZWTtgG (removed on exit)
 
 PASS — 1-full-clean-run: exit 0 in 2s
 PASS — 1-journey-map-and-finale: map up front, 'N of 8' headers (no 'of 9' leftovers), finale = real-path copy-paste block + VS Code + first-run honesty
