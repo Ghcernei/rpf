@@ -5,6 +5,25 @@ better for you). Rendered from the release's verified records — nothing here
 is composed from memory. Rule (INFO-024): a release without a changelog
 entry is not published.
 
+## v0.5 — 2026-07-12
+
+- **Windows (via WSL2) and Linux are now first-class.** You install WSL2 once,
+  then run the *same* one-line installer, answer the *same* eight questions,
+  and get the *same* working instance — including the scheduled parts (the
+  morning digest and the Telegram bot), not a stripped-down mode. The new
+  [Windows/WSL2 setup guide](docs/WINDOWS.md) walks you through it in three
+  steps.
+- **Your Mac install doesn't change a byte.** On macOS everything still runs on
+  launchd exactly as before; the kit only *adds* the ability to schedule with
+  systemd user timers (Linux/WSL2) or cron (fallback) when launchd isn't there.
+  Qroky detects which one your machine has and picks it for you — no new
+  question to answer.
+- **When no scheduler is available, you're told plainly.** Instead of a silent
+  half-install, the kit says so and gives the exact fix (turn on systemd in
+  WSL2, pointing at the guide) — and, if it falls back to cron on WSL2, it
+  reminds you cron needs starting. Nothing pretends to be scheduled when it
+  isn't.
+
 ## v0.4.2 — 2026-07-12
 
 - The product repo now IS the product: our factory (work journal, decision
