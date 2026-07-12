@@ -107,6 +107,10 @@ Qroky is built in the open, and v1 is early access. The full self-construction r
 
 Issues are welcome and read: **[github.com/qroky/framework/issues](https://github.com/qroky/framework/issues)** is the feedback channel. Broke something in your first 15 minutes? That is exactly the report we want. To propose changes or fork, see [CONTRIBUTING.md](CONTRIBUTING.md).
 
+## Acknowledgments
+
+Qroky grew out of what I learned from [Alexey Krol](https://gist.github.com/alexeykrol/). This framework is my attempt to take that thinking and build something real with it. Thank you.
+
 ---
 
 Repository map and constitution reading order: [docs/REPO-GUIDE.md](docs/REPO-GUIDE.md).
