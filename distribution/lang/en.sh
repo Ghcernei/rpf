@@ -138,10 +138,15 @@ L_TELEGRAM_SCHEDULE_FAILED() {
   printf '  Everything else is fine — your bot link is saved. Try again later with:\n'
   printf '      qroky enable-telegram\n'
 }
-L_TELEGRAM_NO_LAUNCHD() {
-  printf 'NOTICE: this machine has no "launchctl" (common outside macOS), so the\n'
-  printf 'Telegram jobs cannot be scheduled automatically. Your link is set — run\n'
-  printf '%s/run-listener.sh every 30 s and %s/run-digest.sh daily with your own scheduler.\n' "$1" "$1"
+L_TELEGRAM_NO_SCHEDULER() {
+  printf 'NOTICE: no scheduler was found on this machine — no launchd (macOS), no\n'
+  printf 'systemd user timers, no cron — so the Telegram jobs could not be scheduled.\n'
+  printf 'Your bot link is set and nothing else failed. The exact fix on Windows/WSL2:\n'
+  printf 'turn systemd on — add "systemd=true" under [boot] in /etc/wsl.conf, run\n'
+  printf '"wsl --shutdown" from Windows, reopen the terminal (the walkthrough is in\n'
+  printf 'docs/WINDOWS.md of the kit) — then run:\n'
+  printf '    qroky enable-telegram\n'
+  printf 'Until then: run %s/run-listener.sh every 30 s and %s/run-digest.sh daily by hand.\n' "$1" "$1"
 }
 
 L_TELEMETRY_ASK_OPTIN() {
@@ -182,10 +187,21 @@ EOF
 }
 L_HEARTBEAT_ON() { printf '  morning digest — installed and ON\n'; }
 L_HEARTBEAT_OFF() { printf '  morning digest — installed but OFF. Turn it on any time with:\n      qroky enable-heartbeat\n'; }
-L_HEARTBEAT_NO_LAUNCHD() {
-  printf 'NOTICE: this machine has no "launchctl" (common outside macOS), so the\n'
-  printf 'morning digest cannot be scheduled automatically. Nothing else failed —\n'
-  printf 'run it by hand any day with: bash %s/.qroky/heartbeat.sh\n' "$1"
+L_HEARTBEAT_NO_SCHEDULER() {
+  printf 'NOTICE: no scheduler was found on this machine — no launchd (macOS), no\n'
+  printf 'systemd user timers, no cron — so the morning digest could not be scheduled.\n'
+  printf 'Nothing else failed. The exact fix on Windows/WSL2: turn systemd on — add\n'
+  printf '"systemd=true" under [boot] in /etc/wsl.conf, run "wsl --shutdown" from\n'
+  printf 'Windows, reopen the terminal (see docs/WINDOWS.md in the kit) — then run:\n'
+  printf '    qroky enable-heartbeat\n'
+  printf 'Until then: run it by hand any day with: bash %s/.qroky/heartbeat.sh\n' "$1"
+}
+L_SCHED_CRON_NOTE() {
+  printf '  NOTE: scheduled via cron (this machine has no launchd/systemd). Cron only\n'
+  printf '  fires while the cron service is running, and on WSL2/Ubuntu it does not\n'
+  printf '  start by itself. Start it once with:\n'
+  printf '      sudo service cron start\n'
+  printf '  (how to make that automatic — and the WSL2 walkthrough: docs/WINDOWS.md)\n'
 }
 L_HEARTBEAT_SCHEDULE_FAILED() {
   printf 'NOTICE: the morning digest could not be scheduled automatically right now.\n'

@@ -133,10 +133,15 @@ L_TELEGRAM_SCHEDULE_FAILED() {
   printf '  Tot restul e în regulă — legătura cu botul e salvată. Încearcă mai târziu:\n'
   printf '      qroky enable-telegram\n'
 }
-L_TELEGRAM_NO_LAUNCHD() {
-  printf 'NOTĂ: acest calculator nu are "launchctl" (frecvent în afara macOS), deci\n'
-  printf 'sarcinile Telegram nu pot fi programate automat. Legătura e stabilită — rulează\n'
-  printf '%s/run-listener.sh la fiecare 30 s și %s/run-digest.sh zilnic cu propriul tău planificator.\n' "$1" "$1"
+L_TELEGRAM_NO_SCHEDULER() {
+  printf 'NOTĂ: pe acest calculator nu a fost găsit niciun planificator — fără launchd\n'
+  printf '(macOS), fără temporizatoare systemd de utilizator, fără cron — deci sarcinile\n'
+  printf 'Telegram nu au putut fi programate. Legătura cu botul e salvată, nimic altceva\n'
+  printf 'nu a eșuat. Remediul exact pe Windows/WSL2: pornește systemd — adaugă\n'
+  printf '"systemd=true" sub [boot] în /etc/wsl.conf, rulează "wsl --shutdown" din\n'
+  printf 'Windows, redeschide terminalul (pașii sunt în docs/WINDOWS.md din kit) — apoi:\n'
+  printf '    qroky enable-telegram\n'
+  printf 'Până atunci: rulează %s/run-listener.sh la fiecare 30 s și %s/run-digest.sh zilnic manual.\n' "$1" "$1"
 }
 
 L_TELEMETRY_ASK_OPTIN() {
@@ -178,10 +183,22 @@ EOF
 }
 L_HEARTBEAT_ON() { printf '  rezumatul de dimineață — instalat și PORNIT\n'; }
 L_HEARTBEAT_OFF() { printf '  rezumatul de dimineață — instalat dar OPRIT. Îl pornești oricând cu:\n      qroky enable-heartbeat\n'; }
-L_HEARTBEAT_NO_LAUNCHD() {
-  printf 'NOTĂ: acest calculator nu are "launchctl" (frecvent în afara macOS), deci\n'
-  printf 'rezumatul de dimineață nu poate fi programat automat. Nimic altceva nu a\n'
-  printf 'eșuat — rulează-l manual oricând cu: bash %s/.qroky/heartbeat.sh\n' "$1"
+L_HEARTBEAT_NO_SCHEDULER() {
+  printf 'NOTĂ: pe acest calculator nu a fost găsit niciun planificator — fără launchd\n'
+  printf '(macOS), fără temporizatoare systemd de utilizator, fără cron — deci rezumatul\n'
+  printf 'de dimineață nu a putut fi programat. Nimic altceva nu a eșuat. Remediul exact\n'
+  printf 'pe Windows/WSL2: pornește systemd — adaugă "systemd=true" sub [boot] în\n'
+  printf '/etc/wsl.conf, rulează "wsl --shutdown" din Windows, redeschide terminalul\n'
+  printf '(vezi docs/WINDOWS.md din kit) — apoi:\n'
+  printf '    qroky enable-heartbeat\n'
+  printf 'Până atunci: rulează-l manual oricând cu: bash %s/.qroky/heartbeat.sh\n' "$1"
+}
+L_SCHED_CRON_NOTE() {
+  printf '  NOTĂ: programat prin cron (aici nu există launchd/systemd). Cron rulează\n'
+  printf '  doar cât timp serviciul cron e pornit, iar pe WSL2/Ubuntu nu pornește\n'
+  printf '  singur. Pornește-l o dată cu:\n'
+  printf '      sudo service cron start\n'
+  printf '  (cum îl faci automat — și tot parcursul WSL2 — în docs/WINDOWS.md)\n'
 }
 L_HEARTBEAT_SCHEDULE_FAILED() {
   printf 'NOTĂ: rezumatul de dimineață nu a putut fi programat automat acum.\n'

@@ -133,10 +133,15 @@ L_TELEGRAM_SCHEDULE_FAILED() {
   printf '  Всё остальное в порядке — связка с ботом сохранена. Попробуйте позже:\n'
   printf '      qroky enable-telegram\n'
 }
-L_TELEGRAM_NO_LAUNCHD() {
-  printf 'ЗАМЕТКА: на этом компьютере нет "launchctl" (обычно вне macOS), поэтому\n'
-  printf 'задания Telegram нельзя запланировать автоматически. Связка установлена —\n'
-  printf 'запускайте %s/run-listener.sh каждые 30 с и %s/run-digest.sh ежедневно своим планировщиком.\n' "$1" "$1"
+L_TELEGRAM_NO_SCHEDULER() {
+  printf 'ЗАМЕТКА: на этом компьютере не найден ни один планировщик — ни launchd\n'
+  printf '(macOS), ни пользовательские таймеры systemd, ни cron — поэтому задания\n'
+  printf 'Telegram не удалось запланировать. Связка с ботом сохранена, больше ничего\n'
+  printf 'не сломалось. Точный фикс на Windows/WSL2: включите systemd — добавьте\n'
+  printf '"systemd=true" в раздел [boot] файла /etc/wsl.conf, выполните "wsl --shutdown"\n'
+  printf 'из Windows, снова откройте терминал (пошагово — в docs/WINDOWS.md кита) — затем:\n'
+  printf '    qroky enable-telegram\n'
+  printf 'А пока: запускайте %s/run-listener.sh каждые 30 с и %s/run-digest.sh ежедневно вручную.\n' "$1" "$1"
 }
 
 L_TELEMETRY_ASK_OPTIN() {
@@ -179,10 +184,22 @@ EOF
 }
 L_HEARTBEAT_ON() { printf '  утренний дайджест — установлен и ВКЛЮЧЁН\n'; }
 L_HEARTBEAT_OFF() { printf '  утренний дайджест — установлен, но ВЫКЛЮЧЕН. Включить в любой момент:\n      qroky enable-heartbeat\n'; }
-L_HEARTBEAT_NO_LAUNCHD() {
-  printf 'ЗАМЕТКА: на этом компьютере нет "launchctl" (обычно вне macOS), поэтому\n'
-  printf 'утренний дайджест нельзя запланировать автоматически. Больше ничего не\n'
-  printf 'сломалось — запускайте вручную в любой день: bash %s/.qroky/heartbeat.sh\n' "$1"
+L_HEARTBEAT_NO_SCHEDULER() {
+  printf 'ЗАМЕТКА: на этом компьютере не найден ни один планировщик — ни launchd\n'
+  printf '(macOS), ни пользовательские таймеры systemd, ни cron — поэтому утренний\n'
+  printf 'дайджест не удалось запланировать. Больше ничего не сломалось. Точный фикс\n'
+  printf 'на Windows/WSL2: включите systemd — добавьте "systemd=true" в раздел [boot]\n'
+  printf 'файла /etc/wsl.conf, выполните "wsl --shutdown" из Windows, снова откройте\n'
+  printf 'терминал (см. docs/WINDOWS.md кита) — затем:\n'
+  printf '    qroky enable-heartbeat\n'
+  printf 'А пока: запускайте вручную в любой день: bash %s/.qroky/heartbeat.sh\n' "$1"
+}
+L_SCHED_CRON_NOTE() {
+  printf '  ЗАМЕТКА: запланировано через cron (на этом компьютере нет launchd/systemd).\n'
+  printf '  Cron срабатывает, только пока служба cron запущена, а на WSL2/Ubuntu она\n'
+  printf '  сама не стартует. Запустите её один раз:\n'
+  printf '      sudo service cron start\n'
+  printf '  (как сделать это автоматически — и весь путь WSL2 — в docs/WINDOWS.md)\n'
 }
 L_HEARTBEAT_SCHEDULE_FAILED() {
   printf 'ЗАМЕТКА: утренний дайджест сейчас не удалось запланировать автоматически.\n'
