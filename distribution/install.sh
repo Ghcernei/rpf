@@ -174,6 +174,7 @@ _sched_backend() {
 _sched_run() {
   local tag="$1" launchd_fn="$2" systemd_fn="$3" cron_fn="$4"
   SCHED_USED="$(_sched_backend)"
+  SCHED_BACKEND="$SCHED_USED"   # _sched_backend ran in a subshell; propagate to the persisted global
   case "$SCHED_USED" in
     launchd) run_with_ladder "$tag" "$launchd_fn"; return $? ;;
     systemd) run_with_ladder "$tag" "$systemd_fn"; return $? ;;
