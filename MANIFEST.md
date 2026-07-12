@@ -17,7 +17,7 @@ Five principles carry the whole framework. One line each — the normative docum
 1. **Everything is a product.** Every unit of work has a consumer, a job to be done, a Definition of Done, and a maturity level. There are no tasks, no phases — only products and the atoms that produce them.
 2. **One atom, infinite recursion.** A single universal unit of work at every scale. A paragraph and a product line differ in scale, not in structure; whatever is too large decomposes into sub-products processed by the same atom, recursively.
 3. **Humans supply three products.** Missing information, risk acceptance, and intent at gates. Everything else is produced by agents. Human involvement is designed to fall over time: the escalation rate is a metric, and every answer feeds back into roles and knowledge so the same question is not asked twice.
-4. **Formulate / Execute / Verify.** Segregation of duties: whoever specifies does not execute, and whoever executes never accepts their own work. Verification is blind — the checker receives the criteria and the product, never the producer's reasoning. Bankers will recognize maker-checker. Every decision leaves an audit trail in [`decisions/`](decisions/).
+4. **Formulate / Execute / Verify.** Segregation of duties: whoever specifies does not execute, and whoever executes never accepts their own work. Verification is blind — the checker receives the criteria and the product, never the producer's reasoning. Bankers will recognize maker-checker. Every decision leaves an audit trail in the instance's `decisions/` journal — see [the framework's own journal](https://github.com/qroky/lab/tree/main/decisions) as the living example.
 5. **Files are the whole system.** Plain markdown and git, platform-neutral by constitution: any model, any runtime — the spec is written so that even a competent human could execute an atom from the files alone. Databases are rebuildable indexes, never the truth.
 
 ## Who it is for
@@ -30,7 +30,7 @@ Three things, and only when the system escalates. You answer questions only you 
 
 ## What is open, what is commercial
 
-**Open, under Apache-2.0:** the constitution (the four framework documents), the templates, the base roles, the reference runtime binding, this repository. **Commercial, separate:** the enforcement harness (isolated verification as a service, tamper-evident logs, real budget stops, metrics dashboards), domain verticals for regulated industries, and a managed offering. One line of rationale, recorded in [`decisions/RISK-002-open-core-boundary.md`](decisions/RISK-002-open-core-boundary.md): *the standard is free; proven trust in execution is the product.* The methodology can be copied — that risk is accepted, traded for standardization and distribution.
+**Open, under Apache-2.0:** the constitution (the five framework documents), the templates, the base roles, the reference runtime binding, this repository. **Commercial, separate:** the enforcement harness (isolated verification as a service, tamper-evident logs, real budget stops, metrics dashboards), domain verticals for regulated industries, and a managed offering. One line of rationale, recorded in [`RISK-002-open-core-boundary.md`](https://github.com/qroky/lab/blob/main/decisions/RISK-002-open-core-boundary.md): *the standard is free; proven trust in execution is the product.* The methodology can be copied — that risk is accepted, traded for standardization and distribution.
 
 ## Limitations of v1
 
@@ -45,10 +45,10 @@ Known scope decisions, each with a planned successor — not oversights.
 
 No market claims. Only what this repository can show:
 
-- The framework **wrote and blind-verified its own constitution**: all four normative documents were produced by the framework's own atoms and accepted only after independent verification.
+- The framework **wrote and blind-verified its own constitution**: all five normative documents were produced by the framework's own atoms and accepted only after independent verification.
 - The discipline caught real defects: the very first document was **returned by its blind verifier** for a template defect that would have propagated to every future atom — fixed minimally, re-verified, then accepted.
 - Verification budgeting **improved across three measured runs** — from 8× over the envelope, to 1.8×, to within 6% — each measurement recorded as a public precedent in [`knowledge/precedent/`](knowledge/precedent/).
-- The decision journal is real: every gate, every risk acceptance, human answers verbatim, in [`decisions/`](decisions/).
+- The decision journal is real: every gate, every risk acceptance, human answers verbatim, in [the public factory's `decisions/`](https://github.com/qroky/lab/tree/main/decisions).
 
 ## Start here
 

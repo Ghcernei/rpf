@@ -150,5 +150,5 @@ entry is not published.
   starting phrase lives in that folder.
 
 *Earlier kit versions (v0.1.0 installer, v0.1.1 backup + disclaimer) predate
-tagging and shipped by commit; their records live in
-`products/distribution-kit-v1/`.*
+tagging and shipped by commit; their records live in the public factory:
+[qroky/lab — products/distribution-kit-v1/](https://github.com/qroky/lab/tree/main/products/distribution-kit-v1).*
