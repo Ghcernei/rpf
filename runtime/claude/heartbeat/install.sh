@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Idempotent installer for the Qroky heartbeat LaunchAgent (this Mac).
-# Pattern: _BUSOS/tools/hermes-24x7/install.sh
+# Pattern: hermes-24x7 (owner's operations repo)/install.sh
 set -euo pipefail
 
 HB_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"

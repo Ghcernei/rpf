@@ -1,7 +1,0 @@
-Scenario 9 — quiet hours (H14)
-Generated: 2026-07-11T17:27:24Z
-
---- assertions ---
-night events sent at 02:xx: 0 (must be 0), queued: 2 (must be 2)
-user message at night still acked: 1 (must be 1); queue untouched at night: 2 (must be 2)
-morning flush order: blocker line 1 before result line 2: 1 (must be 1)

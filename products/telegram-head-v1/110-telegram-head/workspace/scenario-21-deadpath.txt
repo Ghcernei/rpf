@@ -1,9 +1,0 @@
-Scenario 21 — dead registry path (H6)
-Generated: 2026-07-11T17:27:36Z
-unregistered: /var/folders/pd/mlvnqxbj7tj0h1qb5qv78_l00000gn/T/qroky-tg-dry.ctONl3/gone-project (remaining: 3)
-
---- assertions ---
-listener rc with a dead path: 0 (0); digest rc: 0 (0)
-/status: honest ⚠ line: 1 (>0) AND live projects still render: 1 (>0)
-log flags the dead path: 1 (>0); digest carries its ⚠ status line: 1 (>0)
-unregister removed it: 1 (1), registry back to 3 lines (must be 3); repeat = honest no-op: 1 (1)

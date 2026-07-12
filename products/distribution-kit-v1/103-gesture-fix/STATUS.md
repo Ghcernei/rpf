@@ -1,5 +1,0 @@
-# STATUS — ATOM-103
-
-2026-07-10T17:05:00Z opened — INPUT read (G2 BLOCKING finding: «qroky start» promise empty on target machines); role pilot-toolsmith fresh instance; harness-checklist 9/9 answered in workspace/run.log
-2026-07-10T17:12:00Z interruption — network error mid-run; transcript intact, resumed, no work lost
-2026-07-10T17:55:00Z delivered kit v0.1.2 — gesture vendored to runtime/claude/skill/qroky/SKILL.md (hygiene pass, protocol untouched); install.sh step_gesture (automatic, question inventory stays 8; project-level wiring: <workdir>/.claude/skills/qroky/SKILL.md + marker-guarded CLAUDE.md trigger block, idempotent, ladder-wrapped); finale VS Code line + honest folder note in 3 locales; READMEs «Your first conversation» x3; harness scenario 10 (negative-able) → full run 11/11 PASS first attempt; M1 folded (default workdir $HOME/qroky-work). RESULT.md (v0.1.2) in THIS folder per perimeter (S6 decision logged); status.yaml row left to orchestrator. Cost ~130k in / ~30k out, no E4. Awaiting targeted blind re-check + CEO G2 re-run.

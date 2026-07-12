@@ -22,7 +22,7 @@ One word, any door: «кроки» turns the current folder into a governed work
 
 ## 3. Graded depth
 
-- D1. **Bridged project** (constitution present — a vendored `qroky/framework/` in the project): full machine — atoms, FEV, STATUS, cost blocks, gates — per THAT project's own rules. Its local CLAUDE.md / foundation / decision records win over any RPF default (precedent: the `_BUSOS` DEC-001 record).
+- D1. **Bridged project** (constitution present — a vendored `qroky/framework/` in the project): full machine — atoms, FEV, STATUS, cost blocks, gates — per THAT project's own rules. Its local CLAUDE.md / foundation / decision records win over any RPF default (precedent: the DEC-001 record in the owner's operations repo).
 - D2. **Unbridged project:** lightweight mode — survey → plan → on «го» execute directly with a minimal trace: artifacts only inside the current project, plus one summary line in the global delegation.log (§8). Lightweight mode never imitates the full machine — no fake atoms, no STATUS theater. The plan MUST offer: «полная дисциплина здесь — скажи „кроки, обустройся“».
 - D3. **«кроки, обустройся»** — install the bridge into the current project (§4).
 
@@ -43,7 +43,7 @@ One word, any door: «кроки» turns the current folder into a governed work
   3. **Silent overlap** — parallel mechanisms that will drift apart (e.g. their task statuses vs STATUS.md): fix an explicit mapping in the bridge config.
 - R3. Output: `<project>/qroky/RULES-MAP.md` — inventory of their constitution, class-1 overrides, class-2 human decisions, class-3 mappings, dates and signatures.
 - R4. **Installation without a RULES-MAP is invalid.** Hard criterion, no exceptions.
-- R5. Canonical examples of the three classes on real data: the `_BUSOS` `qroky/RULES-MAP.md` record (RB6 vs house Tier C = class 1; HP2 vs house language tradition = class 2; verification modes vs house Tier table = class 3).
+- R5. Canonical examples of the three classes on real data: the `qroky/RULES-MAP.md` record in the owner's operations repo (RB6 vs house Tier C = class 1; HP2 vs house language tradition = class 2; verification modes vs house Tier table = class 3).
 
 ## 6. Safety rails (absolute, machine-wide)
 
@@ -87,7 +87,7 @@ One word, any door: «кроки» turns the current folder into a governed work
 
 | Event | Atom | Date |
 | :---- | :---- | :---- |
-| Created | FIN-010 (Finergy operations, _BUSOS) | 2026-07-06 |
+| Created | FIN-010 (owner's operations repo) | 2026-07-06 |
 | §7 Model routing added | INFO-008 (CEO directive, rpf) | 2026-07-07 |
 | §7 M5 run narrative + detail levels | INFO-009 (field-test lesson 5, rpf) | 2026-07-07 |
 | B1a/I0 two-whys mission intake + `qroky start` alias | INFO-011 (CEO directive, rpf) | 2026-07-08 |

@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Qroky heartbeat — daily read-only scan of rpf, notifies CEO only on actions.
-# Pattern borrowed from _BUSOS/tools/hermes-24x7 (proven launchd bundle).
+# Pattern borrowed from hermes-24x7 (owner's operations repo) (proven launchd bundle).
 set -euo pipefail
 
 export TZ="Europe/Chisinau"
@@ -33,7 +33,7 @@ fi
 # Run from the repo root so relative paths in the prompt resolve.
 cd "$RPF_DIR"
 set +e
-"$CLAUDE_BIN" -p "$(cat "$HB_DIR/heartbeat-prompt.md")" \
+"$CLAUDE_BIN" -p "$(sed "s|__RPF_DIR__|$RPF_DIR|g" "$HB_DIR/heartbeat-prompt.md")" \
   --allowedTools "Read" "Glob" "Grep" "Bash(ls:*)" "Bash(head:*)" "Bash(tail:*)" "Bash(git log:*)" \
   > "$OUT_FILE" 2>>"$BEAT_LOG"
 STATUS=$?

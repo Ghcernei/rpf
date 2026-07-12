@@ -5,6 +5,16 @@ better for you). Rendered from the release's verified records — nothing here
 is composed from memory. Rule (INFO-024): a release without a changelog
 entry is not published.
 
+## v0.4.2 — 2026-07-12
+
+- The product repo now IS the product: our factory (work journal, decision
+  records, task board, run logs) moved to its own public home —
+  qroky/lab — and no longer ships with the kit or clutters the repo you
+  browse. What you install is only what you use.
+- Privacy pass on shipped files: the heartbeat prompt no longer names the
+  author's partners or hardcodes his folders (it adapts to YOUR machine),
+  and internal repo references were generalized.
+
 ## v0.4.1 — 2026-07-11
 
 - The problem is solved, not hinted at (INFO-044): setup now puts a real

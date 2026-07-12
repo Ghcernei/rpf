@@ -1,8 +1,0 @@
-# status registry — separation-v1 (INFO-036 block 4, order INFO-043)
-atoms:
-  ATOM-130:
-    folder: 130-separation
-    status: reviewed (kit v0.4, verify ACCEPT r1 — 0 blocking / 5 minor-notes)
-    maturity: —
-    opened: 2026-07-11
-    gate: GATE-031 (G1 go)

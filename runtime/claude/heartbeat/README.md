@@ -1,7 +1,7 @@
 # Qroky heartbeat (runtime/claude)
 
 Ежедневный пульс проекта: будни 09:07, read-only скан → уведомление CEO
-только если есть действия его уровня. Паттерн: `_BUSOS/tools/hermes-24x7`.
+только если есть действия его уровня. Паттерн: `hermes-24x7 (owner's operations repo)`.
 
 - `heartbeat-prompt.md` — что сканирует и правило честности («скажи, если не знаешь»)
 - `heartbeat.sh` — удар: скан через `claude -p` (только Read/Glob/Grep + ls/head/tail/git log), запись в `heartbeat.log`, osascript-уведомление при `ACTION:`
